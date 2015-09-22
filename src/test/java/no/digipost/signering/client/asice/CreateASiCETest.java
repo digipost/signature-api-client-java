@@ -15,6 +15,7 @@
  */
 package no.digipost.signering.client.asice;
 
+import no.digipost.signering.client.TestKonfigurasjon;
 import no.digipost.signering.client.domain.Dokument;
 import no.digipost.signering.client.domain.Signeringsoppdrag;
 import org.apache.commons.io.IOUtils;
@@ -35,7 +36,7 @@ public class CreateASiCETest {
 
         Dokument dokument = new Dokument("Emne", "dokument.txt", "heihei".getBytes());
         Signeringsoppdrag signeringsoppdrag = new Signeringsoppdrag("01010100001", dokument);
-        DocumentBundle aSiCE = createASiCE.createASiCE(signeringsoppdrag);
+        DocumentBundle aSiCE = createASiCE.createASiCE(signeringsoppdrag, TestKonfigurasjon.CLIENT_KEYSTORE);
 
         File tempFile = File.createTempFile("test", ".zip");
         IOUtils.copy(new ByteArrayInputStream(aSiCE.getBytes()), new FileOutputStream(tempFile));

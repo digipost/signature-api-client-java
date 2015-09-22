@@ -18,7 +18,12 @@ package no.digipost.signering.client.asice.manifest;
 import no.digipost.signering.client.asice.Schemas;
 import no.digipost.signering.client.domain.Dokument;
 import no.digipost.signering.client.domain.Signeringsoppdrag;
+import no.digipost.signering.client.domain.exceptions.KonfigurasjonException;
+import no.digipost.signering.client.domain.exceptions.RuntimeIOException;
+import no.digipost.signering.client.domain.exceptions.XmlValideringException;
+import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.xml.sax.SAXParseException;
 
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
@@ -35,7 +40,7 @@ public class CreateManifest {
         try {
             marshaller.afterPropertiesSet();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new KonfigurasjonException("Kunne ikke sette opp Jaxb marshaller", e);
         }
     }
 
@@ -50,8 +55,13 @@ public class CreateManifest {
         try (ByteArrayOutputStream manifestStream = new ByteArrayOutputStream()) {
             marshaller.marshal(manifest, new StreamResult(manifestStream));
             return new Manifest(manifestStream.toByteArray());
+        } catch (MarshallingFailureException e) {
+            if (e.getMostSpecificCause() instanceof SAXParseException) {
+                throw new XmlValideringException("Kunne ikke validere generert Manifest XML. Sjekk at alle påkrevde input er satt og ikke er null", (SAXParseException) e.getMostSpecificCause());
+            }
+            throw e;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeIOException(e);
         }
     }
 }

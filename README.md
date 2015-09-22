@@ -5,15 +5,16 @@ Legg inn filen `src/test/java/no.digipost.signering.client/TestKonfigurasjon.jav
 ```java
 package no.digipost.signering.client;
 
-import no.digipost.signering.client.internal.CertStoreConfig;
+import no.digipost.signering.client.internal.KeyStoreConfig;
 
 public class TestKonfigurasjon {
 
-	public static final CertStoreConfig CLIENT_KEYSTORE = new CertStoreConfig(
-			"<keystore path>",
-			"<keystore passord>",
-			"<key inni keystore passord>"
-	);
+    public static final KeyStoreConfig CLIENT_KEYSTORE = KeyStoreConfig.fraKeyStore(
+            "<keystore path>",
+            "<alias>",
+            "<keystore passord>",
+            "<key inni keystore passord>"
+    );
 
 }
 ```

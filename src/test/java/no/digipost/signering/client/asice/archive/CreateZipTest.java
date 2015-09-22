@@ -64,6 +64,11 @@ public class CreateZipTest {
             public byte[] getBytes() {
                 return contents.getBytes();
             }
+
+            @Override
+            public String getMimeType() {
+                return "text/plain";
+            }
         };
     }
 

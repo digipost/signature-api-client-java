@@ -13,30 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signering.client.asice.manifest;
+package no.digipost.signering.client.domain.exceptions;
 
-import no.digipost.signering.client.asice.ASiCEAttachable;
+import java.io.IOException;
 
-public class Manifest implements ASiCEAttachable {
+/**
+ * Wrapper for IOExceptions i situasjoner der det er ingen/liten praktisk grunn til å anta at en IOException kan oppstå (f.eks. minnerepresentasjoner av streams).
+ */
+public class RuntimeIOException extends SigneringException {
 
-    private byte[] xmlBytes;
-
-    public Manifest(final byte[] xmlBytes) {
-        this.xmlBytes = xmlBytes;
+    public RuntimeIOException(IOException e) {
+        super(e);
     }
 
-    @Override
-    public String getFileName() {
-        return "manifest.xml";
-    }
-
-    @Override
-    public byte[] getBytes() {
-        return xmlBytes;
-    }
-
-    @Override
-    public String getMimeType() {
-        return "application/xml";
-    }
 }

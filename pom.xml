@@ -49,6 +49,11 @@
             <version>2.4</version>
         </dependency>
         <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.9</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-oxm</artifactId>
             <version>${spring.version}</version>
@@ -57,6 +62,16 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
             <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ws</groupId>
+            <artifactId>spring-xml</artifactId>
+            <version>2.2.0.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.6</version>
         </dependency>
 
         <dependency>
@@ -80,6 +95,12 @@
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
             <version>1.3</version>
             <scope>test</scope>
         </dependency>
@@ -117,6 +138,7 @@
                             <exclude>**/*.xml</exclude>
                             <exclude>**/*.dtd</exclude>
                             <exclude>**/*.xsd</exclude>
+                            <exclude>**/*.xjb</exclude>
                             <exclude>**/*.txt</exclude>
                             <exclude>**/*.jks</exclude>
                             <exclude>.editorconfig</exclude>

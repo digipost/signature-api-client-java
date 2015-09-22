@@ -27,22 +27,21 @@ import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
 
 import javax.net.ssl.SSLContext;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.*;
-import java.security.cert.CertificateException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 
 public class SigneringHttpClient {
 
     // TODO (EHH): Initialisere denne "automatisk" fra crt-fil istedenfor å ha en keystore liggende i repoet (den inneholder bare public del, men kjedelig med et dummy passord her likevel)
-    public static final CertStoreConfig CLIENT_TRUSTSTORE = new CertStoreConfig("src/main/resources/truststore.jks", "Qwer1234", null);
+    public static final KeyStoreConfig CLIENT_TRUSTSTORE = KeyStoreConfig.fraKeyStore("src/main/resources/truststore.jks", "root", "Qwer1234", null);
 
-    public static CloseableHttpClient create(CertStoreConfig keystoreConfig) {
+    public static CloseableHttpClient create(KeyStoreConfig keyStoreConfig) {
         try {
             SSLContext sslcontext = SSLContexts.custom()
-                    .loadKeyMaterial(loadKeyStore(keystoreConfig), keystoreConfig.privatekeyPassword.toCharArray())
-                    .loadTrustMaterial(loadKeyStore(CLIENT_TRUSTSTORE), new TrustSelfSignedStrategy()).build();
+                    .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray())
+                    .loadTrustMaterial(CLIENT_TRUSTSTORE.keyStore, new TrustSelfSignedStrategy()).build();
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext,
                     new String[]{"TLSv1.2"}, null, NoopHostnameVerifier.INSTANCE);
 
@@ -53,16 +52,6 @@ public class SigneringHttpClient {
                     .setConnectionManager(connectionManager)
                     .build();
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException | UnrecoverableKeyException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static KeyStore loadKeyStore(CertStoreConfig certStoreConfig) {
-        try {
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(new FileInputStream(new File(certStoreConfig.path)), certStoreConfig.keystorePassword.toCharArray());
-            return keyStore;
-        } catch (IOException | NoSuchAlgorithmException | KeyStoreException | CertificateException e) {
             throw new RuntimeException(e);
         }
     }

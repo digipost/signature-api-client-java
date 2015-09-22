@@ -19,4 +19,6 @@ public interface ASiCEAttachable {
     String getFileName();
 
     byte[] getBytes();
+
+    String getMimeType();
 }

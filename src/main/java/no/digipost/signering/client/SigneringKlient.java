@@ -45,12 +45,12 @@ public class SigneringKlient {
     public SigneringKlient(Tjenesteeier tjenesteeier, KlientKonfigurasjon klientKonfigurasjon) {
         this.tjenesteeier = tjenesteeier;
         this.klientKonfigurasjon = klientKonfigurasjon;
-        httpClient = SigneringHttpClient.create(klientKonfigurasjon.getKeystoreConfig());
+        httpClient = SigneringHttpClient.create(klientKonfigurasjon.getKeyStoreConfig());
         this.dokumentpakkeBuilder = new CreateASiCE();
     }
 
     public void opprett(final Signeringsoppdrag signeringsoppdrag) {
-        DocumentBundle documentBundle = dokumentpakkeBuilder.createASiCE(signeringsoppdrag);
+        DocumentBundle documentBundle = dokumentpakkeBuilder.createASiCE(signeringsoppdrag, klientKonfigurasjon.getKeyStoreConfig());
 
         // TODO (SBN) Nice-ify code for communicating over HTTP
         HttpPost post = new HttpPost(klientKonfigurasjon.getSigneringstjenesteRoot() + "/oppdrag");

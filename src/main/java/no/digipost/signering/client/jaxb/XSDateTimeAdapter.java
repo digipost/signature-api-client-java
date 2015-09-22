@@ -13,30 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signering.client.asice.manifest;
+package no.digipost.signering.client.jaxb;
 
-import no.digipost.signering.client.asice.ASiCEAttachable;
+import org.joda.time.DateTime;
 
-public class Manifest implements ASiCEAttachable {
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-    private byte[] xmlBytes;
+public class XSDateTimeAdapter extends XmlAdapter<String, DateTime> {
 
-    public Manifest(final byte[] xmlBytes) {
-        this.xmlBytes = xmlBytes;
-    }
+	@Override
+	public DateTime unmarshal(final String value) {
+		return (XSDateTimeCustomBinder.parseDateTime(value));
+	}
 
-    @Override
-    public String getFileName() {
-        return "manifest.xml";
-    }
+	@Override
+	public String marshal(final DateTime value) {
+		return (XSDateTimeCustomBinder.printDateTime(value));
+	}
 
-    @Override
-    public byte[] getBytes() {
-        return xmlBytes;
-    }
-
-    @Override
-    public String getMimeType() {
-        return "application/xml";
-    }
 }

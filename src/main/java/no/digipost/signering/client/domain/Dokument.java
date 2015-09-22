@@ -44,11 +44,12 @@ public class Dokument implements ASiCEAttachable {
         return dokument;
     }
 
-    public String getEmne() {
-        return emne;
-    }
-
+    @Override
     public String getMimeType() {
         return mimeType;
+    }
+
+    public String getEmne() {
+        return emne;
     }
 }

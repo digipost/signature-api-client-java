@@ -16,6 +16,7 @@
 package no.digipost.signering.client.asice.archive;
 
 import no.digipost.signering.client.asice.ASiCEAttachable;
+import no.digipost.signering.client.domain.exceptions.RuntimeIOException;
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -40,7 +41,7 @@ public class CreateZip {
                 zipOutputStream.closeEntry();
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeIOException(e);
         } finally {
             IOUtils.closeQuietly(archive);
             IOUtils.closeQuietly(zipOutputStream);

@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signering.client;
+package no.digipost.signering.client.domain.exceptions;
 
-import no.digipost.signering.client.internal.KeyStoreConfig;
+public class NoekkelException extends KonfigurasjonException {
 
-import java.net.URI;
-
-public class KlientKonfigurasjon {
-
-    public KlientKonfigurasjon(URI signeringstjenesteRoot, KeyStoreConfig keyStoreConfig) {
-        this.signeringstjenesteRoot = signeringstjenesteRoot;
-        this.keyStoreConfig = keyStoreConfig;
+    public NoekkelException(String message, Exception e) {
+        super(message, e);
     }
 
-    private URI signeringstjenesteRoot;
-    private KeyStoreConfig keyStoreConfig;
-
-    public URI getSigneringstjenesteRoot() {
-        return signeringstjenesteRoot;
+    public NoekkelException(String s) {
+        super(s);
     }
 
-    public KeyStoreConfig getKeyStoreConfig() {
-        return keyStoreConfig;
-    }
 }

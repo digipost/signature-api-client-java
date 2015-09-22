@@ -8,6 +8,7 @@ Licensed under Apache 2 - http://www.apache.org/licenses/LICENSE-2.0.html
 
 This software includes third party software subject to the following licenses:
 
+  AOP alliance under Public Domain
   Apache Commons Codec under The Apache Software License, Version 2.0
   Apache Commons Logging under The Apache Software License, Version 2.0
   Apache HttpClient under Apache License, Version 2.0
@@ -18,13 +19,18 @@ This software includes third party software subject to the following licenses:
   Hamcrest Core under New BSD License
   Hamcrest library under New BSD License
   JCL 1.1.1 implemented over SLF4J under MIT License
+  Joda-Time under Apache 2
   JUnit under Eclipse Public License 1.0
   Logback Classic Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
   Logback Core Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
   Signering API-klient Java under The Apache Software License, Version 2.0
   SLF4J API Module under MIT License
+  Spring AOP under The Apache Software License, Version 2.0
   Spring Beans under The Apache Software License, Version 2.0
+  Spring Context under The Apache Software License, Version 2.0
   Spring Core under The Apache Software License, Version 2.0
+  Spring Expression Language (SpEL) under The Apache Software License, Version 2.0
   Spring Object/XML Marshalling under The Apache Software License, Version 2.0
+  Spring XML under The Apache Software License, Version 2.0
 
 

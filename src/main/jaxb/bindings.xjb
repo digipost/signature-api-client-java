@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bindings version="2.1"
+          xmlns="http://java.sun.com/xml/ns/jaxb"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema"
+          xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+          extensionBindingPrefixes="xjc">
+
+    <globalBindings>
+        <xjc:simple/>
+        <xjc:javaType adapter="no.digipost.signering.client.jaxb.XSDateTimeAdapter" name="org.joda.time.DateTime"
+                      xmlType="xs:dateTime"/>
+    </globalBindings>
+
+    <bindings schemaLocation="../../../signering-api/src/main/xsd/thirdparty/xmldsig-core-schema.xsd">
+        <schemaBindings>
+            <package name="org.w3.xmldsig"/>
+        </schemaBindings>
+    </bindings>
+
+
+</bindings>

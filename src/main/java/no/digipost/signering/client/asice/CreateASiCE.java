@@ -19,7 +19,10 @@ import no.digipost.signering.client.asice.archive.Archive;
 import no.digipost.signering.client.asice.archive.CreateZip;
 import no.digipost.signering.client.asice.manifest.CreateManifest;
 import no.digipost.signering.client.asice.manifest.Manifest;
+import no.digipost.signering.client.asice.signature.CreateSignature;
+import no.digipost.signering.client.asice.signature.Signature;
 import no.digipost.signering.client.domain.Signeringsoppdrag;
+import no.digipost.signering.client.internal.KeyStoreConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,19 +31,23 @@ public class CreateASiCE {
 
     private CreateZip createZip;
     private CreateManifest createManifest;
+    private CreateSignature createSignature;
 
     public CreateASiCE() {
         createZip = new CreateZip();
         createManifest = new CreateManifest();
+        createSignature = new CreateSignature();
     }
 
-    public DocumentBundle createASiCE(final Signeringsoppdrag signeringsoppdrag) {
-        // TODO (SBN) Create XAdES-signature
+    public DocumentBundle createASiCE(final Signeringsoppdrag signeringsoppdrag, final KeyStoreConfig keyStoreConfig) {
         Manifest manifest = createManifest.createManifest(signeringsoppdrag);
 
         List<ASiCEAttachable> files = new ArrayList<>();
         files.add(signeringsoppdrag.getDokument());
         files.add(manifest);
+
+        Signature signature = createSignature.createSignature(files, keyStoreConfig);
+        files.add(signature);
 
         Archive archive = createZip.zipIt(files);
 

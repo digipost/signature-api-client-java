@@ -13,17 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signering.client.internal;
+package no.digipost.signering.client.asice.signature;
 
-public class CertStoreConfig {
+import no.digipost.signering.client.asice.ASiCEAttachable;
 
-    public final String path;
-    public final String keystorePassword;
-    public final String privatekeyPassword;
+public class Signature implements ASiCEAttachable {
 
-    public CertStoreConfig(String path, String keystorePassword, String privatekeyPassword) {
-        this.path = path;
-        this.keystorePassword = keystorePassword;
-        this.privatekeyPassword = privatekeyPassword;
+    private final byte[] xmlBytes;
+
+    public Signature(byte[] xmlBytes) {
+        this.xmlBytes = xmlBytes;
     }
+
+    @Override
+    public String getFileName() {
+        return "META-INF/signatures.xml";
+    }
+
+    @Override
+    public byte[] getBytes() {
+        return xmlBytes;
+    }
+
+    @Override
+    public String getMimeType() {
+        return "application/xml";
+    }
+
 }

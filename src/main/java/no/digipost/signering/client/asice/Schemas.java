@@ -20,4 +20,6 @@ import org.springframework.core.io.ClassPathResource;
 public class Schemas {
 
     public static final ClassPathResource SIGNERING_MANIFEST_SCHEMA = new ClassPathResource("signering-manifest.xsd");
+    public static final ClassPathResource ASICE_SCHEMA = new ClassPathResource("thirdparty/ts_102918v010201.xsd");
+
 }

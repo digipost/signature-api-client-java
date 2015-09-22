@@ -13,30 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signering.client.asice.manifest;
+package no.digipost.signering.client.domain.exceptions;
 
-import no.digipost.signering.client.asice.ASiCEAttachable;
+public class XmlKonfigurasjonException extends KonfigurasjonException {
 
-public class Manifest implements ASiCEAttachable {
-
-    private byte[] xmlBytes;
-
-    public Manifest(final byte[] xmlBytes) {
-        this.xmlBytes = xmlBytes;
-    }
-
-    @Override
-    public String getFileName() {
-        return "manifest.xml";
-    }
-
-    @Override
-    public byte[] getBytes() {
-        return xmlBytes;
-    }
-
-    @Override
-    public String getMimeType() {
-        return "application/xml";
+    public XmlKonfigurasjonException(final String message, final Exception e) {
+        super(message, e);
     }
 }
