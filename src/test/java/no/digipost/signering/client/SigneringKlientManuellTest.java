@@ -15,17 +15,28 @@
  */
 package no.digipost.signering.client;
 
+import no.digipost.signering.client.domain.Dokument;
+import no.digipost.signering.client.domain.Signeringsoppdrag;
 import no.digipost.signering.client.domain.Tjenesteeier;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
 
+@Ignore("This test requires the backend to be running on local machine")
 public class SigneringKlientManuellTest {
+
+    SigneringKlient signeringKlient = new SigneringKlient(new Tjenesteeier("984661185"), new KlientKonfigurasjon(URI.create("https://localhost:8443"), TestKonfigurasjon.CLIENT_KEYSTORE));
 
     @Test
     public void skal_koble_til_via_toveis_ssl() {
-        SigneringKlient signeringKlient = new SigneringKlient(new Tjenesteeier("984661185"), new KlientKonfigurasjon(URI.create("https://localhost:8443"), TestKonfigurasjon.CLIENT_KEYSTORE));
         String responsString = signeringKlient.tryConnecting();
         System.out.println("Fikk følgende fra serveren:\n" + responsString);
+    }
+
+    @Test
+    public void opprett_signeringsoppdrag() {
+        Signeringsoppdrag signeringsoppdrag = new Signeringsoppdrag("01010100001", new Dokument("Emne", "fil.txt", "hei".getBytes()));
+        signeringKlient.opprett(signeringsoppdrag);
     }
 }

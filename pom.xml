@@ -18,6 +18,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
+        <spring.version>4.2.1.RELEASE</spring.version>
     </properties>
 
     <dependencies>
@@ -25,6 +26,12 @@
             <groupId>no.posten.dpost</groupId>
             <artifactId>digipost-http-client</artifactId>
             <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>no.digipost.signering</groupId>
+            <artifactId>signering-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -36,11 +43,32 @@
             <artifactId>httpcore</artifactId>
             <version>4.4.2</version>
         </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-oxm</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.12</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.2</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -48,6 +76,12 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
             <version>4.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -77,10 +111,15 @@
                         <header>src/main/license-header.txt</header>
                         <strictCheck>true</strictCheck>
                         <excludes>
-                            <exclude>LICENSE*</exclude>
-                            <exclude>NOTICE</exclude>
+                            <exclude>**/LICENSE*</exclude>
+                            <exclude>**/NOTICE</exclude>
                             <exclude>src/main/notice/NOTICE.template</exclude>
                             <exclude>**/*.xml</exclude>
+                            <exclude>**/*.dtd</exclude>
+                            <exclude>**/*.xsd</exclude>
+                            <exclude>**/*.txt</exclude>
+                            <exclude>**/*.jks</exclude>
+                            <exclude>.editorconfig</exclude>
                             <exclude>src/test/resources/**</exclude>
                         </excludes>
                     </configuration>
@@ -116,6 +155,11 @@
                 <plugin>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>2.6</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.jvnet.jaxb2.maven2</groupId>
+                    <artifactId>maven-jaxb2-plugin</artifactId>
+                    <version>0.13.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -160,6 +204,7 @@
                 </executions>
                 <configuration>
                     <additionalparam>-Xdoclint:-missing</additionalparam>
+                    <excludePackageNames>org.w3._2000._09.xmldsig_:org.etsi.*:no.digipost.signering.schema.*</excludePackageNames>
                 </configuration>
             </plugin>
             <plugin>
@@ -189,6 +234,44 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <specVersion>2.2</specVersion>
+                    <schemaDirectory>${basedir}/signering-api/src/main/xsd</schemaDirectory>
+                    <schemaIncludes>
+                        <include>**/*.xsd</include>
+                    </schemaIncludes>
+                    <strict>true</strict>
+                    <extension>true</extension>
+                    <removeOldOutput>true</removeOldOutput>
+                    <bindingDirectory>${basedir}/src/main/jaxb</bindingDirectory>
+                    <args>
+                        <arg>-Xvalue-constructor</arg>
+                        <arg>-Xfluent-api</arg>
+                    </args>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.jvnet.jaxb2_commons</groupId>
+                            <artifactId>jaxb2-fluent-api</artifactId>
+                            <version>3.0</version>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.jvnet.jaxb2_commons</groupId>
+                            <artifactId>jaxb2-value-constructor</artifactId>
+                            <version>3.0</version>
+                        </plugin>
+                    </plugins>
+                </configuration>
             </plugin>
 
         </plugins>

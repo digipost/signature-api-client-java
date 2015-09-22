@@ -1,0 +1,3 @@
+[submodule "signering-api"]
+	path = signering-api
+	url = git@github.com:digipost/signering-api.git
