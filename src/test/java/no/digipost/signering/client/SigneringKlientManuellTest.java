@@ -22,10 +22,10 @@ import java.net.URI;
 
 public class SigneringKlientManuellTest {
 
-	@Test
-	public void skal_koble_til_via_toveis_ssl() {
-		SigneringKlient signeringKlient = new SigneringKlient(new Tjenesteeier("984661185"), new KlientKonfigurasjon(URI.create("https://localhost:8443"), TestKonfigurasjon.CLIENT_KEYSTORE));
-		String responsString = signeringKlient.tryConnecting();
-		System.out.println("Fikk følgende fra serveren:\n" + responsString);
-	}
+    @Test
+    public void skal_koble_til_via_toveis_ssl() {
+        SigneringKlient signeringKlient = new SigneringKlient(new Tjenesteeier("984661185"), new KlientKonfigurasjon(URI.create("https://localhost:8443"), TestKonfigurasjon.CLIENT_KEYSTORE));
+        String responsString = signeringKlient.tryConnecting();
+        System.out.println("Fikk følgende fra serveren:\n" + responsString);
+    }
 }

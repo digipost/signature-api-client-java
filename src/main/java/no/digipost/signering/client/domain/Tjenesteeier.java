@@ -17,13 +17,13 @@ package no.digipost.signering.client.domain;
 
 public class Tjenesteeier {
 
-	private String organisasjonsNummer;
+    private String organisasjonsNummer;
 
-	public Tjenesteeier(String organisasjonsNummer) {
-		this.organisasjonsNummer = organisasjonsNummer;
-	}
+    public Tjenesteeier(String organisasjonsNummer) {
+        this.organisasjonsNummer = organisasjonsNummer;
+    }
 
-	public String getOrganisasjonsNummer() {
-		return organisasjonsNummer;
-	}
+    public String getOrganisasjonsNummer() {
+        return organisasjonsNummer;
+    }
 }

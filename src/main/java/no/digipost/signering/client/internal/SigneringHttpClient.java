@@ -35,36 +35,36 @@ import java.security.cert.CertificateException;
 
 public class SigneringHttpClient {
 
-	// TODO (EHH): Initialisere denne "automatisk" fra crt-fil istedenfor å ha en keystore liggende i repoet (den inneholder bare public del, men kjedelig med et dummy passord her likevel)
-	public static final CertStoreConfig CLIENT_TRUSTSTORE = new CertStoreConfig("src/main/resources/truststore.jks", "Qwer1234", null);
+    // TODO (EHH): Initialisere denne "automatisk" fra crt-fil istedenfor å ha en keystore liggende i repoet (den inneholder bare public del, men kjedelig med et dummy passord her likevel)
+    public static final CertStoreConfig CLIENT_TRUSTSTORE = new CertStoreConfig("src/main/resources/truststore.jks", "Qwer1234", null);
 
-	public static CloseableHttpClient create(CertStoreConfig keystoreConfig) {
-		try {
-			SSLContext sslcontext = SSLContexts.custom()
-					.loadKeyMaterial(loadKeyStore(keystoreConfig), keystoreConfig.privatekeyPassword.toCharArray())
-					.loadTrustMaterial(loadKeyStore(CLIENT_TRUSTSTORE), new TrustSelfSignedStrategy()).build();
-			SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext,
-					new String[]{"TLSv1.2"}, null, NoopHostnameVerifier.INSTANCE);
+    public static CloseableHttpClient create(CertStoreConfig keystoreConfig) {
+        try {
+            SSLContext sslcontext = SSLContexts.custom()
+                    .loadKeyMaterial(loadKeyStore(keystoreConfig), keystoreConfig.privatekeyPassword.toCharArray())
+                    .loadTrustMaterial(loadKeyStore(CLIENT_TRUSTSTORE), new TrustSelfSignedStrategy()).build();
+            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext,
+                    new String[]{"TLSv1.2"}, null, NoopHostnameVerifier.INSTANCE);
 
-			BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create().register("https", sslsf).build());
-			return DigipostHttpClientFactory
-					.createBuilder(DigipostHttpClientSettings.DEFAULT)
-					.setSSLSocketFactory(sslsf)
-					.setConnectionManager(connectionManager)
-					.build();
-		} catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException | UnrecoverableKeyException e) {
-			throw new RuntimeException(e);
-		}
-	}
+            BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create().register("https", sslsf).build());
+            return DigipostHttpClientFactory
+                    .createBuilder(DigipostHttpClientSettings.DEFAULT)
+                    .setSSLSocketFactory(sslsf)
+                    .setConnectionManager(connectionManager)
+                    .build();
+        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException | UnrecoverableKeyException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private static KeyStore loadKeyStore(CertStoreConfig certStoreConfig) {
-		try {
-			KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			keyStore.load(new FileInputStream(new File(certStoreConfig.path)), certStoreConfig.keystorePassword.toCharArray());
-			return keyStore;
-		} catch (IOException | NoSuchAlgorithmException | KeyStoreException | CertificateException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private static KeyStore loadKeyStore(CertStoreConfig certStoreConfig) {
+        try {
+            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keyStore.load(new FileInputStream(new File(certStoreConfig.path)), certStoreConfig.keystorePassword.toCharArray());
+            return keyStore;
+        } catch (IOException | NoSuchAlgorithmException | KeyStoreException | CertificateException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }

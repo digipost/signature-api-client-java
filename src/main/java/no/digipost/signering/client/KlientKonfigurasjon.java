@@ -21,19 +21,19 @@ import java.net.URI;
 
 public class KlientKonfigurasjon {
 
-	public KlientKonfigurasjon(URI signeringstjenesteRoot, CertStoreConfig keystoreConfig) {
-		this.signeringstjenesteRoot = signeringstjenesteRoot;
-		this.keystoreConfig = keystoreConfig;
-	}
+    public KlientKonfigurasjon(URI signeringstjenesteRoot, CertStoreConfig keystoreConfig) {
+        this.signeringstjenesteRoot = signeringstjenesteRoot;
+        this.keystoreConfig = keystoreConfig;
+    }
 
-	private URI signeringstjenesteRoot;
-	private CertStoreConfig keystoreConfig;
+    private URI signeringstjenesteRoot;
+    private CertStoreConfig keystoreConfig;
 
-	public URI getSigneringstjenesteRoot() {
-		return signeringstjenesteRoot;
-	}
+    public URI getSigneringstjenesteRoot() {
+        return signeringstjenesteRoot;
+    }
 
-	public CertStoreConfig getKeystoreConfig() {
-		return keystoreConfig;
-	}
+    public CertStoreConfig getKeystoreConfig() {
+        return keystoreConfig;
+    }
 }

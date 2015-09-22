@@ -17,13 +17,13 @@ package no.digipost.signering.client.internal;
 
 public class CertStoreConfig {
 
-	public final String path;
-	public final String keystorePassword;
-	public final String privatekeyPassword;
+    public final String path;
+    public final String keystorePassword;
+    public final String privatekeyPassword;
 
-	public CertStoreConfig(String path, String keystorePassword, String privatekeyPassword) {
-		this.path = path;
-		this.keystorePassword = keystorePassword;
-		this.privatekeyPassword = privatekeyPassword;
-	}
+    public CertStoreConfig(String path, String keystorePassword, String privatekeyPassword) {
+        this.path = path;
+        this.keystorePassword = keystorePassword;
+        this.privatekeyPassword = privatekeyPassword;
+    }
 }

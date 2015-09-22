@@ -29,38 +29,38 @@ import java.util.Scanner;
 
 public class SigneringKlient {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SigneringKlient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SigneringKlient.class);
 
-	private Tjenesteeier tjenesteeier;
-	private KlientKonfigurasjon klientKonfigurasjon;
-	private final CloseableHttpClient httpClient;
+    private Tjenesteeier tjenesteeier;
+    private KlientKonfigurasjon klientKonfigurasjon;
+    private final CloseableHttpClient httpClient;
 
-	public SigneringKlient(Tjenesteeier tjenesteeier, KlientKonfigurasjon klientKonfigurasjon) {
-		this.tjenesteeier = tjenesteeier;
-		this.klientKonfigurasjon = klientKonfigurasjon;
+    public SigneringKlient(Tjenesteeier tjenesteeier, KlientKonfigurasjon klientKonfigurasjon) {
+        this.tjenesteeier = tjenesteeier;
+        this.klientKonfigurasjon = klientKonfigurasjon;
 
-		httpClient = SigneringHttpClient.create(klientKonfigurasjon.getKeystoreConfig());
-	}
+        httpClient = SigneringHttpClient.create(klientKonfigurasjon.getKeystoreConfig());
+    }
 
-	public String tryConnecting() {
-		try {
-			CloseableHttpResponse response = httpClient.execute(new HttpGet(klientKonfigurasjon.getSigneringstjenesteRoot()));
-			String responseString = convertStreamToString(response.getEntity().getContent());
-			LOG.debug("Server svarte med følgende respons:\n" + responseString);
-			if(!responseString.contains(tjenesteeier.getOrganisasjonsNummer())) {
-				// TODO (EHH): Innføre en egen exception-type?
-				throw new RuntimeException("Fikk ikke organisasjonsnummer tilbake fra server. Noe er galt i oppsettet.");
-			}
-			return responseString;
-		} catch (IOException e) {
-			// TODO (EHH): Innføre en egen exception-type?
-			throw new RuntimeException("Kunne ikke koble til server.", e);
-		}
-	}
+    public String tryConnecting() {
+        try {
+            CloseableHttpResponse response = httpClient.execute(new HttpGet(klientKonfigurasjon.getSigneringstjenesteRoot()));
+            String responseString = convertStreamToString(response.getEntity().getContent());
+            LOG.debug("Server svarte med følgende respons:\n" + responseString);
+            if (!responseString.contains(tjenesteeier.getOrganisasjonsNummer())) {
+                // TODO (EHH): Innføre en egen exception-type?
+                throw new RuntimeException("Fikk ikke organisasjonsnummer tilbake fra server. Noe er galt i oppsettet.");
+            }
+            return responseString;
+        } catch (IOException e) {
+            // TODO (EHH): Innføre en egen exception-type?
+            throw new RuntimeException("Kunne ikke koble til server.", e);
+        }
+    }
 
-	static String convertStreamToString(InputStream is) {
-		Scanner s = new Scanner(is).useDelimiter("\\A");
-		return s.hasNext() ? s.next() : "";
-	}
+    static String convertStreamToString(InputStream is) {
+        Scanner s = new Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
+    }
 
 }
