@@ -15,17 +15,12 @@
  */
 package no.digipost.signering.client.domain.exceptions;
 
-public class SigneringException extends RuntimeException {
-
-    public SigneringException(final Exception e) {
-        super(e);
-    }
-
-    public SigneringException(final String message) {
+public class SendException extends SigneringException {
+    public SendException(final String message) {
         super(message);
     }
 
-    public SigneringException(final String message, final Exception e) {
+    public SendException(final String message, final Exception e) {
         super(message, e);
     }
 }

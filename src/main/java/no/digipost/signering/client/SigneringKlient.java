@@ -19,71 +19,40 @@ import no.digipost.signering.client.asice.CreateASiCE;
 import no.digipost.signering.client.asice.DocumentBundle;
 import no.digipost.signering.client.domain.Signeringsoppdrag;
 import no.digipost.signering.client.domain.Tjenesteeier;
-import no.digipost.signering.client.internal.SigneringHttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
+import no.digipost.signering.client.internal.SenderFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Scanner;
 
 public class SigneringKlient {
 
     private static final Logger LOG = LoggerFactory.getLogger(SigneringKlient.class);
 
-    private Tjenesteeier tjenesteeier;
-    private KlientKonfigurasjon klientKonfigurasjon;
-    private CreateASiCE dokumentpakkeBuilder;
-    private final CloseableHttpClient httpClient;
+    private final Tjenesteeier tjenesteeier;
+    private final KlientKonfigurasjon klientKonfigurasjon;
+    private final CreateASiCE dokumentpakkeBuilder;
+    private final SenderFacade senderFacade;
 
     public SigneringKlient(Tjenesteeier tjenesteeier, KlientKonfigurasjon klientKonfigurasjon) {
         this.tjenesteeier = tjenesteeier;
         this.klientKonfigurasjon = klientKonfigurasjon;
-        httpClient = SigneringHttpClient.create(klientKonfigurasjon.getKeyStoreConfig());
         this.dokumentpakkeBuilder = new CreateASiCE();
+        this.senderFacade = new SenderFacade(klientKonfigurasjon);
     }
 
-    public void opprett(final Signeringsoppdrag signeringsoppdrag) {
+    public String opprett(final Signeringsoppdrag signeringsoppdrag) {
         DocumentBundle documentBundle = dokumentpakkeBuilder.createASiCE(signeringsoppdrag, klientKonfigurasjon.getKeyStoreConfig());
 
-        // TODO (SBN) Nice-ify code for communicating over HTTP
-        HttpPost post = new HttpPost(klientKonfigurasjon.getSigneringstjenesteRoot() + "/oppdrag");
-        BasicHttpEntity entity = new BasicHttpEntity();
-        entity.setContent(new ByteArrayInputStream(documentBundle.getBytes()));
-        post.setEntity(entity);
-
-        try (CloseableHttpResponse response = httpClient.execute(post)) {
-            System.out.println(convertStreamToString(response.getEntity().getContent()));
-        } catch (IOException e) {
-            throw new RuntimeException("Kunne ikke koble til server.", e);
-        }
+        return senderFacade.opprettSigneringsoppdrag(documentBundle);
     }
 
     public String tryConnecting() {
-        try {
-            CloseableHttpResponse response = httpClient.execute(new HttpGet(klientKonfigurasjon.getSigneringstjenesteRoot()));
-            String responseString = convertStreamToString(response.getEntity().getContent());
-            LOG.debug("Server svarte med følgende respons:\n" + responseString);
-            if (!responseString.contains(tjenesteeier.getOrganisasjonsNummer())) {
-                // TODO (EHH): Innføre en egen exception-type?
-                throw new RuntimeException("Fikk ikke organisasjonsnummer tilbake fra server. Noe er galt i oppsettet.");
-            }
-            return responseString;
-        } catch (IOException e) {
+        String responseString = senderFacade.tryConnecting();
+        LOG.debug("Server svarte med følgende respons:\n" + responseString);
+        if (!responseString.contains(tjenesteeier.getOrganisasjonsNummer())) {
             // TODO (EHH): Innføre en egen exception-type?
-            throw new RuntimeException("Kunne ikke koble til server.", e);
+            throw new RuntimeException("Fikk ikke organisasjonsnummer tilbake fra server. Noe er galt i oppsettet.");
         }
-    }
-
-    static String convertStreamToString(InputStream is) {
-        Scanner s = new Scanner(is).useDelimiter("\\A");
-        return s.hasNext() ? s.next() : "";
+        return responseString;
     }
 
 }
