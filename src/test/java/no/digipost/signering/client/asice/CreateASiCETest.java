@@ -34,8 +34,10 @@ public class CreateASiCETest {
     public void create_asice_and_write_to_disk() throws IOException {
         CreateASiCE createASiCE = new CreateASiCE();
 
-        Dokument dokument = new Dokument("Emne", "dokument.txt", "heihei".getBytes());
-        Signeringsoppdrag signeringsoppdrag = new Signeringsoppdrag("01010100001", dokument);
+        Dokument dokument = Dokument.builder("Emne", "fil.txt", "hei".getBytes())
+                .mimeType("text/plain")
+                .build();
+        Signeringsoppdrag signeringsoppdrag = Signeringsoppdrag.builder("01010100001", dokument).build();
         DocumentBundle aSiCE = createASiCE.createASiCE(signeringsoppdrag, TestKonfigurasjon.CLIENT_KEYSTORE);
 
         File tempFile = File.createTempFile("test", ".zip");

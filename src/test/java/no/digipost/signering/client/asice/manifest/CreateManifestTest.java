@@ -27,7 +27,8 @@ public class CreateManifestTest {
     public void accept_valid_signeringsoppdrag() {
         CreateManifest createManifest = new CreateManifest();
 
-        Signeringsoppdrag signeringsoppdrag = new Signeringsoppdrag("01010100001", new Dokument("Emne", "dokument.txt", "hei".getBytes()));
+        Dokument dokument = Dokument.builder("Emne", "fil.txt", "hei".getBytes()).build();
+        Signeringsoppdrag signeringsoppdrag = Signeringsoppdrag.builder("01010100001", dokument).build();
 
         try {
             createManifest.createManifest(signeringsoppdrag);

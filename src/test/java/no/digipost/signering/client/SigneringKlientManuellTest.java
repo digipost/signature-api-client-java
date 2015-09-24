@@ -36,7 +36,10 @@ public class SigneringKlientManuellTest {
 
     @Test
     public void opprett_signeringsoppdrag() {
-        Signeringsoppdrag signeringsoppdrag = new Signeringsoppdrag("01010100001", new Dokument("Emne", "fil.txt", "hei".getBytes()));
+        Dokument dokument = Dokument.builder("Emne", "fil.txt", "hei".getBytes())
+                .mimeType("text/plain")
+                .build();
+        Signeringsoppdrag signeringsoppdrag = Signeringsoppdrag.builder("01010100001", dokument).build();
         String signUrl = signeringKlient.opprett(signeringsoppdrag);
         System.out.println("Gå til følgende URL for å signere dokumentet:\n\t" + signUrl);
     }

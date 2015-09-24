@@ -20,7 +20,7 @@ public class Signeringsoppdrag {
     private String signatar;
     private Dokument dokument;
 
-    public Signeringsoppdrag(final String signatar, final Dokument dokument) {
+    private Signeringsoppdrag(final String signatar, final Dokument dokument) {
         this.signatar = signatar;
         this.dokument = dokument;
     }
@@ -31,5 +31,25 @@ public class Signeringsoppdrag {
 
     public Dokument getDokument() {
         return dokument;
+    }
+
+    public static Builder builder(final String signatar, final Dokument dokument) {
+        return new Builder(signatar, dokument);
+    }
+
+    public static class Builder {
+
+        private final Signeringsoppdrag target;
+        private boolean built = false;
+
+        public Builder(final String signatar, final Dokument dokument) {
+            target = new Signeringsoppdrag(signatar, dokument);
+        }
+
+        public Signeringsoppdrag build() {
+            if (built) throw new IllegalStateException("Can't build twice");
+            built = true;
+            return target;
+        }
     }
 }

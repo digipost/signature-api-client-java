@@ -24,14 +24,10 @@ public class Dokument implements ASiCEAttachable {
     private byte[] dokument;
     private String mimeType = "application/pdf";
 
-    public Dokument(final String emne, final String filnavn, final byte[] dokument) {
+    private Dokument(final String emne, final String filnavn, final byte[] dokument) {
         this.emne = emne;
         this.filnavn = filnavn;
         this.dokument = dokument;
-    }
-
-    public void setMimeType(final String mimeType) {
-        this.mimeType = mimeType;
     }
 
     @Override
@@ -51,5 +47,30 @@ public class Dokument implements ASiCEAttachable {
 
     public String getEmne() {
         return emne;
+    }
+
+    public static Builder builder(final String emne, final String filnavn, final byte[] dokument) {
+        return new Builder(emne, filnavn, dokument);
+    }
+
+    public static class Builder {
+
+        private final Dokument target;
+        private boolean built = false;
+
+        public Builder(final String emne, final String filnavn, final byte[] dokument) {
+            this.target = new Dokument(emne, filnavn, dokument);
+        }
+
+        public Builder mimeType(final String mimeType) {
+            target.mimeType = mimeType;
+            return this;
+        }
+
+        public Dokument build() {
+            if (built) throw new IllegalStateException("Can't build twice");
+            built = true;
+            return target;
+        }
     }
 }
