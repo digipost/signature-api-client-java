@@ -25,10 +25,8 @@ import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
-import org.springframework.core.io.ClassPathResource;
 
 import javax.net.ssl.SSLContext;
-import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -37,15 +35,8 @@ import java.security.UnrecoverableKeyException;
 public class SigneringHttpClient {
 
     // TODO (EHH): Initialisere denne "automatisk" fra crt-fil istedenfor å ha en keystore liggende i repoet (den inneholder bare public del, men kjedelig med et dummy passord her likevel)
-    public static final KeyStoreConfig CLIENT_TRUSTSTORE;
-
-    static {
-        try {
-            CLIENT_TRUSTSTORE = KeyStoreConfig.fraKeyStore(new ClassPathResource("truststore.jks").getInputStream(), "root", "Qwer1234", null);
-        } catch (IOException e) {
-            throw new RuntimeException("Kunne ikke laste trust store under initialisering av SigneringHttpClient", e);
-        }
-    }
+    public static final KeyStoreConfig CLIENT_TRUSTSTORE =
+            KeyStoreConfig.fraKeyStore(SigneringHttpClient.class.getResourceAsStream("/truststore.jks"), "root", "Qwer1234", null);
 
     public static CloseableHttpClient create(KeyStoreConfig keyStoreConfig) {
         try {
