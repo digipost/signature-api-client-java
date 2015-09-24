@@ -10,7 +10,7 @@ import no.digipost.signering.client.internal.KeyStoreConfig;
 public class TestKonfigurasjon {
 
     public static final KeyStoreConfig CLIENT_KEYSTORE = KeyStoreConfig.fraKeyStore(
-            "<keystore path>",
+            <inputstream med keystore>,
             "<alias>",
             "<keystore passord>",
             "<key inni keystore passord>"

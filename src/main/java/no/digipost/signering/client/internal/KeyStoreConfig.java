@@ -18,9 +18,9 @@ package no.digipost.signering.client.internal;
 import no.digipost.signering.client.domain.exceptions.NoekkelException;
 import no.digipost.signering.client.domain.exceptions.SertifikatException;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -82,11 +82,11 @@ public class KeyStoreConfig {
         }
     }
 
-    public static KeyStoreConfig fraKeyStore(final String path, final String alias, final String keyStorePassword, final String privatekeyPassword) {
+    public static KeyStoreConfig fraKeyStore(final InputStream keyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
         try {
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(new FileInputStream(path), keyStorePassword.toCharArray());
-            return new KeyStoreConfig(keyStore, alias, keyStorePassword, privatekeyPassword);
+            KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+            ks.load(keyStore, keyStorePassword.toCharArray());
+            return new KeyStoreConfig(ks, alias, keyStorePassword, privatekeyPassword);
         } catch (FileNotFoundException e) {
             throw new NoekkelException("Kunne initialisiere KeyStore. Er du sikker på at filen finnes?", e);
         } catch (KeyStoreException | NoSuchAlgorithmException | IOException | CertificateException e) {
