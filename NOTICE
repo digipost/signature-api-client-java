@@ -15,7 +15,7 @@ This software includes third party software subject to the following licenses:
   Apache HttpCore under Apache License, Version 2.0
   Commons IO under The Apache Software License, Version 2.0
   Digipost HTTP Client under Unknown license.
-  Digipost Signering API under The Apache Software License, Version 2.0
+  Digipost Signering API-spesifikasjon under The Apache Software License, Version 2.0
   Hamcrest Core under New BSD License
   Hamcrest library under New BSD License
   JCL 1.1.1 implemented over SLF4J under MIT License

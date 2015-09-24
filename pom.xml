@@ -29,7 +29,7 @@
         </dependency>
         <dependency>
             <groupId>no.digipost.signering</groupId>
-            <artifactId>signering-api</artifactId>
+            <artifactId>signering-api-spesifikasjon</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
@@ -269,7 +269,7 @@
                 </executions>
                 <configuration>
                     <specVersion>2.2</specVersion>
-                    <schemaDirectory>${basedir}/signering-api/src/main/xsd</schemaDirectory>
+                    <schemaDirectory>${basedir}/signering-api-spesifikasjon/src/main/xsd</schemaDirectory>
                     <schemaIncludes>
                         <include>**/*.xsd</include>
                     </schemaIncludes>

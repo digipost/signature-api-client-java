@@ -11,7 +11,7 @@
                       xmlType="xs:dateTime"/>
     </globalBindings>
 
-    <bindings schemaLocation="../../../signering-api/src/main/xsd/thirdparty/xmldsig-core-schema.xsd">
+    <bindings schemaLocation="../../../signering-api-spesifikasjon/src/main/xsd/thirdparty/xmldsig-core-schema.xsd">
         <schemaBindings>
             <package name="org.w3.xmldsig"/>
         </schemaBindings>
