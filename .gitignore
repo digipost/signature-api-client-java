@@ -2,4 +2,6 @@ target
 .idea
 *.iml
 
-src/test/java/no/digipost/signering/client/TestKonfigurasjon.java
+.project
+.settings
+.classpath

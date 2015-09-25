@@ -126,8 +126,8 @@ public class CreateSignatureTest {
         assertThat(certDigest.getDigestValue().length, is(20)); // SHA1 is 160 bits => 20 bytes
 
         X509IssuerSerialType issuerSerial = signingCertificate.getCerts().get(0).getIssuerSerial();
-        assertThat(issuerSerial.getX509IssuerName(), is("CN=Buypass Class 3 Test4 CA 3, O=Buypass AS-983163327, C=NO"));
-        assertThat(issuerSerial.getX509SerialNumber(), is(new BigInteger("113750376984636777356838")));
+        assertThat(issuerSerial.getX509IssuerName(), is("CN=Avsender, OU=Avsender, O=Avsender, L=Oslo, ST=NO, C=NO"));
+        assertThat(issuerSerial.getX509SerialNumber(), is(new BigInteger("589725471")));
     }
 
     private void verify_signed_info(final SignedInfo signedInfo) {
