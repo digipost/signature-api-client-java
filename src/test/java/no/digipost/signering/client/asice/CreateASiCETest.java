@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import static no.digipost.signering.client.domain.Dokument.FileType.TXT;
+
 public class CreateASiCETest {
 
     @Test
@@ -35,7 +37,7 @@ public class CreateASiCETest {
         CreateASiCE createASiCE = new CreateASiCE();
 
         Dokument dokument = Dokument.builder("Emne", "fil.txt", "hei".getBytes())
-                .mimeType("text/plain")
+                .fileType(TXT)
                 .build();
         Signeringsoppdrag signeringsoppdrag = Signeringsoppdrag.builder("01010100001", dokument).build();
         DocumentBundle aSiCE = createASiCE.createASiCE(signeringsoppdrag, TestKonfigurasjon.CLIENT_KEYSTORE);

@@ -23,6 +23,8 @@ import org.junit.Test;
 
 import java.net.URI;
 
+import static no.digipost.signering.client.domain.Dokument.FileType.TXT;
+
 @Ignore("This test requires the backend to be running on local machine")
 public class SigneringKlientManuellTest {
 
@@ -37,7 +39,7 @@ public class SigneringKlientManuellTest {
     @Test
     public void opprett_signeringsoppdrag() {
         Dokument dokument = Dokument.builder("Emne", "fil.txt", "hei".getBytes())
-                .mimeType("text/plain")
+                .fileType(TXT)
                 .build();
         Signeringsoppdrag signeringsoppdrag = Signeringsoppdrag.builder("01010100001", dokument).build();
         String signUrl = signeringKlient.opprett(signeringsoppdrag);

@@ -17,12 +17,14 @@ package no.digipost.signering.client.domain;
 
 import no.digipost.signering.client.asice.ASiCEAttachable;
 
+import static no.digipost.signering.client.domain.Dokument.FileType.PDF;
+
 public class Dokument implements ASiCEAttachable {
 
     private String emne;
     private String filnavn;
     private byte[] dokument;
-    private String mimeType = "application/pdf";
+    private FileType fileType = PDF;
 
     private Dokument(final String emne, final String filnavn, final byte[] dokument) {
         this.emne = emne;
@@ -42,7 +44,7 @@ public class Dokument implements ASiCEAttachable {
 
     @Override
     public String getMimeType() {
-        return mimeType;
+        return fileType.mimeType;
     }
 
     public String getEmne() {
@@ -62,8 +64,8 @@ public class Dokument implements ASiCEAttachable {
             this.target = new Dokument(emne, filnavn, dokument);
         }
 
-        public Builder mimeType(final String mimeType) {
-            target.mimeType = mimeType;
+        public Builder fileType(final FileType fileType) {
+            target.fileType = fileType;
             return this;
         }
 
@@ -71,6 +73,17 @@ public class Dokument implements ASiCEAttachable {
             if (built) throw new IllegalStateException("Can't build twice");
             built = true;
             return target;
+        }
+    }
+
+    public enum FileType {
+        PDF("application/pdf"),
+        TXT("text/plain");
+
+        public final String mimeType;
+
+        FileType(final String mimeType) {
+            this.mimeType = mimeType;
         }
     }
 }
