@@ -19,7 +19,6 @@ This software includes third party software subject to the following licenses:
   Hamcrest Core under New BSD License
   Hamcrest library under New BSD License
   JCL 1.1.1 implemented over SLF4J under MIT License
-  Joda-Time under Apache 2
   JUnit under Eclipse Public License 1.0
   Logback Classic Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
   Logback Core Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License

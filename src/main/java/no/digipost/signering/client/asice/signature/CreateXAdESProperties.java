@@ -19,8 +19,6 @@ import no.digipost.signering.client.asice.ASiCEAttachable;
 import no.digipost.signering.client.domain.exceptions.SertifikatException;
 import no.digipost.signering.client.domain.exceptions.XmlKonfigurasjonException;
 import org.etsi.uri._01903.v1_3.*;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.w3.xmldsig.X509IssuerSerialType;
 import org.w3c.dom.Document;
@@ -35,6 +33,7 @@ import javax.xml.xpath.XPathFactory;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -65,7 +64,7 @@ public class CreateXAdESProperties {
         X509IssuerSerialType certificateIssuer = new X509IssuerSerialType(certificate.getIssuerDN().getName(), certificate.getSerialNumber());
         SigningCertificate signingCertificate = new SigningCertificate(singletonList(new CertIDType(certificateDigest, certificateIssuer, null)));
 
-        DateTime now = DateTime.now(DateTimeZone.UTC);
+        Date now = new Date();
         SignedSignatureProperties signedSignatureProperties = new SignedSignatureProperties(now, signingCertificate, null, null, null, null);
         SignedDataObjectProperties signedDataObjectProperties = new SignedDataObjectProperties(dataObjectFormats(files), null, null, null, null);
         SignedProperties signedProperties = new SignedProperties(signedSignatureProperties, signedDataObjectProperties, "SignedProperties");

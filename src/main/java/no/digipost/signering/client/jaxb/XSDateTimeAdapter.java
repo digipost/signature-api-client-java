@@ -15,19 +15,18 @@
  */
 package no.digipost.signering.client.jaxb;
 
-import org.joda.time.DateTime;
-
 import javax.xml.bind.annotation.adapters.XmlAdapter;
+import java.util.Date;
 
-public class XSDateTimeAdapter extends XmlAdapter<String, DateTime> {
+public class XSDateTimeAdapter extends XmlAdapter<String, Date> {
 
 	@Override
-	public DateTime unmarshal(final String value) {
+	public Date unmarshal(final String value) {
 		return (XSDateTimeCustomBinder.parseDateTime(value));
 	}
 
 	@Override
-	public String marshal(final DateTime value) {
+	public String marshal(final Date value) {
 		return (XSDateTimeCustomBinder.printDateTime(value));
 	}
 

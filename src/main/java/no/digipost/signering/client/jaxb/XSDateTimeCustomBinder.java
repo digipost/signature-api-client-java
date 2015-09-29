@@ -15,18 +15,23 @@
  */
 package no.digipost.signering.client.jaxb;
 
-import org.joda.time.DateTime;
-
 import javax.xml.bind.DatatypeConverter;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 public class XSDateTimeCustomBinder {
 
-	public static DateTime parseDateTime(final String s) {
-		return new DateTime(DatatypeConverter.parseDate(s).getTime());
+	public static Date parseDateTime(final String s) {
+		return DatatypeConverter.parseDateTime(s).getTime();
 	}
 
-	public static String printDateTime(final DateTime dt) {
-		return dt == null ? null : dt.toString();
+	public static String printDateTime(final Date dt) {
+        if (dt == null) {
+            return null;
+        }
+        GregorianCalendar calendar = new GregorianCalendar();
+        calendar.setTime(dt);
+        return DatatypeConverter.printDateTime(calendar);
 	}
 
 }

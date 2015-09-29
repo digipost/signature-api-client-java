@@ -68,11 +68,6 @@
             <artifactId>spring-xml</artifactId>
             <version>2.2.0.RELEASE</version>
         </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.6</version>
-        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>

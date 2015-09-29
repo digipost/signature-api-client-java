@@ -7,7 +7,7 @@
 
     <globalBindings>
         <xjc:simple/>
-        <xjc:javaType adapter="no.digipost.signering.client.jaxb.XSDateTimeAdapter" name="org.joda.time.DateTime"
+        <xjc:javaType adapter="no.digipost.signering.client.jaxb.XSDateTimeAdapter" name="java.util.Date"
                       xmlType="xs:dateTime"/>
     </globalBindings>
 
