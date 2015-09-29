@@ -16,12 +16,12 @@
 package no.digipost.signering.client.asice.signature;
 
 import no.digipost.signering.client.asice.ASiCEAttachable;
-import no.digipost.signering.client.asice.Schemas;
-import no.digipost.signering.client.domain.exceptions.RuntimeIOException;
-import no.digipost.signering.client.domain.exceptions.XmlValideringException;
 import no.digipost.signering.client.domain.exceptions.KonfigurasjonException;
+import no.digipost.signering.client.domain.exceptions.RuntimeIOException;
 import no.digipost.signering.client.domain.exceptions.XmlKonfigurasjonException;
+import no.digipost.signering.client.domain.exceptions.XmlValideringException;
 import no.digipost.signering.client.internal.KeyStoreConfig;
+import no.digipost.signering.client.internal.Marshalling.Schemas;
 import org.springframework.core.io.Resource;
 import org.springframework.xml.validation.SchemaLoaderUtils;
 import org.springframework.xml.validation.XmlValidatorFactory;

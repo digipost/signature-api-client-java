@@ -20,6 +20,7 @@ import no.digipost.signering.client.asice.DocumentBundle;
 import no.digipost.signering.client.domain.Signeringsoppdrag;
 import no.digipost.signering.client.domain.Tjenesteeier;
 import no.digipost.signering.client.internal.SenderFacade;
+import no.digipost.signering.schema.v1.SignerbartDokument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ public class SigneringKlient {
         this.senderFacade = new SenderFacade(klientKonfigurasjon);
     }
 
-    public String opprett(final Signeringsoppdrag signeringsoppdrag) {
+    public SignerbartDokument opprett(final Signeringsoppdrag signeringsoppdrag) {
         DocumentBundle documentBundle = dokumentpakkeBuilder.createASiCE(signeringsoppdrag, klientKonfigurasjon.getKeyStoreConfig());
 
         return senderFacade.opprettSigneringsoppdrag(documentBundle);

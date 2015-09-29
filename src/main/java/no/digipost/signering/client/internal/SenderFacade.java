@@ -18,6 +18,7 @@ package no.digipost.signering.client.internal;
 import no.digipost.signering.client.KlientKonfigurasjon;
 import no.digipost.signering.client.asice.DocumentBundle;
 import no.digipost.signering.client.domain.exceptions.SendException;
+import no.digipost.signering.schema.v1.SignerbartDokument;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -26,9 +27,11 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import java.io.IOException;
 
+import static no.digipost.signering.client.internal.Marshalling.unmarshal;
 import static org.apache.commons.io.Charsets.UTF_8;
 
 public class SenderFacade {
@@ -37,19 +40,21 @@ public class SenderFacade {
 
     private final KlientKonfigurasjon klientKonfigurasjon;
     private final CloseableHttpClient httpClient;
+    private final Jaxb2Marshaller marshaller;
 
     public SenderFacade(final KlientKonfigurasjon klientKonfigurasjon) {
         this.klientKonfigurasjon = klientKonfigurasjon;
         httpClient = SigneringHttpClient.create(klientKonfigurasjon.getKeyStoreConfig());
+        marshaller = Marshalling.instance();
     }
 
-    public String opprettSigneringsoppdrag(final DocumentBundle documentBundle) {
+    public SignerbartDokument opprettSigneringsoppdrag(final DocumentBundle documentBundle) {
         HttpPost request = new HttpPost(klientKonfigurasjon.getSigneringstjenesteRoot() + SIGNERINGSOPPDRAG_PATH);
         request.setEntity(new ByteArrayEntity(documentBundle.getBytes(), ContentType.APPLICATION_OCTET_STREAM));
 
         try (CloseableHttpResponse response = httpClient.execute(request)) {
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
-                return response.getFirstHeader("Location").getValue();
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                return unmarshal(marshaller, response.getEntity().getContent(), SignerbartDokument.class);
             } else {
                 throw new SendException(EntityUtils.toString(response.getEntity(), UTF_8));
             }

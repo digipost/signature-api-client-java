@@ -15,12 +15,11 @@
  */
 package no.digipost.signering.client.asice.manifest;
 
-import no.digipost.signering.client.asice.Schemas;
 import no.digipost.signering.client.domain.Dokument;
 import no.digipost.signering.client.domain.Signeringsoppdrag;
-import no.digipost.signering.client.domain.exceptions.KonfigurasjonException;
 import no.digipost.signering.client.domain.exceptions.RuntimeIOException;
 import no.digipost.signering.client.domain.exceptions.XmlValideringException;
+import no.digipost.signering.client.internal.Marshalling;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.xml.sax.SAXParseException;
@@ -31,18 +30,7 @@ import java.io.IOException;
 
 public class CreateManifest {
 
-    private static final Jaxb2Marshaller marshaller;
-
-    static {
-        marshaller = new Jaxb2Marshaller();
-        marshaller.setClassesToBeBound(no.digipost.signering.schema.v1.Manifest.class);
-        marshaller.setSchema(Schemas.SIGNERING_MANIFEST_SCHEMA);
-        try {
-            marshaller.afterPropertiesSet();
-        } catch (Exception e) {
-            throw new KonfigurasjonException("Kunne ikke sette opp Jaxb marshaller", e);
-        }
-    }
+    private static final Jaxb2Marshaller marshaller = Marshalling.instance();
 
     public Manifest createManifest(final Signeringsoppdrag signeringsoppdrag) {
         Dokument dokument = signeringsoppdrag.getDokument();
