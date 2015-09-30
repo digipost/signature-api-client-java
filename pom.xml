@@ -215,7 +215,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <additionalparam>-Xdoclint:-missing</additionalparam>
                     <excludePackageNames>org.w3._2000._09.xmldsig_:org.etsi.*:no.digipost.signering.schema.*</excludePackageNames>
                 </configuration>
             </plugin>
@@ -288,6 +287,28 @@
 
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>doclint-java8-disable</id>
+            <activation>
+                <jdk>[1.8,</jdk>
+            </activation>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <artifactId>maven-javadoc-plugin</artifactId>
+                            <configuration>
+                                <additionalparam>-Xdoclint:-missing</additionalparam>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
 
     <scm>
         <connection>scm:git:git@github.com:digipost/signering-api-client-java.git</connection>
