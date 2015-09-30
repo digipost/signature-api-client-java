@@ -39,7 +39,7 @@ public class CreateASiCETest {
         Dokument dokument = Dokument.builder("Emne", "fil.txt", "hei".getBytes())
                 .fileType(TXT)
                 .build();
-        Signeringsoppdrag signeringsoppdrag = Signeringsoppdrag.builder("01010100001", dokument).build();
+        Signeringsoppdrag signeringsoppdrag = Signeringsoppdrag.builder("01010100001", dokument, "http://localhost").build();
         DocumentBundle aSiCE = createASiCE.createASiCE(signeringsoppdrag, TestKonfigurasjon.CLIENT_KEYSTORE);
 
         File tempFile = File.createTempFile("test", ".zip");

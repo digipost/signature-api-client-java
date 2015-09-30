@@ -19,10 +19,12 @@ public class Signeringsoppdrag {
 
     private String signatar;
     private Dokument dokument;
+    private String fullføringsUrl;
 
-    private Signeringsoppdrag(final String signatar, final Dokument dokument) {
+    private Signeringsoppdrag(final String signatar, final Dokument dokument, final String fullføringsUrl) {
         this.signatar = signatar;
         this.dokument = dokument;
+        this.fullføringsUrl = fullføringsUrl;
     }
 
     public String getSignatar() {
@@ -33,8 +35,12 @@ public class Signeringsoppdrag {
         return dokument;
     }
 
-    public static Builder builder(final String signatar, final Dokument dokument) {
-        return new Builder(signatar, dokument);
+    public String getFullføringsUrl() {
+        return fullføringsUrl;
+    }
+
+    public static Builder builder(final String signatar, final Dokument dokument, final String fullføringsUrl) {
+        return new Builder(signatar, dokument, fullføringsUrl);
     }
 
     public static class Builder {
@@ -42,8 +48,8 @@ public class Signeringsoppdrag {
         private final Signeringsoppdrag target;
         private boolean built = false;
 
-        public Builder(final String signatar, final Dokument dokument) {
-            target = new Signeringsoppdrag(signatar, dokument);
+        public Builder(final String signatar, final Dokument dokument, final String fullføringsUrl) {
+            target = new Signeringsoppdrag(signatar, dokument, fullføringsUrl);
         }
 
         public Signeringsoppdrag build() {

@@ -38,7 +38,8 @@ public class CreateManifest {
                 .withSignatar(signeringsoppdrag.getSignatar())
                 .withEmne(dokument.getEmne())
                 .withFilnavn(dokument.getFileName())
-                .withMimeType(dokument.getMimeType());
+                .withMimeType(dokument.getMimeType())
+                .withFullføringsUrl(signeringsoppdrag.getFullføringsUrl());
 
         try (ByteArrayOutputStream manifestStream = new ByteArrayOutputStream()) {
             marshaller.marshal(manifest, new StreamResult(manifestStream));

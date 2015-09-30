@@ -28,7 +28,7 @@ public class CreateManifestTest {
         CreateManifest createManifest = new CreateManifest();
 
         Dokument dokument = Dokument.builder("Emne", "fil.txt", "hei".getBytes()).build();
-        Signeringsoppdrag signeringsoppdrag = Signeringsoppdrag.builder("01010100001", dokument).build();
+        Signeringsoppdrag signeringsoppdrag = Signeringsoppdrag.builder("01010100001", dokument, "http://localhost").build();
 
         try {
             createManifest.createManifest(signeringsoppdrag);
