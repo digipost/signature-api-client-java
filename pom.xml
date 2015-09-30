@@ -23,11 +23,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>no.posten.dpost</groupId>
-            <artifactId>digipost-http-client</artifactId>
-            <version>1.2</version>
-        </dependency>
-        <dependency>
             <groupId>no.digipost.signering</groupId>
             <artifactId>signering-api-spesifikasjon</artifactId>
             <version>1.0-SNAPSHOT</version>
