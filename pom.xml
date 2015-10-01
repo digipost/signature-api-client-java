@@ -130,7 +130,7 @@
                             <exclude>**/*.xsd</exclude>
                             <exclude>**/*.xjb</exclude>
                             <exclude>**/*.txt</exclude>
-                            <exclude>**/*.jks</exclude>
+                            <exclude>**/*.jce</exclude>
                             <exclude>.editorconfig</exclude>
                             <exclude>src/test/resources/**</exclude>
                         </excludes>

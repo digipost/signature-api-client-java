@@ -84,7 +84,7 @@ public class KeyStoreConfig {
 
     public static KeyStoreConfig fraKeyStore(final InputStream keyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
         try {
-            KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+            KeyStore ks = KeyStore.getInstance("JCEKS");
             ks.load(keyStore, keyStorePassword.toCharArray());
             return new KeyStoreConfig(ks, alias, keyStorePassword, privatekeyPassword);
         } catch (FileNotFoundException e) {

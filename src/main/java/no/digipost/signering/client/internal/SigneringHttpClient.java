@@ -38,7 +38,7 @@ public class SigneringHttpClient {
 
     // TODO (EHH): Initialisere denne "automatisk" fra crt-fil istedenfor å ha en keystore liggende i repoet (den inneholder bare public del, men kjedelig med et dummy passord her likevel)
     public static final KeyStoreConfig CLIENT_TRUSTSTORE =
-            KeyStoreConfig.fraKeyStore(SigneringHttpClient.class.getResourceAsStream("/truststore.jks"), "root", "Qwer1234", null);
+            KeyStoreConfig.fraKeyStore(SigneringHttpClient.class.getResourceAsStream("/truststore.jce"), "root", "Qwer1234", null);
 
     /**
      * Socket timeout is used for both requests and, if any,

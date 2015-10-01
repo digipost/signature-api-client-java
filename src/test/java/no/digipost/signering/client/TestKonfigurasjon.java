@@ -21,7 +21,7 @@ import no.digipost.signering.client.internal.KeyStoreConfig;
 public class TestKonfigurasjon {
 
     public static final KeyStoreConfig CLIENT_KEYSTORE = KeyStoreConfig.fraKeyStore(
-            TestKonfigurasjon.class.getResourceAsStream("/selfsigned-keystore.jks"),
+            TestKonfigurasjon.class.getResourceAsStream("/selfsigned-keystore.jce"),
             "avsender",
             "password1234",
             "password1234"
