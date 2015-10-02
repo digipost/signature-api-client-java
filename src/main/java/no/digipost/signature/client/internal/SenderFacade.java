@@ -35,7 +35,7 @@ import static org.apache.commons.io.Charsets.UTF_8;
 
 public class SenderFacade {
 
-    public static final String SIGNERINGSOPPDRAG_PATH = "/oppdrag";
+    public static final String SIGNATURE_REQUESTS_PATH = "/signatureRequest";
 
     private final ClientConfiguration clientConfiguration;
     private final CloseableHttpClient httpClient;
@@ -48,7 +48,7 @@ public class SenderFacade {
     }
 
     public SignableDocument createSignatureRequest(final DocumentBundle documentBundle) {
-        HttpPost request = new HttpPost(clientConfiguration.getSignatureServiceRoot() + SIGNERINGSOPPDRAG_PATH);
+        HttpPost request = new HttpPost(clientConfiguration.getSignatureServiceRoot() + SIGNATURE_REQUESTS_PATH);
         request.setEntity(new ByteArrayEntity(documentBundle.getBytes(), ContentType.APPLICATION_OCTET_STREAM));
 
         try (CloseableHttpResponse response = httpClient.execute(request)) {
