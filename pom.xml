@@ -3,8 +3,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Signering API-klient Java</name>
-    <artifactId>signering-api-client-java</artifactId>
+    <name>Signature API-client Java</name>
+    <artifactId>signature-api-client-java</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -23,8 +23,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>no.digipost.signering</groupId>
-            <artifactId>signering-api-spesifikasjon</artifactId>
+            <groupId>no.digipost.signature</groupId>
+            <artifactId>signature-api-specification</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
@@ -258,7 +258,7 @@
                 </executions>
                 <configuration>
                     <specVersion>2.2</specVersion>
-                    <schemaDirectory>${basedir}/signering-api-spesifikasjon/src/main/xsd</schemaDirectory>
+                    <schemaDirectory>${basedir}/signature-api-specification/src/main/xsd</schemaDirectory>
                     <schemaIncludes>
                         <include>**/*.xsd</include>
                     </schemaIncludes>

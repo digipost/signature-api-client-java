@@ -7,11 +7,10 @@
 
     <globalBindings>
         <xjc:simple/>
-        <xjc:javaType adapter="no.digipost.signering.client.jaxb.XSDateTimeAdapter" name="java.util.Date"
-                      xmlType="xs:dateTime"/>
+        <xjc:javaType adapter="no.digipost.signature.client.jaxb.XSDateTimeAdapter" name="java.util.Date" xmlType="xs:dateTime"/>
     </globalBindings>
 
-    <bindings schemaLocation="../../../signering-api-spesifikasjon/src/main/xsd/thirdparty/xmldsig-core-schema.xsd">
+    <bindings schemaLocation="../../../signature-api-specification/src/main/xsd/thirdparty/xmldsig-core-schema.xsd">
         <schemaBindings>
             <package name="org.w3.xmldsig"/>
         </schemaBindings>
