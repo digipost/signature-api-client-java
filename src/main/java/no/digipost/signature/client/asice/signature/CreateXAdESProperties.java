@@ -20,11 +20,11 @@ import no.digipost.signature.client.domain.exceptions.CertificateException;
 import no.digipost.signature.client.domain.exceptions.XmlConfigurationException;
 import org.etsi.uri._01903.v1_3.*;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-import org.w3.xmldsig.X509IssuerSerialType;
+import org.w3._2000._09.xmldsig_.DigestMethod;
+import org.w3._2000._09.xmldsig_.X509IssuerSerialType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.xml.crypto.dsig.DigestMethod;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -39,11 +39,12 @@ import java.util.List;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static javax.xml.crypto.dsig.DigestMethod.SHA1;
 import static org.apache.commons.codec.digest.DigestUtils.sha1;
 
 public class CreateXAdESProperties {
 
-    private final org.w3.xmldsig.DigestMethod sha1DigestMethod = new org.w3.xmldsig.DigestMethod(emptyList(), DigestMethod.SHA1);
+    private final DigestMethod sha1DigestMethod = new DigestMethod(emptyList(), SHA1);
 
     private static Jaxb2Marshaller marshaller;
 

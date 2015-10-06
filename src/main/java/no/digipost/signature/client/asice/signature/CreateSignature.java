@@ -96,7 +96,7 @@ public class CreateSignature {
 
     private Schema loadSchema() {
         try {
-            return SchemaLoaderUtils.loadSchema(new Resource[]{Marshalling.Schemas.ASICE_SCHEMA}, XmlValidatorFactory.SCHEMA_W3C_XML);
+            return SchemaLoaderUtils.loadSchema(new Resource[]{Marshalling.Schemas.XMLDSIG_SCHEMA, Marshalling.Schemas.ASICE_SCHEMA}, XmlValidatorFactory.SCHEMA_W3C_XML);
         } catch (IOException | SAXException e) {
             throw new ConfigurationException("Failed to load schemas for validating signatures", e);
         }

@@ -13,13 +13,7 @@ env:
   - secure: "Pxgdes5ypkne3eAtpRYS+bPiKTu2XLa8ECRR0g2/1XeO8VcLrkuPTA3R//U3tOX2lvi0sH5QMyBONkSyDemhh7+Mcc0m8UgG/efOHncJ5HgGjsgZdjOnMcrSATjBM9Owx4ERjCm/exGkBv35pWWFtVPxpzKTJ114c/vekJAnAill/YgAw1s2eNPzxMqBYv3fdGfbwxcEQh+6LDmPv0iBD6s4zOOdOnHa/ZQa8+xLRUP4cyWI+TsNwdD7iBU9dA85P4KBPAT+/aCiRzRNJHfz4mzIM23gKrk1xEbf5kNT2EyIYoyPWVYZCjV+E7TzNJXUVxj3AJo1APfg2FU5WRTfv1MwqyRQI9Ulmfwjsl33Bbo/Uo9hs26AIqwRN9uoPO+DJuFYD+u36t8K8GsY3yQWf2pj+t17sDyzAUeeAW6T7RdIFpQFO6bgMeYG69C1eR/W+wG66dVPcGdOcdxi37o0pqnh1HxlyhlSHfpNLuapo62WfoBA0VzynHCHtc5tmzx64FsdMJ6DJEGIOndmgaq5OvxzlMlQBXqwz8QZLKTAqds+StAeDxHLywZeg4sbWY87/t+WkL672xxJVh4rVvcpxHk7eo/0ne9Bou1yaE/09v360f6SRxNp/q5jJPC1nGivDVKmmwM2vJFEaCfK4wcrsTicZe7Qg2FNZxCvOlC1D9M="
   - secure: "ZAO/ED59fybplawhIWyOTtZJExElb5FzKYoZwBFxGrrQKi00IPfHYvIdXImD6bbZfCwfBTuunXxGvMRrK5yWqPFGzjXkt3PCGizbDTlMtnTXbMmRW65ZQx6PnNwAP9l30NPv5AVwemDLGiLqF61+N2O18WZ/6dWUDyE/dh477D6eC30EceDwZN1RVvP0BrP6xSixRQC7arE5AlY9F0YEsVA6gIi6jQEW7VSJXAvc1uNP5DdGy1FFhAIvJ0d/se8M90Imn/AoHOWD4ZcXhQ0GYYMzUxuW98GsXwVkpd2nIrJHK3nUq6UVQSsFUZGdgtk+JiYJwNFoSgFrQelXm3pYi5lbCoSyeMNEcnOu2njz1nwmWThKo++aN55yGQcCcTjMrpswBo7I0jfaWa2I9kQ9/vpCOlVBqLGZBZRfQsnMevIR5VNuMDTnuDLFKPQLVrrEdEDNx47KXMiS3qzDCxuXotzr/Lg9rnCVj9RunwZJ46zy1n/F4Em1XNiOcoXvWvwkInxU3L+eHLur+8mDUVmxf5iYXPRyEMFYTExqwx6VZlE6W786OnJrR3Dnp9Rv57VYShn4HOwjCaoy9XYHvXB12lh0xY129R52qYCBLrTDj3w6iRYW0gGWoWFxTZDehu42sNPNDx6xTHtkjpP1UBVMsVmiypc1SpLoCJDGCxlccbw="
 
-# Handle git submodules yourself
-git:
-  submodules: false
 before_install:
-  # Use sed to replace the SSH URL with the public URL, then initialize before_install:
-  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
-  - git submodule update --init --recursive
   - echo "<settings><servers><server><id>sonatype-oss-nexus-snapshots</id><username>\${env.SONATYPE_USER}</username><password>\${env.SONATYPE_PASS}</password></server></servers></settings>" > ~/.m2/deploy-settings.xml
 
 install:

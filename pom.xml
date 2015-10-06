@@ -25,7 +25,7 @@
         <dependency>
             <groupId>no.digipost.signature</groupId>
             <artifactId>signature-api-specification</artifactId>
-            <version>0.1</version>
+            <version>0.2</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -258,11 +258,39 @@
                 </executions>
                 <configuration>
                     <specVersion>2.2</specVersion>
-                    <schemaDirectory>${basedir}/signature-api-specification/src/main/xsd</schemaDirectory>
-                    <schemaIncludes>
-                        <include>**/*.xsd</include>
-                    </schemaIncludes>
-                    <strict>true</strict>
+                    <schemas>
+                        <schema>
+                            <dependencyResource>
+                                <groupId>no.digipost.signature</groupId>
+                                <artifactId>signature-api-specification</artifactId>
+                                <resource>signature-manifest.xsd</resource>
+                            </dependencyResource>
+                        </schema>
+                        <schema>
+                            <dependencyResource>
+                                <groupId>no.digipost.signature</groupId>
+                                <artifactId>signature-api-specification</artifactId>
+                                <resource>thirdparty/XAdES.xsd</resource>
+                            </dependencyResource>
+                        </schema>
+                        <schema>
+                            <dependencyResource>
+                                <groupId>no.digipost.signature</groupId>
+                                <artifactId>signature-api-specification</artifactId>
+                                <resource>thirdparty/ts_102918v010201.xsd</resource>
+                            </dependencyResource>
+                        </schema>
+                    </schemas>
+                    <catalogs>
+                        <catalog>
+                            <dependencyResource>
+                                <groupId>no.digipost.signature</groupId>
+                                <artifactId>signature-api-specification</artifactId>
+                                <resource>catalog.xml</resource>
+                            </dependencyResource>
+                        </catalog>
+                    </catalogs>
+                    <strict>false</strict>
                     <extension>true</extension>
                     <removeOldOutput>true</removeOldOutput>
                     <bindingDirectory>${basedir}/src/main/jaxb</bindingDirectory>

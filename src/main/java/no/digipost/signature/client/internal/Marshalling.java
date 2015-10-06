@@ -49,11 +49,13 @@ public class Marshalling {
 
     public static class Schemas {
         public static final ClassPathResource SIGNERING_MANIFEST_SCHEMA = new ClassPathResource("signature-manifest.xsd");
+        public static final ClassPathResource XMLDSIG_SCHEMA = new ClassPathResource("thirdparty/xmldsig-core-schema.xsd");
         public static final ClassPathResource ASICE_SCHEMA = new ClassPathResource("thirdparty/ts_102918v010201.xsd");
+        public static final ClassPathResource XADES_SCHEMA = new ClassPathResource("thirdparty/XAdES.xsd");
 
         public static Resource[] allSchemaResources() {
             return new Resource[]{
-                    SIGNERING_MANIFEST_SCHEMA, ASICE_SCHEMA
+                    SIGNERING_MANIFEST_SCHEMA, XMLDSIG_SCHEMA, ASICE_SCHEMA, XADES_SCHEMA
             };
         }
     }
