@@ -20,13 +20,11 @@ import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signering.schema.v1.SignatureJobRequest;
 import no.digipost.signering.schema.v1.SignatureJobResponse;
 import org.glassfish.jersey.media.multipart.BodyPart;
-import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.glassfish.jersey.media.multipart.MultiPart;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-
 import java.io.ByteArrayInputStream;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
@@ -44,11 +42,8 @@ public class SenderFacade {
     }
 
     public SignatureJobResponse createSignatureRequest(final SignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
-        BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE)
-                .contentDisposition(ContentDisposition.type("attachment").fileName("signature-job-request.xml").build());
-
-        BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE)
-                .contentDisposition(ContentDisposition.type("attachment").fileName("document-bundle.asic").build());
+        BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
+        BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
         MultiPart multiPart = new MultiPart(MediaType.valueOf("multipart/mixed"))
                 .bodyPart(signatureJobBodyPart)
