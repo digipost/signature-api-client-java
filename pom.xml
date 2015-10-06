@@ -5,7 +5,7 @@
     <name>Signature API-client Java</name>
     <groupId>no.digipost.signature</groupId>
     <artifactId>signature-api-client-java</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
 
     <parent>
         <groupId>no.digipost</groupId>
@@ -17,13 +17,14 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
         <spring.version>4.2.1.RELEASE</spring.version>
+        <jersey.version>2.22</jersey.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>no.digipost.signature</groupId>
             <artifactId>signature-api-specification</artifactId>
-            <version>0.2</version>
+            <version>0.3</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -35,6 +36,26 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>
             <version>4.4.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-common</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
+            <version>${jersey.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -261,7 +282,14 @@
                             <dependencyResource>
                                 <groupId>no.digipost.signature</groupId>
                                 <artifactId>signature-api-specification</artifactId>
-                                <resource>signature-manifest.xsd</resource>
+                                <resource>signature-job.xsd</resource>
+                            </dependencyResource>
+                        </schema>
+                        <schema>
+                            <dependencyResource>
+                                <groupId>no.digipost.signature</groupId>
+                                <artifactId>signature-api-specification</artifactId>
+                                <resource>signature-document.xsd</resource>
                             </dependencyResource>
                         </schema>
                         <schema>

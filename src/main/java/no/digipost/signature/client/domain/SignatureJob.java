@@ -15,13 +15,13 @@
  */
 package no.digipost.signature.client.domain;
 
-public class SignatureRequest {
+public class SignatureJob {
 
     private String signer;
     private Document document;
     private String completionUrl;
 
-    private SignatureRequest(final String signer, final Document document, final String completionUrl) {
+    private SignatureJob(final String signer, final Document document, final String completionUrl) {
         this.signer = signer;
         this.document = document;
         this.completionUrl = completionUrl;
@@ -45,14 +45,14 @@ public class SignatureRequest {
 
     public static class Builder {
 
-        private final SignatureRequest target;
+        private final SignatureJob target;
         private boolean built = false;
 
         public Builder(final String signer, final Document document, final String completionUrl) {
-            target = new SignatureRequest(signer, document, completionUrl);
+            target = new SignatureJob(signer, document, completionUrl);
         }
 
-        public SignatureRequest build() {
+        public SignatureJob build() {
             if (built) throw new IllegalStateException("Can't build twice");
             built = true;
             return target;

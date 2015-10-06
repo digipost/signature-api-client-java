@@ -17,10 +17,11 @@ package no.digipost.signature.client;
 
 import no.digipost.signature.client.asice.CreateASiCE;
 import no.digipost.signature.client.asice.DocumentBundle;
-import no.digipost.signature.client.domain.SignatureRequest;
 import no.digipost.signature.client.domain.Sender;
+import no.digipost.signature.client.domain.SignatureJob;
 import no.digipost.signature.client.internal.SenderFacade;
-import no.digipost.signering.schema.v1.SignableDocument;
+import no.digipost.signering.schema.v1.SignatureJobRequest;
+import no.digipost.signering.schema.v1.SignatureJobResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,20 +31,23 @@ public class SignatureClient {
 
     private final Sender sender;
     private final ClientConfiguration clientConfiguration;
-    private final CreateASiCE dokumentpakkeBuilder;
+    private final CreateASiCE documentBundleBuilder;
     private final SenderFacade senderFacade;
 
     public SignatureClient(Sender sender, ClientConfiguration clientConfiguration) {
         this.sender = sender;
         this.clientConfiguration = clientConfiguration;
-        this.dokumentpakkeBuilder = new CreateASiCE();
+        this.documentBundleBuilder = new CreateASiCE();
         this.senderFacade = new SenderFacade(clientConfiguration);
     }
 
-    public SignableDocument create(final SignatureRequest signatureRequest) {
-        DocumentBundle documentBundle = dokumentpakkeBuilder.createASiCE(signatureRequest, clientConfiguration.getKeyStoreConfig());
+    public SignatureJobResponse create(final SignatureJob signatureJob) {
+        DocumentBundle documentBundle = documentBundleBuilder.createASiCE(signatureJob.getDocument(), clientConfiguration.getKeyStoreConfig());
+        SignatureJobRequest signatureJobRequest = new SignatureJobRequest()
+                .withSigner(signatureJob.getSigner())
+                .withCompletionUrl(signatureJob.getCompletionUrl());
 
-        return senderFacade.createSignatureRequest(documentBundle);
+        return senderFacade.createSignatureRequest(signatureJobRequest, documentBundle);
     }
 
     public String tryConnecting() {

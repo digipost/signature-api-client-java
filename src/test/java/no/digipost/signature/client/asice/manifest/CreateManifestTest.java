@@ -16,7 +16,6 @@
 package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.client.domain.Document;
-import no.digipost.signature.client.domain.SignatureRequest;
 import org.junit.Test;
 
 import static org.junit.Assert.fail;
@@ -24,14 +23,12 @@ import static org.junit.Assert.fail;
 public class CreateManifestTest {
 
     @Test
-    public void accept_valid_signeringsoppdrag() {
+    public void accept_valid_manifest() {
         CreateManifest createManifest = new CreateManifest();
 
-        Document document = Document.builder("Emne", "fil.txt", "hei".getBytes()).build();
-        SignatureRequest signatureRequest = SignatureRequest.builder("01010100001", document, "http://localhost").build();
-
+        Document document = Document.builder("Subject", "file.txt", "hello".getBytes()).build();
         try {
-            createManifest.createManifest(signatureRequest);
+            createManifest.createManifest(document);
         } catch (Exception e) {
             fail("Expected no exception, got: " + e.getMessage());
         }

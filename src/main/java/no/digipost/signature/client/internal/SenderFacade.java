@@ -17,58 +17,53 @@ package no.digipost.signature.client.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
-import no.digipost.signature.client.domain.exceptions.SendException;
-import no.digipost.signering.schema.v1.SignableDocument;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import no.digipost.signering.schema.v1.SignatureJobRequest;
+import no.digipost.signering.schema.v1.SignatureJobResponse;
+import org.glassfish.jersey.media.multipart.BodyPart;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
+import org.glassfish.jersey.media.multipart.MultiPart;
 
-import java.io.IOException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 
-import static org.apache.commons.io.Charsets.UTF_8;
+import java.io.ByteArrayInputStream;
+
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 
 public class SenderFacade {
 
-    public static final String SIGNATURE_REQUESTS_PATH = "/signatureRequest";
+    public static final String SIGNATURE_JOBS_PATH = "/signature-jobs";
 
-    private final ClientConfiguration clientConfiguration;
-    private final CloseableHttpClient httpClient;
-    private final Jaxb2Marshaller marshaller;
+    private final WebTarget httpClient;
 
     public SenderFacade(final ClientConfiguration clientConfiguration) {
-        this.clientConfiguration = clientConfiguration;
-        httpClient = SigneringHttpClient.create(clientConfiguration.getKeyStoreConfig());
-        marshaller = Marshalling.instance();
+        httpClient = SignatureHttpClient.create(clientConfiguration.getKeyStoreConfig())
+                .target(clientConfiguration.getSignatureServiceRoot());
     }
 
-    public SignableDocument createSignatureRequest(final DocumentBundle documentBundle) {
-        HttpPost request = new HttpPost(clientConfiguration.getSignatureServiceRoot() + SIGNATURE_REQUESTS_PATH);
-        request.setEntity(new ByteArrayEntity(documentBundle.getBytes(), ContentType.APPLICATION_OCTET_STREAM));
+    public SignatureJobResponse createSignatureRequest(final SignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
+        BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE)
+                .contentDisposition(ContentDisposition.type("attachment").fileName("signature-job-request.xml").build());
 
-        try (CloseableHttpResponse response = httpClient.execute(request)) {
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                return Marshalling.unmarshal(marshaller, response.getEntity().getContent(), SignableDocument.class);
-            } else {
-                throw new SendException(EntityUtils.toString(response.getEntity(), UTF_8));
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to connect to server.", e);
-        }
+        BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE)
+                .contentDisposition(ContentDisposition.type("attachment").fileName("document-bundle.asic").build());
+
+        MultiPart multiPart = new MultiPart(MediaType.valueOf("multipart/mixed"))
+                .bodyPart(signatureJobBodyPart)
+                .bodyPart(documentBundleBodyPart);
+
+        return httpClient.path(SIGNATURE_JOBS_PATH)
+                .request()
+                .header("Content-Type", multiPart.getMediaType())
+                .post(Entity.entity(multiPart, multiPart.getMediaType()), SignatureJobResponse.class);
     }
 
     public String tryConnecting() {
-        try {
-            CloseableHttpResponse response = httpClient.execute(new HttpGet(clientConfiguration.getSignatureServiceRoot()));
-            return EntityUtils.toString(response.getEntity(), UTF_8);
-        } catch (IOException e) {
-            // TODO (EHH): Innføre en egen exception-type?
-            throw new RuntimeException("Unable to connect to server.", e);
-        }
+        return httpClient.path("/")
+                .request()
+                .get()
+                .readEntity(String.class);
     }
 }

@@ -17,7 +17,6 @@ package no.digipost.signature.client.asice;
 
 import no.digipost.signature.client.TestKonfigurasjon;
 import no.digipost.signature.client.domain.Document;
-import no.digipost.signature.client.domain.SignatureRequest;
 import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -37,8 +36,7 @@ public class CreateASiCETest {
         Document document = Document.builder("Emne", "fil.txt", "hei".getBytes())
                 .fileType(Document.FileType.TXT)
                 .build();
-        SignatureRequest signatureRequest = SignatureRequest.builder("01010100001", document, "http://localhost").build();
-        DocumentBundle aSiCE = createASiCE.createASiCE(signatureRequest, TestKonfigurasjon.CLIENT_KEYSTORE);
+        DocumentBundle aSiCE = createASiCE.createASiCE(document, TestKonfigurasjon.CLIENT_KEYSTORE);
 
         File tempFile = File.createTempFile("test", ".zip");
         IOUtils.copy(new ByteArrayInputStream(aSiCE.getBytes()), new FileOutputStream(tempFile));
