@@ -32,10 +32,11 @@ public class CreateManifest {
     private static final Jaxb2Marshaller marshaller = Marshalling.instance();
 
     public Manifest createManifest(final Document document) {
-        no.digipost.signering.schema.v1.Manifest manifest = new no.digipost.signering.schema.v1.Manifest()
-                .withSubject(document.getSubject())
-                .withFileName(document.getFileName())
-                .withMimeType(document.getMimeType());
+        no.digipost.signering.schema.v1.signature_document.Manifest manifest =
+                new no.digipost.signering.schema.v1.signature_document.Manifest()
+                        .withSubject(document.getSubject())
+                        .withFileName(document.getFileName())
+                        .withMimeType(document.getMimeType());
 
         try (ByteArrayOutputStream manifestStream = new ByteArrayOutputStream()) {
             marshaller.marshal(manifest, new StreamResult(manifestStream));

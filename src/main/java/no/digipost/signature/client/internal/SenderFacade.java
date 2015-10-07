@@ -17,8 +17,8 @@ package no.digipost.signature.client.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
-import no.digipost.signering.schema.v1.SignatureJobRequest;
-import no.digipost.signering.schema.v1.SignatureJobResponse;
+import no.digipost.signering.schema.v1.signature_job.SignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.SignatureJobResponse;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 

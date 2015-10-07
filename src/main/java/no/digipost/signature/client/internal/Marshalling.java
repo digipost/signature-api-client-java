@@ -16,19 +16,14 @@
 package no.digipost.signature.client.internal;
 
 import no.digipost.signature.client.domain.exceptions.ConfigurationException;
-import no.digipost.signering.schema.v1.Manifest;
-import no.digipost.signering.schema.v1.SignatureJobRequest;
-import no.digipost.signering.schema.v1.SignatureJobResponse;
+import no.digipost.signering.schema.v1.signature_document.Manifest;
+import no.digipost.signering.schema.v1.signature_job.SignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.SignatureJobResponse;
 import org.etsi.uri._01903.v1_3.QualifyingProperties;
 import org.etsi.uri._2918.v1_2.XAdESSignatures;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.InputStream;
 
 public class Marshalling {
 
@@ -60,22 +55,6 @@ public class Marshalling {
             return new Resource[]{
                     SIGNATURE_DOCUMENT_SCHEMA, SIGNATURE_JOB_SCHEMA, XMLDSIG_SCHEMA, ASICE_SCHEMA, XADES_SCHEMA
             };
-        }
-    }
-
-    public static <T> T unmarshal(final Jaxb2Marshaller marshaller, final InputStream data, final Class<T> clazz) {
-        try {
-            return marshaller.getJaxbContext().createUnmarshaller().unmarshal(new StreamSource(data), clazz).getValue();
-        } catch (JAXBException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static void marshal(final Jaxb2Marshaller marshaller, final Object data, final StreamResult result) {
-        try {
-            marshaller.getJaxbContext().createMarshaller().marshal(data, result);
-        } catch (JAXBException e) {
-            throw new RuntimeException(e);
         }
     }
 

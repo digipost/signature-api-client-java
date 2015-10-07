@@ -25,6 +25,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,7 +50,7 @@ public class JaxbMessageReaderWriterProvider extends AbstractMessageReaderWriter
 
     @Override
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
-        return Marshalling.unmarshal(marshaller, entityStream, type);
+        return marshaller.unmarshal(new StreamSource(entityStream));
     }
 
     @Override
@@ -59,6 +60,6 @@ public class JaxbMessageReaderWriterProvider extends AbstractMessageReaderWriter
 
     @Override
     public void writeTo(Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-        Marshalling.marshal(marshaller, o, new StreamResult(entityStream));
+        marshaller.marshal(o, new StreamResult(entityStream));
     }
 }

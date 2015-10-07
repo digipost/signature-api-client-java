@@ -20,8 +20,8 @@ import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.domain.Sender;
 import no.digipost.signature.client.domain.SignatureJob;
 import no.digipost.signature.client.internal.SenderFacade;
-import no.digipost.signering.schema.v1.SignatureJobRequest;
-import no.digipost.signering.schema.v1.SignatureJobResponse;
+import no.digipost.signering.schema.v1.signature_job.SignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.SignatureJobResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
