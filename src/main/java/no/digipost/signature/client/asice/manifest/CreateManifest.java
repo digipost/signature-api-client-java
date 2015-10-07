@@ -16,7 +16,6 @@
 package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.client.domain.Document;
-import no.digipost.signature.client.domain.SignatureRequest;
 import no.digipost.signature.client.domain.exceptions.RuntimeIOException;
 import no.digipost.signature.client.domain.exceptions.XmlValidationException;
 import no.digipost.signature.client.internal.Marshalling;
@@ -32,14 +31,12 @@ public class CreateManifest {
 
     private static final Jaxb2Marshaller marshaller = Marshalling.instance();
 
-    public Manifest createManifest(final SignatureRequest signatureRequest) {
-        Document document = signatureRequest.getDocument();
-        no.digipost.signering.schema.v1.Manifest manifest = new no.digipost.signering.schema.v1.Manifest()
-                .withSigner(signatureRequest.getSigner())
-                .withSubject(document.getSubject())
-                .withFileName(document.getFileName())
-                .withMimeType(document.getMimeType())
-                .withCompletionUrl(signatureRequest.getCompletionUrl());
+    public Manifest createManifest(final Document document) {
+        no.digipost.signering.schema.v1.signature_document.Manifest manifest =
+                new no.digipost.signering.schema.v1.signature_document.Manifest()
+                        .withSubject(document.getSubject())
+                        .withFileName(document.getFileName())
+                        .withMimeType(document.getMimeType());
 
         try (ByteArrayOutputStream manifestStream = new ByteArrayOutputStream()) {
             marshaller.marshal(manifest, new StreamResult(manifestStream));

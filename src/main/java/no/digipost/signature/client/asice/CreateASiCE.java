@@ -17,7 +17,7 @@ package no.digipost.signature.client.asice;
 
 import no.digipost.signature.client.asice.archive.Archive;
 import no.digipost.signature.client.asice.signature.Signature;
-import no.digipost.signature.client.domain.SignatureRequest;
+import no.digipost.signature.client.domain.Document;
 import no.digipost.signature.client.asice.archive.CreateZip;
 import no.digipost.signature.client.asice.manifest.CreateManifest;
 import no.digipost.signature.client.asice.manifest.Manifest;
@@ -39,11 +39,11 @@ public class CreateASiCE {
         createSignature = new CreateSignature();
     }
 
-    public DocumentBundle createASiCE(final SignatureRequest signatureRequest, final KeyStoreConfig keyStoreConfig) {
-        Manifest manifest = createManifest.createManifest(signatureRequest);
+    public DocumentBundle createASiCE(final Document document, final KeyStoreConfig keyStoreConfig) {
+        Manifest manifest = createManifest.createManifest(document);
 
         List<ASiCEAttachable> files = new ArrayList<>();
-        files.add(signatureRequest.getDocument());
+        files.add(document);
         files.add(manifest);
 
         Signature signature = createSignature.createSignature(files, keyStoreConfig);
