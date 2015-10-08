@@ -41,7 +41,7 @@ public class SenderFacade {
                 .target(clientConfiguration.getSignatureServiceRoot());
     }
 
-    public SignatureJobResponse createSignatureRequest(final SignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
+    public SignatureJobResponse sendSignatureJobRequest(final SignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
         BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 

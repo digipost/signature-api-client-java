@@ -19,6 +19,7 @@ import no.digipost.signature.client.asice.CreateASiCE;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.domain.Sender;
 import no.digipost.signature.client.domain.SignatureJob;
+import no.digipost.signature.client.internal.CreateSignatureJobRequest;
 import no.digipost.signature.client.internal.SenderFacade;
 import no.digipost.signering.schema.v1.signature_job.SignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.SignatureJobResponse;
@@ -32,22 +33,22 @@ public class SignatureClient {
     private final Sender sender;
     private final ClientConfiguration clientConfiguration;
     private final CreateASiCE documentBundleBuilder;
+    private final CreateSignatureJobRequest signatureJobRequestBuilder;
     private final SenderFacade senderFacade;
 
     public SignatureClient(Sender sender, ClientConfiguration clientConfiguration) {
         this.sender = sender;
         this.clientConfiguration = clientConfiguration;
         this.documentBundleBuilder = new CreateASiCE();
+        signatureJobRequestBuilder = new CreateSignatureJobRequest();
         this.senderFacade = new SenderFacade(clientConfiguration);
     }
 
     public SignatureJobResponse create(final SignatureJob signatureJob) {
         DocumentBundle documentBundle = documentBundleBuilder.createASiCE(signatureJob.getDocument(), clientConfiguration.getKeyStoreConfig());
-        SignatureJobRequest signatureJobRequest = new SignatureJobRequest()
-                .withSigner(signatureJob.getSigner())
-                .withCompletionUrl(signatureJob.getCompletionUrl());
+        SignatureJobRequest signatureJobRequest = signatureJobRequestBuilder.createSignatureJobRequest(signatureJob);
 
-        return senderFacade.createSignatureRequest(signatureJobRequest, documentBundle);
+        return senderFacade.sendSignatureJobRequest(signatureJobRequest, documentBundle);
     }
 
     public String tryConnecting() {

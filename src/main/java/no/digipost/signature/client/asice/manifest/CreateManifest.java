@@ -35,6 +35,7 @@ public class CreateManifest {
         no.digipost.signering.schema.v1.signature_document.Manifest manifest =
                 new no.digipost.signering.schema.v1.signature_document.Manifest()
                         .withSubject(document.getSubject())
+                        .withMessage(document.getMessage())
                         .withFileName(document.getFileName())
                         .withMimeType(document.getMimeType());
 

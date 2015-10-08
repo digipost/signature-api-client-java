@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.asice.manifest;
+package no.digipost.signature.client.internal;
 
-import no.digipost.signature.client.domain.Document;
-import org.junit.Test;
+import no.digipost.signature.client.domain.SignatureJob;
+import no.digipost.signering.schema.v1.signature_job.SignatureJobRequest;
 
-import static org.junit.Assert.fail;
+public class CreateSignatureJobRequest {
 
-public class CreateManifestTest {
-
-    @Test
-    public void accept_valid_manifest() {
-        CreateManifest createManifest = new CreateManifest();
-
-        Document document = Document.builder("Subject", "Message", "file.txt", "hello".getBytes()).build();
-        try {
-            createManifest.createManifest(document);
-        } catch (Exception e) {
-            fail("Expected no exception, got: " + e.getMessage());
-        }
+    public SignatureJobRequest createSignatureJobRequest(SignatureJob signatureJob) {
+        return new SignatureJobRequest()
+                .withUuid(signatureJob.getUuid().toString())
+                .withSigner(signatureJob.getSigner())
+                .withCompletionUrl(signatureJob.getCompletionUrl())
+                .withCancellationUrl(signatureJob.getCancellationUrl());
     }
 
 }

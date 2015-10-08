@@ -22,12 +22,14 @@ import static no.digipost.signature.client.domain.Document.FileType.PDF;
 public class Document implements ASiCEAttachable {
 
     private String subject;
+    private String message;
     private String fileName;
     private byte[] document;
     private FileType fileType = PDF;
 
-    private Document(final String subject, final String fileName, final byte[] document) {
+    private Document(final String subject, final String message, final String fileName, final byte[] document) {
         this.subject = subject;
+        this.message = message;
         this.fileName = fileName;
         this.document = document;
     }
@@ -51,8 +53,12 @@ public class Document implements ASiCEAttachable {
         return subject;
     }
 
-    public static Builder builder(final String subject, final String fileName, final byte[] document) {
-        return new Builder(subject, fileName, document);
+    public String getMessage() {
+        return message;
+    }
+
+    public static Builder builder(final String subject, String message, final String fileName, final byte[] document) {
+        return new Builder(subject, message, fileName, document);
     }
 
     public static class Builder {
@@ -60,8 +66,8 @@ public class Document implements ASiCEAttachable {
         private final Document target;
         private boolean built = false;
 
-        public Builder(final String subject, final String fileName, final byte[] document) {
-            this.target = new Document(subject, fileName, document);
+        public Builder(final String subject, final String message, final String fileName, final byte[] document) {
+            this.target = new Document(subject, message, fileName, document);
         }
 
         public Builder fileType(final FileType fileType) {
