@@ -53,8 +53,8 @@ public class SignatureJob {
         return cancellationUrl;
     }
 
-    public static Builder builder(final UUID uuid, final String signatar, final Document document, final String completionUrl, final String cancellationUrl) {
-        return new Builder(uuid, signatar, document, completionUrl, cancellationUrl);
+    public static Builder builder(final UUID uuid, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
+        return new Builder(uuid, signer, document, completionUrl, cancellationUrl);
     }
 
     public static class Builder {
