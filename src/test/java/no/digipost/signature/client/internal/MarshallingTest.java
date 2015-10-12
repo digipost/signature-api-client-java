@@ -23,6 +23,7 @@ import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
@@ -35,8 +36,8 @@ public class MarshallingTest {
 
     @Test
     public void valid_objects_can_be_marshalled() {
-        SignatureJobRequest signatureJobRequest = new SignatureJobRequest("12345678910", "http://localhost");
-        Manifest manifest = new Manifest("Subject", "application/pdf", "document.pdf");
+        SignatureJobRequest signatureJobRequest = new SignatureJobRequest("12345678910", "http://localhost", "http://localhost", UUID.randomUUID().toString());
+        Manifest manifest = new Manifest("Subject", "Message", "application/pdf", "document.pdf");
 
         marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
         marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));
@@ -44,7 +45,7 @@ public class MarshallingTest {
 
     @Test
     public void invalid_signature_job_request_causes_exceptions() {
-        SignatureJobRequest signatureJobRequest = new SignatureJobRequest("12345678910", null);
+        SignatureJobRequest signatureJobRequest = new SignatureJobRequest(UUID.randomUUID().toString(), "12345678910", null, "http://localhost");
 
         try {
             marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
@@ -56,7 +57,7 @@ public class MarshallingTest {
 
     @Test
     public void invalid_manifest_causes_exceptions() {
-        Manifest manifest = new Manifest("Subject", "application/pdf", null);
+        Manifest manifest = new Manifest("Subject", "Message", "application/pdf", null);
 
         try {
             marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));

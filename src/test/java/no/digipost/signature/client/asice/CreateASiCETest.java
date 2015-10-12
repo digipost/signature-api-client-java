@@ -33,7 +33,7 @@ public class CreateASiCETest {
     public void create_asice_and_write_to_disk() throws IOException {
         CreateASiCE createASiCE = new CreateASiCE();
 
-        Document document = Document.builder("Emne", "fil.txt", "hei".getBytes())
+        Document document = Document.builder("Subject", "Message", "file.txt", "hello".getBytes())
                 .fileType(Document.FileType.TXT)
                 .build();
         DocumentBundle aSiCE = createASiCE.createASiCE(document, TestKonfigurasjon.CLIENT_KEYSTORE);

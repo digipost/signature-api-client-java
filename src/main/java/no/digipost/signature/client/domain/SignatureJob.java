@@ -15,16 +15,26 @@
  */
 package no.digipost.signature.client.domain;
 
+import java.util.UUID;
+
 public class SignatureJob {
 
+    private UUID uuid;
     private String signer;
     private Document document;
     private String completionUrl;
+    private String cancellationUrl;
 
-    private SignatureJob(final String signer, final Document document, final String completionUrl) {
+    private SignatureJob(final UUID uuid, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
+        this.uuid = uuid;
         this.signer = signer;
         this.document = document;
         this.completionUrl = completionUrl;
+        this.cancellationUrl = cancellationUrl;
+    }
+
+    public UUID getUuid() {
+        return uuid;
     }
 
     public String getSigner() {
@@ -39,8 +49,12 @@ public class SignatureJob {
         return completionUrl;
     }
 
-    public static Builder builder(final String signatar, final Document document, final String completionUrl) {
-        return new Builder(signatar, document, completionUrl);
+    public String getCancellationUrl() {
+        return cancellationUrl;
+    }
+
+    public static Builder builder(final UUID uuid, final String signatar, final Document document, final String completionUrl, final String cancellationUrl) {
+        return new Builder(uuid, signatar, document, completionUrl, cancellationUrl);
     }
 
     public static class Builder {
@@ -48,8 +62,8 @@ public class SignatureJob {
         private final SignatureJob target;
         private boolean built = false;
 
-        public Builder(final String signer, final Document document, final String completionUrl) {
-            target = new SignatureJob(signer, document, completionUrl);
+        public Builder(final UUID uuid, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
+            target = new SignatureJob(uuid, signer, document, completionUrl, cancellationUrl);
         }
 
         public SignatureJob build() {
