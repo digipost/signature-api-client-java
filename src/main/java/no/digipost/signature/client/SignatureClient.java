@@ -17,12 +17,12 @@ package no.digipost.signature.client;
 
 import no.digipost.signature.client.asice.CreateASiCE;
 import no.digipost.signature.client.asice.DocumentBundle;
-import no.digipost.signature.client.domain.Sender;
-import no.digipost.signature.client.domain.SignatureJob;
+import no.digipost.signature.client.domain.*;
 import no.digipost.signature.client.internal.CreateSignatureJobRequest;
 import no.digipost.signature.client.internal.SenderFacade;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatusResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,15 +40,21 @@ public class SignatureClient {
         this.sender = sender;
         this.clientConfiguration = clientConfiguration;
         this.documentBundleBuilder = new CreateASiCE();
-        signatureJobRequestBuilder = new CreateSignatureJobRequest();
+        this.signatureJobRequestBuilder = new CreateSignatureJobRequest();
         this.senderFacade = new SenderFacade(clientConfiguration);
     }
 
-    public XMLSignatureJobResponse create(final SignatureJob signatureJob) {
+    public SignatureJobResponse create(final SignatureJob signatureJob) {
         DocumentBundle documentBundle = documentBundleBuilder.createASiCE(signatureJob.getDocument(), clientConfiguration.getKeyStoreConfig());
         XMLSignatureJobRequest signatureJobRequest = signatureJobRequestBuilder.createSignatureJobRequest(signatureJob);
 
-        return senderFacade.sendSignatureJobRequest(signatureJobRequest, documentBundle);
+        XMLSignatureJobResponse xmlSignatureJobResponse = senderFacade.sendSignatureJobRequest(signatureJobRequest, documentBundle);
+        return new SignatureJobResponse(xmlSignatureJobResponse.getRedirectUrl(), xmlSignatureJobResponse.getStatusUrl());
+    }
+
+    public SignatureJobStatusResponse getStatus(SignatureJobReference signatureJobReference) {
+        XMLSignatureJobStatusResponse xmlSignatureJobStatusResponse = senderFacade.sendSignatureJobStatusRequest(signatureJobReference.getStatusUrl());
+        return new SignatureJobStatusResponse(xmlSignatureJobStatusResponse.getStatus(), xmlSignatureJobStatusResponse.getXadesUrl(), xmlSignatureJobStatusResponse.getPadesUrl());
     }
 
     public String tryConnecting() {

@@ -19,12 +19,13 @@ import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatusResponse;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 
+import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
@@ -34,31 +35,39 @@ public class SenderFacade {
 
     public static final String SIGNATURE_JOBS_PATH = "/signature-jobs";
 
-    private final WebTarget httpClient;
+    private final Client httpClient;
+    private final WebTarget target;
 
     public SenderFacade(final ClientConfiguration clientConfiguration) {
-        httpClient = SignatureHttpClient.create(clientConfiguration.getKeyStoreConfig())
-                .target(clientConfiguration.getSignatureServiceRoot());
+        httpClient = SignatureHttpClient.create(clientConfiguration.getKeyStoreConfig());
+        target = httpClient.target(clientConfiguration.getSignatureServiceRoot());
     }
 
     public XMLSignatureJobResponse sendSignatureJobRequest(final XMLSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
         BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
-        MultiPart multiPart = new MultiPart(MediaType.valueOf("multipart/mixed"))
+        MultiPart multiPart = new MultiPart()
                 .bodyPart(signatureJobBodyPart)
                 .bodyPart(documentBundleBodyPart);
 
-        return httpClient.path(SIGNATURE_JOBS_PATH)
+        return target.path(SIGNATURE_JOBS_PATH)
                 .request()
                 .header("Content-Type", multiPart.getMediaType())
                 .post(Entity.entity(multiPart, multiPart.getMediaType()), XMLSignatureJobResponse.class);
     }
 
     public String tryConnecting() {
-        return httpClient.path("/")
+        return target.path("/")
                 .request()
                 .get()
                 .readEntity(String.class);
+    }
+
+    public XMLSignatureJobStatusResponse sendSignatureJobStatusRequest(String statusUrl) {
+        return httpClient.target(statusUrl)
+                .request()
+                .get()
+                .readEntity(XMLSignatureJobStatusResponse.class);
     }
 }

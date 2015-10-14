@@ -19,6 +19,7 @@ import no.digipost.signature.client.domain.exceptions.ConfigurationException;
 import no.digipost.signering.schema.v1.signature_document.XMLManifest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatusResponse;
 import org.etsi.uri._01903.v1_3.QualifyingProperties;
 import org.etsi.uri._2918.v1_2.XAdESSignatures;
 import org.springframework.core.io.ClassPathResource;
@@ -30,7 +31,8 @@ public class Marshalling {
     private static final class Jaxb2MarshallerHolder {
         private static Jaxb2Marshaller instance; static {
             instance = new Jaxb2Marshaller();
-            instance.setClassesToBeBound(XMLManifest.class, XMLSignatureJobRequest.class, XMLSignatureJobResponse.class, QualifyingProperties.class, XAdESSignatures.class);
+            instance.setClassesToBeBound(XMLManifest.class, XMLSignatureJobRequest.class, XMLSignatureJobResponse.class, XMLSignatureJobStatusResponse.class,
+                    QualifyingProperties.class, XAdESSignatures.class);
             instance.setSchemas(Schemas.allSchemaResources());
             try {
                 instance.afterPropertiesSet();
