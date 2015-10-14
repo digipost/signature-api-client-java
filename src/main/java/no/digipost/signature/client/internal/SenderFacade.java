@@ -17,8 +17,8 @@ package no.digipost.signature.client.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
-import no.digipost.signering.schema.v1.signature_job.SignatureJobRequest;
-import no.digipost.signering.schema.v1.signature_job.SignatureJobResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 
@@ -41,7 +41,7 @@ public class SenderFacade {
                 .target(clientConfiguration.getSignatureServiceRoot());
     }
 
-    public SignatureJobResponse sendSignatureJobRequest(final SignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
+    public XMLSignatureJobResponse sendSignatureJobRequest(final XMLSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
         BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
@@ -52,7 +52,7 @@ public class SenderFacade {
         return httpClient.path(SIGNATURE_JOBS_PATH)
                 .request()
                 .header("Content-Type", multiPart.getMediaType())
-                .post(Entity.entity(multiPart, multiPart.getMediaType()), SignatureJobResponse.class);
+                .post(Entity.entity(multiPart, multiPart.getMediaType()), XMLSignatureJobResponse.class);
     }
 
     public String tryConnecting() {

@@ -21,8 +21,8 @@ import no.digipost.signature.client.domain.Sender;
 import no.digipost.signature.client.domain.SignatureJob;
 import no.digipost.signature.client.internal.CreateSignatureJobRequest;
 import no.digipost.signature.client.internal.SenderFacade;
-import no.digipost.signering.schema.v1.signature_job.SignatureJobRequest;
-import no.digipost.signering.schema.v1.signature_job.SignatureJobResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,9 +44,9 @@ public class SignatureClient {
         this.senderFacade = new SenderFacade(clientConfiguration);
     }
 
-    public SignatureJobResponse create(final SignatureJob signatureJob) {
+    public XMLSignatureJobResponse create(final SignatureJob signatureJob) {
         DocumentBundle documentBundle = documentBundleBuilder.createASiCE(signatureJob.getDocument(), clientConfiguration.getKeyStoreConfig());
-        SignatureJobRequest signatureJobRequest = signatureJobRequestBuilder.createSignatureJobRequest(signatureJob);
+        XMLSignatureJobRequest signatureJobRequest = signatureJobRequestBuilder.createSignatureJobRequest(signatureJob);
 
         return senderFacade.sendSignatureJobRequest(signatureJobRequest, documentBundle);
     }

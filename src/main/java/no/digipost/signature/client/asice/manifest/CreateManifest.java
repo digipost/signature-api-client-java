@@ -19,6 +19,7 @@ import no.digipost.signature.client.domain.Document;
 import no.digipost.signature.client.domain.exceptions.RuntimeIOException;
 import no.digipost.signature.client.domain.exceptions.XmlValidationException;
 import no.digipost.signature.client.internal.Marshalling;
+import no.digipost.signering.schema.v1.signature_document.XMLManifest;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.xml.sax.SAXParseException;
@@ -32,8 +33,7 @@ public class CreateManifest {
     private static final Jaxb2Marshaller marshaller = Marshalling.instance();
 
     public Manifest createManifest(final Document document) {
-        no.digipost.signering.schema.v1.signature_document.Manifest manifest =
-                new no.digipost.signering.schema.v1.signature_document.Manifest()
+        XMLManifest manifest = new XMLManifest()
                         .withSubject(document.getSubject())
                         .withMessage(document.getMessage())
                         .withFileName(document.getFileName())

@@ -16,12 +16,12 @@
 package no.digipost.signature.client.internal;
 
 import no.digipost.signature.client.domain.SignatureJob;
-import no.digipost.signering.schema.v1.signature_job.SignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
 
 public class CreateSignatureJobRequest {
 
-    public SignatureJobRequest createSignatureJobRequest(SignatureJob signatureJob) {
-        return new SignatureJobRequest()
+    public XMLSignatureJobRequest createSignatureJobRequest(SignatureJob signatureJob) {
+        return new XMLSignatureJobRequest()
                 .withUuid(signatureJob.getUuid().toString())
                 .withSigner(signatureJob.getSigner())
                 .withCompletionUrl(signatureJob.getCompletionUrl())
