@@ -27,6 +27,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
@@ -69,5 +70,12 @@ public class SenderFacade {
                 .request()
                 .get()
                 .readEntity(XMLSignatureJobStatusResponse.class);
+    }
+
+    public InputStream getSignedDocumentStream(String url) {
+        return httpClient.target(url)
+                .request()
+                .get()
+                .readEntity(InputStream.class);
     }
 }

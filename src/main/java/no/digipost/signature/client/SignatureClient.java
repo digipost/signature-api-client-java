@@ -26,6 +26,8 @@ import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatusRespon
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
+
 public class SignatureClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(SignatureClient.class);
@@ -55,6 +57,14 @@ public class SignatureClient {
     public SignatureJobStatusResponse getStatus(SignatureJobReference signatureJobReference) {
         XMLSignatureJobStatusResponse xmlSignatureJobStatusResponse = senderFacade.sendSignatureJobStatusRequest(signatureJobReference.getStatusUrl());
         return new SignatureJobStatusResponse(xmlSignatureJobStatusResponse.getStatus(), xmlSignatureJobStatusResponse.getXadesUrl(), xmlSignatureJobStatusResponse.getPadesUrl());
+    }
+
+    public InputStream getXAdES(XAdESReference xAdESReference) {
+        return senderFacade.getSignedDocumentStream(xAdESReference.getxAdESUrl());
+    }
+
+    public InputStream getPAdES(PAdESReference pAdESReference) {
+        return senderFacade.getSignedDocumentStream(pAdESReference.getpAdESUrl());
     }
 
     public String tryConnecting() {

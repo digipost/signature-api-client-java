@@ -15,26 +15,15 @@
  */
 package no.digipost.signature.client.domain;
 
-public class SignatureJobStatusResponse {
-    private String status;
-    private XAdESReference xAdESUrl;
-    private PAdESReference pAdESUrl;
+public class PAdESReference {
 
-    public SignatureJobStatusResponse(String status, String xAdESUrl, String pAdESUrl) {
-        this.status = status;
-        this.xAdESUrl = new XAdESReference(xAdESUrl);
-        this.pAdESUrl = new PAdESReference(pAdESUrl);
+    private final String pAdESUrl;
+
+    public PAdESReference(String pAdESUrl) {
+        this.pAdESUrl = pAdESUrl;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public XAdESReference getxAdESUrl() {
-        return xAdESUrl;
-    }
-
-    public PAdESReference getpAdESUrl() {
+    public String getpAdESUrl() {
         return pAdESUrl;
     }
 }
