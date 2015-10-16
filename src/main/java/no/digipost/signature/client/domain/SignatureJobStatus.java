@@ -17,26 +17,23 @@ package no.digipost.signature.client.domain;
 
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatus;
 
-public class SignatureJobStatusResponse {
-    private SignatureJobStatus status;
-    private XAdESReference xAdESUrl;
-    private PAdESReference pAdESUrl;
+public enum SignatureJobStatus {
 
-    public SignatureJobStatusResponse(XMLSignatureJobStatus status, String xAdESUrl, String pAdESUrl) {
-        this.status = SignatureJobStatus.fromXmlType(status);
-        this.xAdESUrl = new XAdESReference(xAdESUrl);
-        this.pAdESUrl = new PAdESReference(pAdESUrl);
+    CREATED,
+    COMPLETED,
+    CANCELED;
+
+    public static SignatureJobStatus fromXmlType(XMLSignatureJobStatus xmlJobStatus) {
+        switch (xmlJobStatus) {
+            case CREATED:
+                return CREATED;
+            case COMPLETED:
+                return COMPLETED;
+            case CANCELED:
+                return CANCELED;
+            default:
+                throw new IllegalArgumentException("Unexpected status: " + xmlJobStatus);
+        }
     }
 
-    public SignatureJobStatus getStatus() {
-        return status;
-    }
-
-    public XAdESReference getxAdESUrl() {
-        return xAdESUrl;
-    }
-
-    public PAdESReference getpAdESUrl() {
-        return pAdESUrl;
-    }
 }
