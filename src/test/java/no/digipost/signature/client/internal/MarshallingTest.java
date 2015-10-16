@@ -15,8 +15,8 @@
  */
 package no.digipost.signature.client.internal;
 
-import no.digipost.signering.schema.v1.signature_document.Manifest;
-import no.digipost.signering.schema.v1.signature_job.SignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_document.XMLManifest;
+import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
 import org.junit.Test;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
@@ -36,8 +36,8 @@ public class MarshallingTest {
 
     @Test
     public void valid_objects_can_be_marshalled() {
-        SignatureJobRequest signatureJobRequest = new SignatureJobRequest("12345678910", "http://localhost", "http://localhost", UUID.randomUUID().toString());
-        Manifest manifest = new Manifest("Subject", "Message", "application/pdf", "document.pdf");
+        XMLSignatureJobRequest signatureJobRequest = new XMLSignatureJobRequest("12345678910", "http://localhost", "http://localhost", UUID.randomUUID().toString());
+        XMLManifest manifest = new XMLManifest("Subject", "Message", "application/pdf", "document.pdf");
 
         marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
         marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));
@@ -45,7 +45,7 @@ public class MarshallingTest {
 
     @Test
     public void invalid_signature_job_request_causes_exceptions() {
-        SignatureJobRequest signatureJobRequest = new SignatureJobRequest(UUID.randomUUID().toString(), "12345678910", null, "http://localhost");
+        XMLSignatureJobRequest signatureJobRequest = new XMLSignatureJobRequest(UUID.randomUUID().toString(), "12345678910", null, "http://localhost");
 
         try {
             marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
@@ -57,7 +57,7 @@ public class MarshallingTest {
 
     @Test
     public void invalid_manifest_causes_exceptions() {
-        Manifest manifest = new Manifest("Subject", "Message", "application/pdf", null);
+        XMLManifest manifest = new XMLManifest("Subject", "Message", "application/pdf", null);
 
         try {
             marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));
