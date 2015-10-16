@@ -30,7 +30,7 @@ import java.io.InputStream;
 
 public class SignatureClient {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SignatureClient.class);
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private final Sender sender;
     private final ClientConfiguration clientConfiguration;
@@ -69,7 +69,7 @@ public class SignatureClient {
 
     public String tryConnecting() {
         String responseString = senderFacade.tryConnecting();
-        LOG.debug("Server responded with:\n" + responseString);
+        log.debug("Server responded with:\n" + responseString);
         if (!responseString.contains(sender.getOrganizationNumber())) {
             // TODO (EHH): Innføre en egen exception-type?
             throw new RuntimeException("Server didn't return organization number. Something is configured wrong.");
