@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain.exceptions;
+package no.digipost.signature.client.portal;
 
-public class SignatureException extends RuntimeException {
+import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
 
-    public SignatureException(final Exception e) {
-        super(e);
+final class JaxbEntityMapping {
+
+    static XMLPortalSignatureJobRequest toJaxb(PortalSignatureJob job) {
+        throw new UnsupportedOperationException("toJaxb() method is not supported");
     }
 
-    public SignatureException(final String message) {
-        super(message);
-    }
 
-    public SignatureException(final String message, final Exception e) {
-        super(message, e);
-    }
 }

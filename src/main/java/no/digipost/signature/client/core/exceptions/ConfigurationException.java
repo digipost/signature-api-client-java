@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain;
+package no.digipost.signature.client.core.exceptions;
 
-public class SignatureJobReference {
+public class ConfigurationException extends SignatureException {
 
-    private String statusUrl;
-
-    public SignatureJobReference(String statusUrl) {
-        this.statusUrl = statusUrl;
+    public ConfigurationException(final String message) {
+        this(message, null);
     }
 
-    public String getStatusUrl() {
-        return statusUrl;
+    public ConfigurationException(final String message, final Exception e) {
+        super(message, e);
     }
 }

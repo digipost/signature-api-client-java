@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.internal;
+package no.digipost.signature.client.core.internal;
 
 import org.glassfish.jersey.message.internal.AbstractMessageReaderWriterProvider;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain;
+package no.digipost.signature.client.core;
 
-public class XAdESReference {
+public class PAdESReference {
 
-    private final String xAdESUrl;
+    private final String pAdESUrl;
 
-    public XAdESReference(String xAdESUrl) {
-        this.xAdESUrl = xAdESUrl;
+    public PAdESReference(String pAdESUrl) {
+        this.pAdESUrl = pAdESUrl;
     }
 
-    public String getxAdESUrl() {
-        return xAdESUrl;
+    public String getpAdESUrl() {
+        return pAdESUrl;
     }
 }

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain;
+package no.digipost.signature.client.direct;
 
-public class Sender {
+public class SignatureJobReference {
 
-    private String organizationNumber;
+    private String statusUrl;
 
-    public Sender(String organizationNumber) {
-        this.organizationNumber = organizationNumber;
+    public SignatureJobReference(String statusUrl) {
+        this.statusUrl = statusUrl;
     }
 
-    public String getOrganizationNumber() {
-        return organizationNumber;
+    public String getStatusUrl() {
+        return statusUrl;
     }
 }

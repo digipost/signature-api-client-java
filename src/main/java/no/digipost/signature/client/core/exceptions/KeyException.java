@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain;
+package no.digipost.signature.client.core.exceptions;
 
-public class SignatureJobResponse {
-    private String redirectUrl;
-    private String statusUrl;
+public class KeyException extends ConfigurationException {
 
-    public SignatureJobResponse(String redirectUrl, String statusUrl) {
-        this.redirectUrl = redirectUrl;
-        this.statusUrl = statusUrl;
+    public KeyException(String message, Exception e) {
+        super(message, e);
     }
 
-    public String getRedirectUrl() {
-        return redirectUrl;
+    public KeyException(String s) {
+        super(s);
     }
 
-    public String getStatusUrl() {
-        return statusUrl;
-    }
 }

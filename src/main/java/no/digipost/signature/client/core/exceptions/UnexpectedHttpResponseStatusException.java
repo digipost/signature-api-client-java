@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain.exceptions;
+package no.digipost.signature.client.core.exceptions;
 
-public class CertificateException extends ConfigurationException {
+import javax.ws.rs.core.Response.Status;
 
-    public CertificateException(String message, Exception e) {
-        super(message, e);
+public class UnexpectedHttpResponseStatusException extends SignatureException {
+    public UnexpectedHttpResponseStatusException(Status actual, Status expected) {
+        super("expected " + expected.getStatusCode() + " " + expected.getReasonPhrase() +
+              ", but got " + actual.getStatusCode() + " " + actual.getReasonPhrase());
     }
-
-    public CertificateException(String message) {
-        super(message);
-    }
-
 }

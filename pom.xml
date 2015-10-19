@@ -83,11 +83,11 @@
             <version>2.2.0.RELEASE</version>
         </dependency>
 
-        <dependency>
+        <!-- dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.12</version>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
@@ -157,7 +157,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.18.1</version>
+                    <version>2.19</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-deploy-plugin</artifactId>
@@ -283,6 +283,13 @@
                                 <groupId>no.digipost.signature</groupId>
                                 <artifactId>signature-api-specification</artifactId>
                                 <resource>signature-job.xsd</resource>
+                            </dependencyResource>
+                        </schema>
+                        <schema>
+                            <dependencyResource>
+                                <groupId>no.digipost.signature</groupId>
+                                <artifactId>signature-api-specification</artifactId>
+                                <resource>portal-signature-job.xsd</resource>
                             </dependencyResource>
                         </schema>
                         <schema>

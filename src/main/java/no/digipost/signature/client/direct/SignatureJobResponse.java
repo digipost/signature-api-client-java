@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client;
+package no.digipost.signature.client.direct;
 
-import no.digipost.signature.client.core.internal.KeyStoreConfig;
+public class SignatureJobResponse {
+    private String redirectUrl;
+    private String statusUrl;
 
+    public SignatureJobResponse(String redirectUrl, String statusUrl) {
+        this.redirectUrl = redirectUrl;
+        this.statusUrl = statusUrl;
+    }
 
-public class TestKonfigurasjon {
+    public String getRedirectUrl() {
+        return redirectUrl;
+    }
 
-    public static final KeyStoreConfig CLIENT_KEYSTORE = KeyStoreConfig.fromKeyStore(
-            TestKonfigurasjon.class.getResourceAsStream("/selfsigned-keystore.jce"),
-            "avsender",
-            "password1234",
-            "password1234"
-    );
-
-
+    public String getStatusUrl() {
+        return statusUrl;
+    }
 }

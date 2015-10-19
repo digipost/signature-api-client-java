@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain.exceptions;
+package no.digipost.signature.client.direct;
 
-public class SendException extends SignatureException {
-    public SendException(final String message) {
-        super(message);
+import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
+
+class JaxbEntityMapping {
+
+    static XMLSignatureJobRequest toJaxb(SignatureJob signatureJob) {
+        return new XMLSignatureJobRequest()
+                .withUuid(signatureJob.getUuid().toString())
+                .withSigner(signatureJob.getSigner())
+                .withCompletionUrl(signatureJob.getCompletionUrl())
+                .withCancellationUrl(signatureJob.getCancellationUrl());
     }
 
-    public SendException(final String message, final Exception e) {
-        super(message, e);
-    }
 }

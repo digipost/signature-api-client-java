@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain;
+package no.digipost.signature.client.core.exceptions;
 
-public class PAdESReference {
+import java.io.IOException;
 
-    private final String pAdESUrl;
+/**
+ * Wrapper for IOExceptions in situations where there is no reason to assume an IOException can occur (e.g. memory representations of streams).
+ */
+public class RuntimeIOException extends SignatureException {
 
-    public PAdESReference(String pAdESUrl) {
-        this.pAdESUrl = pAdESUrl;
+    public RuntimeIOException(IOException e) {
+        super(e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
     }
 
-    public String getpAdESUrl() {
-        return pAdESUrl;
-    }
 }

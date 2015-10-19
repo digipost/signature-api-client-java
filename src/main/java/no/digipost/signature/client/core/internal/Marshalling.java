@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.internal;
+package no.digipost.signature.client.core.internal;
 
-import no.digipost.signature.client.domain.exceptions.ConfigurationException;
+import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import no.digipost.signering.schema.v1.signature_document.XMLManifest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;

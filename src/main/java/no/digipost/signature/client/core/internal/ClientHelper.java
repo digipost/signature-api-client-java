@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.internal;
+package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
+import no.digipost.signature.client.core.exceptions.RuntimeIOException;
+import no.digipost.signature.client.core.exceptions.UnexpectedHttpResponseStatusException;
+import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatusResponse;
@@ -26,20 +29,25 @@ import org.glassfish.jersey.media.multipart.MultiPart;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response.Status;
+
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
+import static javax.ws.rs.core.Response.Status.OK;
 
-public class SenderFacade {
+public class ClientHelper {
 
     public static final String SIGNATURE_JOBS_PATH = "/signature-jobs";
 
     private final Client httpClient;
     private final WebTarget target;
 
-    public SenderFacade(final ClientConfiguration clientConfiguration) {
+
+    public ClientHelper(final ClientConfiguration clientConfiguration) {
         httpClient = SignatureHttpClient.create(clientConfiguration.getKeyStoreConfig());
         target = httpClient.target(clientConfiguration.getSignatureServiceRoot());
     }
@@ -48,14 +56,42 @@ public class SenderFacade {
         BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
-        MultiPart multiPart = new MultiPart()
+        try (MultiPart multiPart = new MultiPart()) {
+            multiPart
+                    .bodyPart(signatureJobBodyPart)
+                    .bodyPart(documentBundleBodyPart);
+
+            return target.path(SIGNATURE_JOBS_PATH)
+                    .request()
+                    .header("Content-Type", multiPart.getMediaType())
+                    .post(Entity.entity(multiPart, multiPart.getMediaType()), XMLSignatureJobResponse.class);
+        } catch (IOException e) {
+            throw new RuntimeIOException(e);
+        }
+    }
+
+    public void sendPortalSignatureJobRequest(final XMLPortalSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
+        BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
+        BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
+
+        try (MultiPart multiPart = new MultiPart()) {
+            multiPart
                 .bodyPart(signatureJobBodyPart)
                 .bodyPart(documentBundleBodyPart);
 
-        return target.path(SIGNATURE_JOBS_PATH)
-                .request()
-                .header("Content-Type", multiPart.getMediaType())
-                .post(Entity.entity(multiPart, multiPart.getMediaType()), XMLSignatureJobResponse.class);
+            Status status = Status.fromStatusCode(target.path(SIGNATURE_JOBS_PATH)
+                    .request()
+                    .header("Content-Type", multiPart.getMediaType())
+                    .post(Entity.entity(multiPart, multiPart.getMediaType()))
+                    .getStatus());
+
+            switch (status) {
+                case OK: return;
+                default: throw new UnexpectedHttpResponseStatusException(status, OK);
+            }
+        } catch (IOException e) {
+            throw new RuntimeIOException(e);
+        }
     }
 
     public String tryConnecting() {

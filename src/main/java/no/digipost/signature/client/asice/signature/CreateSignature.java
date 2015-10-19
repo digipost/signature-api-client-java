@@ -16,12 +16,12 @@
 package no.digipost.signature.client.asice.signature;
 
 import no.digipost.signature.client.asice.ASiCEAttachable;
-import no.digipost.signature.client.domain.exceptions.ConfigurationException;
-import no.digipost.signature.client.domain.exceptions.RuntimeIOException;
-import no.digipost.signature.client.domain.exceptions.XmlConfigurationException;
-import no.digipost.signature.client.domain.exceptions.XmlValidationException;
-import no.digipost.signature.client.internal.KeyStoreConfig;
-import no.digipost.signature.client.internal.Marshalling;
+import no.digipost.signature.client.core.exceptions.ConfigurationException;
+import no.digipost.signature.client.core.exceptions.RuntimeIOException;
+import no.digipost.signature.client.core.exceptions.XmlConfigurationException;
+import no.digipost.signature.client.core.exceptions.XmlValidationException;
+import no.digipost.signature.client.core.internal.KeyStoreConfig;
+import no.digipost.signature.client.core.internal.Marshalling;
 import org.springframework.core.io.Resource;
 import org.springframework.xml.validation.SchemaLoaderUtils;
 import org.springframework.xml.validation.XmlValidatorFactory;
@@ -45,6 +45,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.validation.Schema;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

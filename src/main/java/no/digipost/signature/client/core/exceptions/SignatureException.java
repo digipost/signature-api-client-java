@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain.exceptions;
+package no.digipost.signature.client.core.exceptions;
 
-import java.io.IOException;
+public class SignatureException extends RuntimeException {
 
-/**
- * Wrapper for IOExceptions in situations where there is no reason to assume an IOException can occur (e.g. memory representations of streams).
- */
-public class RuntimeIOException extends SignatureException {
-
-    public RuntimeIOException(IOException e) {
+    public SignatureException(final Exception e) {
         super(e);
     }
 
+    public SignatureException(final String message) {
+        super(message);
+    }
+
+    public SignatureException(final String message, final Exception e) {
+        super(message, e);
+    }
 }

@@ -15,7 +15,7 @@
  */
 package no.digipost.signature.client;
 
-import no.digipost.signature.client.internal.KeyStoreConfig;
+import no.digipost.signature.client.core.internal.KeyStoreConfig;
 
 import java.net.URI;
 

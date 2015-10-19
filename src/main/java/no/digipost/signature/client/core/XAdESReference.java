@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain.exceptions;
+package no.digipost.signature.client.core;
 
-public class ConfigurationException extends SignatureException {
+public class XAdESReference {
 
-    public ConfigurationException(final String message) {
-        this(message, null);
+    private final String xAdESUrl;
+
+    public XAdESReference(String xAdESUrl) {
+        this.xAdESUrl = xAdESUrl;
     }
 
-    public ConfigurationException(final String message, final Exception e) {
-        super(message, e);
+    public String getxAdESUrl() {
+        return xAdESUrl;
     }
 }

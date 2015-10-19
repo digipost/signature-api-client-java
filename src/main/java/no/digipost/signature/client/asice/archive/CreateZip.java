@@ -15,8 +15,8 @@
  */
 package no.digipost.signature.client.asice.archive;
 
-import no.digipost.signature.client.domain.exceptions.RuntimeIOException;
 import no.digipost.signature.client.asice.ASiCEAttachable;
+import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayOutputStream;

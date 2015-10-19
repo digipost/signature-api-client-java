@@ -15,16 +15,17 @@
  */
 package no.digipost.signature.client.asice.manifest;
 
-import no.digipost.signature.client.domain.Document;
-import no.digipost.signature.client.domain.exceptions.RuntimeIOException;
-import no.digipost.signature.client.domain.exceptions.XmlValidationException;
-import no.digipost.signature.client.internal.Marshalling;
+import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.exceptions.RuntimeIOException;
+import no.digipost.signature.client.core.exceptions.XmlValidationException;
+import no.digipost.signature.client.core.internal.Marshalling;
 import no.digipost.signering.schema.v1.signature_document.XMLManifest;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.transform.stream.StreamResult;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 

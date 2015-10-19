@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain;
+package no.digipost.signature.client.direct;
 
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatus;
 

@@ -17,8 +17,8 @@ package no.digipost.signature.client.asice.signature;
 
 import no.digipost.signature.client.TestKonfigurasjon;
 import no.digipost.signature.client.asice.ASiCEAttachable;
-import no.digipost.signature.client.internal.KeyStoreConfig;
-import no.digipost.signature.client.internal.Marshalling;
+import no.digipost.signature.client.core.internal.KeyStoreConfig;
+import no.digipost.signature.client.core.internal.Marshalling;
 import org.etsi.uri._01903.v1_3.*;
 import org.etsi.uri._2918.v1_2.XAdESSignatures;
 import org.junit.Before;

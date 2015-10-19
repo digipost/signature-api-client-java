@@ -15,7 +15,7 @@
  */
 package no.digipost.signature.client.asice.manifest;
 
-import no.digipost.signature.client.domain.Document;
+import no.digipost.signature.client.core.Document;
 import org.junit.Test;
 
 import static org.junit.Assert.fail;

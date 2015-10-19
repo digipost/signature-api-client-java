@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain;
+package no.digipost.signature.client.core;
 
 import no.digipost.signature.client.asice.ASiCEAttachable;
 
-import static no.digipost.signature.client.domain.Document.FileType.PDF;
+import static no.digipost.signature.client.core.Document.FileType.PDF;
 
 public class Document implements ASiCEAttachable {
 

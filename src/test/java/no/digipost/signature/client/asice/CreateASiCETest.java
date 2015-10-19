@@ -16,7 +16,7 @@
 package no.digipost.signature.client.asice;
 
 import no.digipost.signature.client.TestKonfigurasjon;
-import no.digipost.signature.client.domain.Document;
+import no.digipost.signature.client.core.Document;
 import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -26,17 +26,18 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
+
 public class CreateASiCETest {
 
     @Test
     @Ignore("Writes files to disk. Can be useful for debugging")
     public void create_asice_and_write_to_disk() throws IOException {
-        CreateASiCE createASiCE = new CreateASiCE();
 
         Document document = Document.builder("Subject", "Message", "file.txt", "hello".getBytes())
                 .fileType(Document.FileType.TXT)
                 .build();
-        DocumentBundle aSiCE = createASiCE.createASiCE(document, TestKonfigurasjon.CLIENT_KEYSTORE);
+        DocumentBundle aSiCE = createASiCE(document, TestKonfigurasjon.CLIENT_KEYSTORE);
 
         File tempFile = File.createTempFile("test", ".zip");
         IOUtils.copy(new ByteArrayInputStream(aSiCE.getBytes()), new FileOutputStream(tempFile));

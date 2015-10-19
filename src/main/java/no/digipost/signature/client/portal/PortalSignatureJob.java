@@ -13,19 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.internal;
+package no.digipost.signature.client.portal;
 
-import no.digipost.signature.client.domain.SignatureJob;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
+import no.digipost.signature.client.core.Document;
 
-public class CreateSignatureJobRequest {
+import java.util.UUID;
 
-    public XMLSignatureJobRequest createSignatureJobRequest(SignatureJob signatureJob) {
-        return new XMLSignatureJobRequest()
-                .withUuid(signatureJob.getUuid().toString())
-                .withSigner(signatureJob.getSigner())
-                .withCompletionUrl(signatureJob.getCompletionUrl())
-                .withCancellationUrl(signatureJob.getCancellationUrl());
+public class PortalSignatureJob {
+
+    private final UUID uuid;
+    private final String signer;
+    private final Document document;
+
+    public PortalSignatureJob(UUID uuid, String signer, Document document) {
+        this.uuid = uuid;
+        this.signer = signer;
+        this.document = document;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public String getSigner() {
+        return signer;
+    }
+
+    public Document getDocument() {
+        return document;
     }
 
 }
+

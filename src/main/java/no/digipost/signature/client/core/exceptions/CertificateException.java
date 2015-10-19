@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.domain.exceptions;
+package no.digipost.signature.client.core.exceptions;
 
-public class XmlValidationException extends SignatureException {
+public class CertificateException extends ConfigurationException {
 
-    public XmlValidationException(final String message, final Exception e) {
+    public CertificateException(String message, Exception e) {
         super(message, e);
     }
+
+    public CertificateException(String message) {
+        super(message);
+    }
+
 }
