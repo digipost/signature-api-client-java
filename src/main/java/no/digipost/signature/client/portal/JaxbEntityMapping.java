@@ -20,7 +20,9 @@ import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJo
 final class JaxbEntityMapping {
 
     static XMLPortalSignatureJobRequest toJaxb(PortalSignatureJob job) {
-        throw new UnsupportedOperationException("toJaxb() method is not supported");
+        return new XMLPortalSignatureJobRequest()
+                .withUuid(job.getUuid().toString())
+                .withSigner(job.getSigner());
     }
 
 

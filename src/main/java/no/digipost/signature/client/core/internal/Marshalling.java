@@ -16,6 +16,7 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
+import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_document.XMLManifest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
@@ -32,7 +33,7 @@ public class Marshalling {
         private static Jaxb2Marshaller instance; static {
             instance = new Jaxb2Marshaller();
             instance.setClassesToBeBound(XMLManifest.class, XMLSignatureJobRequest.class, XMLSignatureJobResponse.class, XMLSignatureJobStatusResponse.class,
-                    QualifyingProperties.class, XAdESSignatures.class);
+                    XMLPortalSignatureJobRequest.class, QualifyingProperties.class, XAdESSignatures.class);
             instance.setSchemas(Schemas.allSchemaResources());
             try {
                 instance.afterPropertiesSet();
@@ -49,13 +50,14 @@ public class Marshalling {
     public static class Schemas {
         public static final ClassPathResource SIGNATURE_DOCUMENT_SCHEMA = new ClassPathResource("signature-document.xsd");
         public static final ClassPathResource SIGNATURE_JOB_SCHEMA = new ClassPathResource("signature-job.xsd");
+        public static final ClassPathResource PORTAL_SIGNATURE_JOB_SCHEMA = new ClassPathResource("portal-signature-job.xsd");
         public static final ClassPathResource XMLDSIG_SCHEMA = new ClassPathResource("thirdparty/xmldsig-core-schema.xsd");
         public static final ClassPathResource ASICE_SCHEMA = new ClassPathResource("thirdparty/ts_102918v010201.xsd");
         public static final ClassPathResource XADES_SCHEMA = new ClassPathResource("thirdparty/XAdES.xsd");
 
         public static Resource[] allSchemaResources() {
             return new Resource[]{
-                    SIGNATURE_DOCUMENT_SCHEMA, SIGNATURE_JOB_SCHEMA, XMLDSIG_SCHEMA, ASICE_SCHEMA, XADES_SCHEMA
+                    SIGNATURE_DOCUMENT_SCHEMA, SIGNATURE_JOB_SCHEMA, PORTAL_SIGNATURE_JOB_SCHEMA, XMLDSIG_SCHEMA, ASICE_SCHEMA, XADES_SCHEMA
             };
         }
     }
