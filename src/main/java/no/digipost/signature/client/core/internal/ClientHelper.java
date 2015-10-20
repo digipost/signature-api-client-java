@@ -42,6 +42,7 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class ClientHelper {
 
     public static final String SIGNATURE_JOBS_PATH = "/signature-jobs";
+    public static final String PORTAL_SIGNATURE_JOBS_PATH = "/portal/signature-jobs";
 
     private final Client httpClient;
     private final WebTarget target;
@@ -79,7 +80,7 @@ public class ClientHelper {
                 .bodyPart(signatureJobBodyPart)
                 .bodyPart(documentBundleBodyPart);
 
-            Status status = Status.fromStatusCode(target.path(SIGNATURE_JOBS_PATH)
+            Status status = Status.fromStatusCode(target.path(PORTAL_SIGNATURE_JOBS_PATH)
                     .request()
                     .header("Content-Type", multiPart.getMediaType())
                     .post(Entity.entity(multiPart, multiPart.getMediaType()))
@@ -92,13 +93,6 @@ public class ClientHelper {
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
-    }
-
-    public String tryConnecting() {
-        return target.path("/")
-                .request()
-                .get()
-                .readEntity(String.class);
     }
 
     public XMLSignatureJobStatusResponse sendSignatureJobStatusRequest(String statusUrl) {
