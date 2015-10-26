@@ -29,11 +29,12 @@ import org.glassfish.jersey.media.multipart.MultiPart;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
@@ -107,5 +108,16 @@ public class ClientHelper {
                 .request()
                 .get()
                 .readEntity(InputStream.class);
+    }
+
+    public Optional<Object> getStatusChange() {
+        Response response = target.path(PORTAL_SIGNATURE_JOBS_PATH)
+                .request()
+                .get();
+        if (Status.fromStatusCode(response.getStatus()) == Status.NO_CONTENT) {
+            return Optional.empty();
+        } else {
+            throw new RuntimeException("Not implemented yet");
+        }
     }
 }

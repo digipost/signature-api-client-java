@@ -19,6 +19,8 @@ import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.KeyStoreConfig;
 
+import java.util.Optional;
+
 import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
 
@@ -34,5 +36,9 @@ public class PortalClient {
 
     public void create(PortalSignatureJob job) {
         client.sendPortalSignatureJobRequest(toJaxb(job), createASiCE(job.getDocument(), keyStoreConfig));
+    }
+
+    public Optional<Object> getStatusChange(){
+        return client.getStatusChange();
     }
 }
