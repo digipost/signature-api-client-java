@@ -18,8 +18,7 @@ package no.digipost.signature.client.portal;
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.KeyStoreConfig;
-
-import java.util.Optional;
+import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
 
 import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
@@ -38,7 +37,11 @@ public class PortalClient {
         client.sendPortalSignatureJobRequest(toJaxb(job), createASiCE(job.getDocument(), keyStoreConfig));
     }
 
-    public Optional<Object> getStatusChange(){
-        return client.getStatusChange();
+    public PortalSignatureJobStatusChanged getStatusChange() {
+        XMLPortalSignatureJobStatusChangeResponse statusChange = client.getStatusChange();
+        if (statusChange == null) {
+            return null;
+        }
+        return new PortalSignatureJobStatusChanged(statusChange.getStatus(), statusChange.getXadesUrl(), statusChange.getPadesUrl(), statusChange.getConfirmationUrl());
     }
 }

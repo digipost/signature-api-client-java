@@ -18,8 +18,27 @@ package no.digipost.signature.client.core.exceptions;
 import javax.ws.rs.core.Response.Status;
 
 public class UnexpectedHttpResponseStatusException extends SignatureException {
-    public UnexpectedHttpResponseStatusException(Status actual, Status expected) {
-        super("expected " + expected.getStatusCode() + " " + expected.getReasonPhrase() +
+
+    public UnexpectedHttpResponseStatusException(Status actual, Status... expected) {
+        super("expected one of " + new ExpectedStatuses(expected) +
               ", but got " + actual.getStatusCode() + " " + actual.getReasonPhrase());
     }
+
+    private static class ExpectedStatuses {
+        private Status[] statuses;
+
+        public ExpectedStatuses(Status... statuses) {
+            this.statuses = statuses;
+        }
+
+        @Override
+        public String toString() {
+            String message = "";
+            for (Status status : statuses) {
+                message += status.getStatusCode() + " " + status.getReasonPhrase() + ", ";
+            }
+            return message;
+        }
+    }
+
 }

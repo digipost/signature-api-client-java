@@ -20,6 +20,7 @@ import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.UnexpectedHttpResponseStatusException;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
+import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatusResponse;
@@ -34,10 +35,10 @@ import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 
 public class ClientHelper {
@@ -110,14 +111,17 @@ public class ClientHelper {
                 .readEntity(InputStream.class);
     }
 
-    public Optional<Object> getStatusChange() {
+    public XMLPortalSignatureJobStatusChangeResponse getStatusChange() {
         Response response = target.path(PORTAL_SIGNATURE_JOBS_PATH)
                 .request()
                 .get();
-        if (Status.fromStatusCode(response.getStatus()) == Status.NO_CONTENT) {
-            return Optional.empty();
+        Status status = Status.fromStatusCode(response.getStatus());
+        if (status == Status.NO_CONTENT) {
+            return null;
+        } else if (status == Status.OK) {
+            return response.readEntity(XMLPortalSignatureJobStatusChangeResponse.class);
         } else {
-            throw new RuntimeException("Not implemented yet");
+            throw new UnexpectedHttpResponseStatusException(status, OK, NO_CONTENT);
         }
     }
 }
