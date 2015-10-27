@@ -19,15 +19,19 @@ import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatus;
 
+import java.util.UUID;
+
 public class PortalSignatureJobStatusChanged {
 
     private PortalSignatureJobStatus status;
+    private UUID uuid;
     private XAdESReference xAdESUrl;
     private PAdESReference pAdESUrl;
     private String confirmationUrl;
 
-    public PortalSignatureJobStatusChanged(XMLPortalSignatureJobStatus status, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
+    public PortalSignatureJobStatusChanged(XMLPortalSignatureJobStatus status, String uuid, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
         this.status = PortalSignatureJobStatus.fromXmlType(status);
+        this.uuid = UUID.fromString(uuid);
         this.xAdESUrl = new XAdESReference(xAdESUrl);
         this.pAdESUrl = new PAdESReference(pAdESUrl);
         this.confirmationUrl = confirmationUrl;
@@ -47,5 +51,9 @@ public class PortalSignatureJobStatusChanged {
 
     public String getConfirmationUrl() {
         return confirmationUrl;
+    }
+
+    public UUID getUuid() {
+        return uuid;
     }
 }
