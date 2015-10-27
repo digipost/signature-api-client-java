@@ -20,6 +20,7 @@ import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.UnexpectedHttpResponseStatusException;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
+import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
@@ -123,5 +124,11 @@ public class ClientHelper {
         } else {
             throw new UnexpectedHttpResponseStatusException(status, OK, NO_CONTENT);
         }
+    }
+
+    public void updateStatus(String url, XMLPortalSignatureJobStatusChangeRequest xmlPortalSignatureJobStatusChangeRequest) {
+        httpClient.target(url)
+                .request()
+                .put(Entity.entity(xmlPortalSignatureJobStatusChangeRequest, APPLICATION_XML_TYPE));
     }
 }
