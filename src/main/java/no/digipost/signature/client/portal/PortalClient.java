@@ -16,9 +16,13 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.ClientConfiguration;
+import no.digipost.signature.client.core.PAdESReference;
+import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.KeyStoreConfig;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
+
+import java.io.InputStream;
 
 import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
@@ -43,5 +47,13 @@ public class PortalClient {
             return null;
         }
         return new PortalSignatureJobStatusChanged(statusChange.getStatus(), statusChange.getXadesUrl(), statusChange.getPadesUrl(), statusChange.getConfirmationUrl());
+    }
+
+    public InputStream getXAdES(XAdESReference xAdESReference) {
+        return client.getSignedDocumentStream(xAdESReference.getxAdESUrl());
+    }
+
+    public InputStream getPAdES(PAdESReference pAdESReference) {
+        return client.getSignedDocumentStream(pAdESReference.getpAdESUrl());
     }
 }
