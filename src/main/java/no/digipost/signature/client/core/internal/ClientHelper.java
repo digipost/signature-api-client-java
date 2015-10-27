@@ -18,6 +18,7 @@ package no.digipost.signature.client.core.internal;
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
+import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedHttpResponseStatusException;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeRequest;
@@ -41,6 +42,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 public class ClientHelper {
 
@@ -83,7 +85,7 @@ public class ClientHelper {
                 .bodyPart(signatureJobBodyPart)
                 .bodyPart(documentBundleBodyPart);
 
-            Status status = Status.fromStatusCode(target.path(PORTAL_SIGNATURE_JOBS_PATH)
+            Status status = fromStatusCode(target.path(PORTAL_SIGNATURE_JOBS_PATH)
                     .request()
                     .header("Content-Type", multiPart.getMediaType())
                     .post(Entity.entity(multiPart, multiPart.getMediaType()))
@@ -116,13 +118,15 @@ public class ClientHelper {
         Response response = target.path(PORTAL_SIGNATURE_JOBS_PATH)
                 .request()
                 .get();
-        Status status = Status.fromStatusCode(response.getStatus());
-        if (status == Status.NO_CONTENT) {
+        int statusCode = response.getStatus();
+        if (statusCode == NO_CONTENT.getStatusCode()) {
             return null;
-        } else if (status == Status.OK) {
+        } else if (statusCode == OK.getStatusCode()) {
             return response.readEntity(XMLPortalSignatureJobStatusChangeResponse.class);
+        } else if (statusCode == 429){
+            throw new TooEagerPollingException(response.getHeaderString("Next-permitted-poll-time"));
         } else {
-            throw new UnexpectedHttpResponseStatusException(status, OK, NO_CONTENT);
+            throw new UnexpectedHttpResponseStatusException(fromStatusCode(statusCode), OK, NO_CONTENT);
         }
     }
 
