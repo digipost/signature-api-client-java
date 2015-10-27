@@ -126,7 +126,7 @@ public class ClientHelper {
         } else if (statusCode == 429){
             throw new TooEagerPollingException(response.getHeaderString("Next-permitted-poll-time"));
         } else {
-            throw new UnexpectedHttpResponseStatusException(fromStatusCode(statusCode), OK, NO_CONTENT);
+            throw new UnexpectedHttpResponseStatusException(Status.fromStatusCode(statusCode), OK, NO_CONTENT);
         }
     }
 

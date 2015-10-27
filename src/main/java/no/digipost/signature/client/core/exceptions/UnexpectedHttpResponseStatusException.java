@@ -20,25 +20,20 @@ import javax.ws.rs.core.Response.Status;
 public class UnexpectedHttpResponseStatusException extends SignatureException {
 
     public UnexpectedHttpResponseStatusException(Status actual, Status... expected) {
-        super("expected one of " + new ExpectedStatuses(expected) +
+        super("expected " + prettyprintExpectedStatuses(expected) +
               ", but got " + actual.getStatusCode() + " " + actual.getReasonPhrase());
     }
 
-    private static class ExpectedStatuses {
-        private Status[] statuses;
-
-        public ExpectedStatuses(Status... statuses) {
-            this.statuses = statuses;
+    private static String prettyprintExpectedStatuses(Status... statuses) {
+        String message = "[" + prettyprintSingleStatus(statuses[0]);
+        for (int i = 1; i < statuses.length; i++) {
+            message += ", " + prettyprintSingleStatus(statuses[i]);
         }
+        return message + "]";
+    }
 
-        @Override
-        public String toString() {
-            String message = "";
-            for (Status status : statuses) {
-                message += status.getStatusCode() + " " + status.getReasonPhrase() + ", ";
-            }
-            return message;
-        }
+    private static String prettyprintSingleStatus(Status status) {
+        return status.getStatusCode() + " " + status.getReasonPhrase();
     }
 
 }
