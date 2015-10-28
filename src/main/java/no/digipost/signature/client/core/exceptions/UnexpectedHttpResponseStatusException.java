@@ -19,9 +19,16 @@ import javax.ws.rs.core.Response.Status;
 
 public class UnexpectedHttpResponseStatusException extends SignatureException {
 
+    private Status actualStatus;
+
     public UnexpectedHttpResponseStatusException(Status actual, Status... expected) {
         super("expected " + prettyprintExpectedStatuses(expected) +
               ", but got " + actual.getStatusCode() + " " + actual.getReasonPhrase());
+        actualStatus = actual;
+    }
+
+    public Status getActualStatus() {
+        return actualStatus;
     }
 
     private static String prettyprintExpectedStatuses(Status... statuses) {

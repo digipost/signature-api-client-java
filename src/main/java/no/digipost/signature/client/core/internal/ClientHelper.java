@@ -133,8 +133,12 @@ public class ClientHelper {
     }
 
     public void updateStatus(String url, XMLPortalSignatureJobStatusChangeRequest xmlPortalSignatureJobStatusChangeRequest) {
-        httpClient.target(url)
+        Status status = Status.fromStatusCode(httpClient.target(url)
                 .request()
-                .put(Entity.entity(xmlPortalSignatureJobStatusChangeRequest, APPLICATION_XML_TYPE));
+                .put(Entity.entity(xmlPortalSignatureJobStatusChangeRequest, APPLICATION_XML_TYPE))
+                .getStatus());
+        if (status != OK) {
+            throw new UnexpectedHttpResponseStatusException(status, OK);
+        }
     }
 }
