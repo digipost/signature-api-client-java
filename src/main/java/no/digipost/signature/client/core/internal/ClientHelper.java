@@ -49,6 +49,8 @@ public class ClientHelper {
     public static final String SIGNATURE_JOBS_PATH = "/signature-jobs";
     public static final String PORTAL_SIGNATURE_JOBS_PATH = "/portal/signature-jobs";
 
+    public static final String NEXT_PERMITTED_POLL_TIME_HEADER = "X-Next-permitted-poll-time";
+
     private final Client httpClient;
     private final WebTarget target;
 
@@ -124,7 +126,7 @@ public class ClientHelper {
         } else if (statusCode == OK.getStatusCode()) {
             return response.readEntity(XMLPortalSignatureJobStatusChangeResponse.class);
         } else if (statusCode == 429){
-            throw new TooEagerPollingException(response.getHeaderString("Next-permitted-poll-time"));
+            throw new TooEagerPollingException(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER));
         } else {
             throw new UnexpectedHttpResponseStatusException(Status.fromStatusCode(statusCode), OK, NO_CONTENT);
         }
