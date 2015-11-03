@@ -17,6 +17,7 @@ package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
+import no.digipost.signature.client.core.exceptions.DuplicateSignatureJobIdException;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedHttpResponseStatusException;
@@ -40,9 +41,7 @@ import java.io.InputStream;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
-import static javax.ws.rs.core.Response.Status.fromStatusCode;
+import static javax.ws.rs.core.Response.Status.*;
 
 public class ClientHelper {
 
@@ -69,10 +68,16 @@ public class ClientHelper {
                     .bodyPart(signatureJobBodyPart)
                     .bodyPart(documentBundleBodyPart);
 
-            return target.path(SIGNATURE_JOBS_PATH)
+            Response response = target.path(SIGNATURE_JOBS_PATH)
                     .request()
                     .header("Content-Type", multiPart.getMediaType())
-                    .post(Entity.entity(multiPart, multiPart.getMediaType()), XMLSignatureJobResponse.class);
+                    .post(Entity.entity(multiPart, multiPart.getMediaType()), Response.class);
+            Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK: return response.readEntity(XMLSignatureJobResponse.class);
+                case CONFLICT: throw new DuplicateSignatureJobIdException(signatureJobRequest.getUuid());
+                default: throw new UnexpectedHttpResponseStatusException(status, OK);
+            }
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
@@ -95,6 +100,7 @@ public class ClientHelper {
 
             switch (status) {
                 case OK: return;
+                case CONFLICT: throw new DuplicateSignatureJobIdException(signatureJobRequest.getUuid());
                 default: throw new UnexpectedHttpResponseStatusException(status, OK);
             }
         } catch (IOException e) {
