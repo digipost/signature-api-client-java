@@ -48,7 +48,7 @@ public class PortalClient {
         if (statusChange == null) {
             return null;
         }
-        return new PortalSignatureJobStatusChanged(statusChange.getStatus(), statusChange.getUuid(), statusChange.getXadesUrl(), statusChange.getPadesUrl(), statusChange.getConfirmationUrl());
+        return new PortalSignatureJobStatusChanged(statusChange.getStatus(), statusChange.getId(), statusChange.getXadesUrl(), statusChange.getPadesUrl(), statusChange.getConfirmationUrl());
     }
 
     public InputStream getXAdES(XAdESReference xAdESReference) {

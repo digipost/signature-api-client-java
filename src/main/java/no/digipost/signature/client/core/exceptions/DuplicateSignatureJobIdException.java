@@ -15,18 +15,17 @@
  */
 package no.digipost.signature.client.core.exceptions;
 
-import java.util.UUID;
 
 public class DuplicateSignatureJobIdException extends SignatureException {
 
-    private UUID uuid;
+    private String id;
 
-    public DuplicateSignatureJobIdException(String uuid) {
-        super("A signature job with uuid " + uuid + " has already been created. Signature jobs must have unique uuids");
-        this.uuid = UUID.fromString(uuid);
+    public DuplicateSignatureJobIdException(String id) {
+        super("A signature job with id " + id + " has already been created. Signature jobs must have unique ids");
+        this.id = id;
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public String getId() {
+        return id;
     }
 }

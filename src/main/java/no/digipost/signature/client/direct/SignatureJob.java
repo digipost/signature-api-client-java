@@ -17,26 +17,24 @@ package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.core.Document;
 
-import java.util.UUID;
-
 public class SignatureJob {
 
-    private UUID uuid;
+    private String id;
     private String signer;
     private Document document;
     private String completionUrl;
     private String cancellationUrl;
 
-    private SignatureJob(final UUID uuid, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
-        this.uuid = uuid;
+    private SignatureJob(final String id, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
+        this.id = id;
         this.signer = signer;
         this.document = document;
         this.completionUrl = completionUrl;
         this.cancellationUrl = cancellationUrl;
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public String getId() {
+        return id;
     }
 
     public String getSigner() {
@@ -55,8 +53,8 @@ public class SignatureJob {
         return cancellationUrl;
     }
 
-    public static Builder builder(final UUID uuid, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
-        return new Builder(uuid, signer, document, completionUrl, cancellationUrl);
+    public static Builder builder(final String id, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
+        return new Builder(id, signer, document, completionUrl, cancellationUrl);
     }
 
     public static class Builder {
@@ -64,8 +62,8 @@ public class SignatureJob {
         private final SignatureJob target;
         private boolean built = false;
 
-        public Builder(final UUID uuid, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
-            target = new SignatureJob(uuid, signer, document, completionUrl, cancellationUrl);
+        public Builder(final String id, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
+            target = new SignatureJob(id, signer, document, completionUrl, cancellationUrl);
         }
 
         public SignatureJob build() {

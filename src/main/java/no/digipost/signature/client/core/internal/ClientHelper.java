@@ -75,7 +75,7 @@ public class ClientHelper {
             Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK: return response.readEntity(XMLSignatureJobResponse.class);
-                case CONFLICT: throw new DuplicateSignatureJobIdException(signatureJobRequest.getUuid());
+                case CONFLICT: throw new DuplicateSignatureJobIdException(signatureJobRequest.getId());
                 default: throw new UnexpectedHttpResponseStatusException(status, OK);
             }
         } catch (IOException e) {
@@ -100,7 +100,7 @@ public class ClientHelper {
 
             switch (status) {
                 case OK: return;
-                case CONFLICT: throw new DuplicateSignatureJobIdException(signatureJobRequest.getUuid());
+                case CONFLICT: throw new DuplicateSignatureJobIdException(signatureJobRequest.getId());
                 default: throw new UnexpectedHttpResponseStatusException(status, OK);
             }
         } catch (IOException e) {

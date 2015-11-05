@@ -21,7 +21,7 @@ class JaxbEntityMapping {
 
     static XMLSignatureJobRequest toJaxb(SignatureJob signatureJob) {
         return new XMLSignatureJobRequest()
-                .withUuid(signatureJob.getUuid().toString())
+                .withId(signatureJob.getId().toString())
                 .withSigner(signatureJob.getSigner())
                 .withCompletionUrl(signatureJob.getCompletionUrl())
                 .withCancellationUrl(signatureJob.getCancellationUrl());

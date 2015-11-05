@@ -17,22 +17,21 @@ package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.Document;
 
-import java.util.UUID;
 
 public class PortalSignatureJob {
 
-    private final UUID uuid;
+    private final String id;
     private final String signer;
     private final Document document;
 
-    public PortalSignatureJob(UUID uuid, String signer, Document document) {
-        this.uuid = uuid;
+    public PortalSignatureJob(String id, String signer, Document document) {
+        this.id = id;
         this.signer = signer;
         this.document = document;
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public String getId() {
+        return id;
     }
 
     public String getSigner() {
