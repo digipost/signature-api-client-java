@@ -15,20 +15,32 @@
  */
 package no.digipost.signature.client.core.exceptions;
 
+import no.digipost.signering.schema.v1.common.XMLError;
+
 import javax.ws.rs.core.Response.Status;
 
-public class UnexpectedHttpResponseStatusException extends SignatureException {
+public class UnexpectedResponseException extends SignatureException {
 
+    private XMLError error;
     private Status actualStatus;
 
-    public UnexpectedHttpResponseStatusException(Status actual, Status... expected) {
+    public UnexpectedResponseException(XMLError error, Status actual, Status... expected) {
         super("expected " + prettyprintExpectedStatuses(expected) +
               ", but got " + actual.getStatusCode() + " " + actual.getReasonPhrase());
+        this.error = error;
         actualStatus = actual;
     }
 
     public Status getActualStatus() {
         return actualStatus;
+    }
+
+    public String getErrorCode() {
+        return error.getErrorCode();
+    }
+
+    public String getErrorMessage() {
+        return error.getErrorMessage();
     }
 
     private static String prettyprintExpectedStatuses(Status... statuses) {

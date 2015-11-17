@@ -20,7 +20,8 @@ import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.exceptions.DuplicateSignatureJobIdException;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
-import no.digipost.signature.client.core.exceptions.UnexpectedHttpResponseStatusException;
+import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
+import no.digipost.signering.schema.v1.common.XMLError;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
@@ -39,9 +40,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static javax.ws.rs.core.Response.Status.*;
+import static no.digipost.signature.client.core.internal.ErrorCodes.DUPLICATE_JOB_ID;
 
 public class ClientHelper {
 
@@ -70,13 +73,19 @@ public class ClientHelper {
 
             Response response = target.path(SIGNATURE_JOBS_PATH)
                     .request()
-                    .header("Content-Type", multiPart.getMediaType())
+                    .header(CONTENT_TYPE, multiPart.getMediaType())
+                    .accept(APPLICATION_XML_TYPE)
                     .post(Entity.entity(multiPart, multiPart.getMediaType()), Response.class);
             Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK: return response.readEntity(XMLSignatureJobResponse.class);
-                case CONFLICT: throw new DuplicateSignatureJobIdException(signatureJobRequest.getId());
-                default: throw new UnexpectedHttpResponseStatusException(status, OK);
+            if (status == OK) {
+                return response.readEntity(XMLSignatureJobResponse.class);
+            } else {
+                XMLError error = response.readEntity(XMLError.class);
+                if (status == CONFLICT && DUPLICATE_JOB_ID.sameAs(error.getErrorCode())) {
+                    throw new DuplicateSignatureJobIdException(signatureJobRequest.getId());
+                } else {
+                    throw new UnexpectedResponseException(error, status, OK);
+                }
             }
         } catch (IOException e) {
             throw new RuntimeIOException(e);
@@ -92,16 +101,19 @@ public class ClientHelper {
                 .bodyPart(signatureJobBodyPart)
                 .bodyPart(documentBundleBodyPart);
 
-            Status status = fromStatusCode(target.path(PORTAL_SIGNATURE_JOBS_PATH)
+            Response response = target.path(PORTAL_SIGNATURE_JOBS_PATH)
                     .request()
-                    .header("Content-Type", multiPart.getMediaType())
-                    .post(Entity.entity(multiPart, multiPart.getMediaType()))
-                    .getStatus());
-
-            switch (status) {
-                case OK: return;
-                case CONFLICT: throw new DuplicateSignatureJobIdException(signatureJobRequest.getId());
-                default: throw new UnexpectedHttpResponseStatusException(status, OK);
+                    .header(CONTENT_TYPE, multiPart.getMediaType())
+                    .accept(APPLICATION_XML_TYPE)
+                    .post(Entity.entity(multiPart, multiPart.getMediaType()));
+            Status status = fromStatusCode(response.getStatus());
+            if (status != OK) {
+                XMLError error = response.readEntity(XMLError.class);
+                if (status == CONFLICT && DUPLICATE_JOB_ID.sameAs(error.getErrorCode())) {
+                    throw new DuplicateSignatureJobIdException(signatureJobRequest.getId());
+                } else {
+                    throw new UnexpectedResponseException(error, status, OK);
+                }
             }
         } catch (IOException e) {
             throw new RuntimeIOException(e);
@@ -125,6 +137,7 @@ public class ClientHelper {
     public XMLPortalSignatureJobStatusChangeResponse getStatusChange() {
         Response response = target.path(PORTAL_SIGNATURE_JOBS_PATH)
                 .request()
+                .accept(APPLICATION_XML_TYPE)
                 .get();
         int statusCode = response.getStatus();
         if (statusCode == NO_CONTENT.getStatusCode()) {
@@ -134,17 +147,20 @@ public class ClientHelper {
         } else if (statusCode == 429){
             throw new TooEagerPollingException(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER));
         } else {
-            throw new UnexpectedHttpResponseStatusException(Status.fromStatusCode(statusCode), OK, NO_CONTENT);
+            XMLError error = response.readEntity(XMLError.class);
+            throw new UnexpectedResponseException(error, Status.fromStatusCode(statusCode), OK, NO_CONTENT);
         }
     }
 
     public void updateStatus(String url, XMLPortalSignatureJobStatusChangeRequest xmlPortalSignatureJobStatusChangeRequest) {
-        Status status = Status.fromStatusCode(httpClient.target(url)
+        Response response = httpClient.target(url)
                 .request()
-                .put(Entity.entity(xmlPortalSignatureJobStatusChangeRequest, APPLICATION_XML_TYPE))
-                .getStatus());
+                .accept(APPLICATION_XML_TYPE)
+                .put(Entity.entity(xmlPortalSignatureJobStatusChangeRequest, APPLICATION_XML_TYPE));
+        Status status = Status.fromStatusCode(response.getStatus());
         if (status != OK) {
-            throw new UnexpectedHttpResponseStatusException(status, OK);
+            XMLError error = response.readEntity(XMLError.class);
+            throw new UnexpectedResponseException(error, status, OK);
         }
     }
 }
