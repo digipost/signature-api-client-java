@@ -303,13 +303,6 @@
                             <dependencyResource>
                                 <groupId>no.digipost.signature</groupId>
                                 <artifactId>signature-api-specification</artifactId>
-                                <resource>common.xsd</resource>
-                            </dependencyResource>
-                        </schema>
-                        <schema>
-                            <dependencyResource>
-                                <groupId>no.digipost.signature</groupId>
-                                <artifactId>signature-api-specification</artifactId>
                                 <resource>thirdparty/XAdES.xsd</resource>
                             </dependencyResource>
                         </schema>

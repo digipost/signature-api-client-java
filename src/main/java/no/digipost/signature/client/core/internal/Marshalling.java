@@ -16,7 +16,6 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
-import no.digipost.signering.schema.v1.common.XMLError;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
@@ -37,7 +36,7 @@ public class Marshalling {
             instance = new Jaxb2Marshaller();
             instance.setClassesToBeBound(XMLManifest.class, XMLSignatureJobRequest.class, XMLSignatureJobResponse.class, XMLSignatureJobStatusResponse.class,
                     XMLPortalSignatureJobRequest.class, QualifyingProperties.class, XAdESSignatures.class, XMLPortalSignatureJobStatusChangeResponse.class,
-                    XMLPortalSignatureJobStatusChangeRequest.class, XMLError.class);
+                    XMLPortalSignatureJobStatusChangeRequest.class);
             instance.setSchemas(Schemas.allSchemaResources());
             try {
                 instance.afterPropertiesSet();
@@ -55,14 +54,13 @@ public class Marshalling {
         public static final ClassPathResource SIGNATURE_DOCUMENT_SCHEMA = new ClassPathResource("signature-document.xsd");
         public static final ClassPathResource SIGNATURE_JOB_SCHEMA = new ClassPathResource("signature-job.xsd");
         public static final ClassPathResource PORTAL_SIGNATURE_JOB_SCHEMA = new ClassPathResource("portal-signature-job.xsd");
-        public static final ClassPathResource SIGNATURE_JOB_COMMON_SCHEMA = new ClassPathResource("common.xsd");
         public static final ClassPathResource XMLDSIG_SCHEMA = new ClassPathResource("thirdparty/xmldsig-core-schema.xsd");
         public static final ClassPathResource ASICE_SCHEMA = new ClassPathResource("thirdparty/ts_102918v010201.xsd");
         public static final ClassPathResource XADES_SCHEMA = new ClassPathResource("thirdparty/XAdES.xsd");
 
         public static Resource[] allSchemaResources() {
             return new Resource[]{
-                    SIGNATURE_DOCUMENT_SCHEMA, SIGNATURE_JOB_SCHEMA, PORTAL_SIGNATURE_JOB_SCHEMA, SIGNATURE_JOB_COMMON_SCHEMA, XMLDSIG_SCHEMA, ASICE_SCHEMA, XADES_SCHEMA
+                    SIGNATURE_DOCUMENT_SCHEMA, SIGNATURE_JOB_SCHEMA, PORTAL_SIGNATURE_JOB_SCHEMA, XMLDSIG_SCHEMA, ASICE_SCHEMA, XADES_SCHEMA
             };
         }
     }
