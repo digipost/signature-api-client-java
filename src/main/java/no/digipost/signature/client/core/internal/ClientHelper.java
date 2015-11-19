@@ -17,10 +17,7 @@ package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
-import no.digipost.signature.client.core.exceptions.DuplicateSignatureJobIdException;
-import no.digipost.signature.client.core.exceptions.RuntimeIOException;
-import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
-import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
+import no.digipost.signature.client.core.exceptions.*;
 import no.digipost.signering.schema.v1.common.XMLError;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeRequest;
@@ -80,12 +77,7 @@ public class ClientHelper {
             if (status == OK) {
                 return response.readEntity(XMLSignatureJobResponse.class);
             } else {
-                XMLError error = response.readEntity(XMLError.class);
-                if (status == CONFLICT && DUPLICATE_JOB_ID.sameAs(error.getErrorCode())) {
-                    throw new DuplicateSignatureJobIdException(signatureJobRequest.getId());
-                } else {
-                    throw new UnexpectedResponseException(error, status, OK);
-                }
+                throw mapErrorWhenSendingJob(response, status, signatureJobRequest.getId());
             }
         } catch (IOException e) {
             throw new RuntimeIOException(e);
@@ -108,15 +100,19 @@ public class ClientHelper {
                     .post(Entity.entity(multiPart, multiPart.getMediaType()));
             Status status = fromStatusCode(response.getStatus());
             if (status != OK) {
-                XMLError error = response.readEntity(XMLError.class);
-                if (status == CONFLICT && DUPLICATE_JOB_ID.sameAs(error.getErrorCode())) {
-                    throw new DuplicateSignatureJobIdException(signatureJobRequest.getId());
-                } else {
-                    throw new UnexpectedResponseException(error, status, OK);
-                }
+                throw mapErrorWhenSendingJob(response, status, signatureJobRequest.getId());
             }
         } catch (IOException e) {
             throw new RuntimeIOException(e);
+        }
+    }
+
+    private SignatureException mapErrorWhenSendingJob(Response response, Status status, String jobId) {
+        XMLError error = response.readEntity(XMLError.class);
+        if (status == CONFLICT && DUPLICATE_JOB_ID.sameAs(error.getErrorCode())) {
+            return new DuplicateSignatureJobIdException(jobId);
+        } else {
+            return new UnexpectedResponseException(error, status, OK);
         }
     }
 
