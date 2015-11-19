@@ -43,6 +43,10 @@ public class UnexpectedResponseException extends SignatureException {
         return error.getErrorMessage();
     }
 
+    public String getErrorType() {
+        return error.getErrorType();
+    }
+
     private static String prettyprintExpectedStatuses(Status... statuses) {
         String message = "[" + prettyprintSingleStatus(statuses[0]);
         for (int i = 1; i < statuses.length; i++) {
