@@ -207,6 +207,22 @@
                             <ignoreNonCompile>true</ignoreNonCompile>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>unpack-xsd-resources</id>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>no.digipost.signature</groupId>
+                                    <artifactId>signature-api-specification</artifactId>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.basedir}/target/generated-resources/xsd</outputDirectory>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -277,59 +293,9 @@
                 </executions>
                 <configuration>
                     <specVersion>2.2</specVersion>
-                    <schemas>
-                        <schema>
-                            <dependencyResource>
-                                <groupId>no.digipost.signature</groupId>
-                                <artifactId>signature-api-specification</artifactId>
-                                <resource>signature-job.xsd</resource>
-                            </dependencyResource>
-                        </schema>
-                        <schema>
-                            <dependencyResource>
-                                <groupId>no.digipost.signature</groupId>
-                                <artifactId>signature-api-specification</artifactId>
-                                <resource>portal-signature-job.xsd</resource>
-                            </dependencyResource>
-                        </schema>
-                        <schema>
-                            <dependencyResource>
-                                <groupId>no.digipost.signature</groupId>
-                                <artifactId>signature-api-specification</artifactId>
-                                <resource>signature-document.xsd</resource>
-                            </dependencyResource>
-                        </schema>
-                        <schema>
-                            <dependencyResource>
-                                <groupId>no.digipost.signature</groupId>
-                                <artifactId>signature-api-specification</artifactId>
-                                <resource>common.xsd</resource>
-                            </dependencyResource>
-                        </schema>
-                        <schema>
-                            <dependencyResource>
-                                <groupId>no.digipost.signature</groupId>
-                                <artifactId>signature-api-specification</artifactId>
-                                <resource>thirdparty/XAdES.xsd</resource>
-                            </dependencyResource>
-                        </schema>
-                        <schema>
-                            <dependencyResource>
-                                <groupId>no.digipost.signature</groupId>
-                                <artifactId>signature-api-specification</artifactId>
-                                <resource>thirdparty/ts_102918v010201.xsd</resource>
-                            </dependencyResource>
-                        </schema>
-                    </schemas>
-                    <catalogs>
-                        <catalog>
-                            <dependencyResource>
-                                <groupId>no.digipost.signature</groupId>
-                                <artifactId>signature-api-specification</artifactId>
-                                <resource>catalog.xml</resource>
-                            </dependencyResource>
-                        </catalog>
-                    </catalogs>
+                    <schemaDirectory>${project.basedir}/target/generated-resources/xsd</schemaDirectory>
+                    <schemaIncludes>**/*.xsd</schemaIncludes>
+                    <catalog>${project.basedir}/target/generated-resources/xsd/catalog.xml</catalog>
                     <strict>false</strict>
                     <extension>true</extension>
                     <removeOldOutput>true</removeOldOutput>

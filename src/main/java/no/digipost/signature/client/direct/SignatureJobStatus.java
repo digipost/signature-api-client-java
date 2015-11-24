@@ -15,7 +15,7 @@
  */
 package no.digipost.signature.client.direct;
 
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatus;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatus;
 
 public enum SignatureJobStatus {
 
@@ -23,7 +23,7 @@ public enum SignatureJobStatus {
     COMPLETED,
     CANCELED;
 
-    public static SignatureJobStatus fromXmlType(XMLSignatureJobStatus xmlJobStatus) {
+    public static SignatureJobStatus fromXmlType(XMLDirectSignatureJobStatus xmlJobStatus) {
         switch (xmlJobStatus) {
             case CREATED:
                 return CREATED;

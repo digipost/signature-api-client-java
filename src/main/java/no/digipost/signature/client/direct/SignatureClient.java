@@ -20,13 +20,14 @@ import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatusResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatusResponse;
 
 import java.io.InputStream;
 
 import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
+import static no.digipost.signature.client.direct.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.toJaxb;
 
 public class SignatureClient {
@@ -40,16 +41,16 @@ public class SignatureClient {
     }
 
     public SignatureJobResponse create(final SignatureJob signatureJob) {
-        DocumentBundle documentBundle = createASiCE(signatureJob.getDocument(), clientConfiguration.getKeyStoreConfig());
-        XMLSignatureJobRequest signatureJobRequest = toJaxb(signatureJob);
+        DocumentBundle documentBundle = createASiCE(signatureJob.getDocument(), signatureJob.getSigner(), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig());
+        XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(signatureJob);
 
-        XMLSignatureJobResponse xmlSignatureJobResponse = client.sendSignatureJobRequest(signatureJobRequest, documentBundle);
+        XMLDirectSignatureJobResponse xmlSignatureJobResponse = client.sendSignatureJobRequest(signatureJobRequest, documentBundle);
         return new SignatureJobResponse(xmlSignatureJobResponse.getRedirectUrl(), xmlSignatureJobResponse.getStatusUrl());
     }
 
     public SignatureJobStatusResponse getStatus(SignatureJobReference signatureJobReference) {
-        XMLSignatureJobStatusResponse xmlSignatureJobStatusResponse = client.sendSignatureJobStatusRequest(signatureJobReference.getStatusUrl());
-        return new SignatureJobStatusResponse(xmlSignatureJobStatusResponse.getStatus(), xmlSignatureJobStatusResponse.getXadesUrl(), xmlSignatureJobStatusResponse.getPadesUrl());
+        XMLDirectSignatureJobStatusResponse xmlSignatureJobStatusResponse = client.sendSignatureJobStatusRequest(signatureJobReference.getStatusUrl());
+        return fromJaxb(xmlSignatureJobStatusResponse);
     }
 
     public InputStream getXAdES(XAdESReference xAdESReference) {

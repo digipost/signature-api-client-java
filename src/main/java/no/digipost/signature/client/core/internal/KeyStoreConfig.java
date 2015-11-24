@@ -16,6 +16,7 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.core.exceptions.CertificateException;
+import no.digipost.signature.client.core.exceptions.KeyException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class KeyStoreConfig {
         try {
             return keyStore.getCertificateChain(alias);
         } catch (KeyStoreException e) {
-            throw new no.digipost.signature.client.core.exceptions.KeyException("Failed to retrieve certificate chain from key store. Is key store initialized?", e);
+            throw new KeyException("Failed to retrieve certificate chain from key store. Is key store initialized?", e);
         }
     }
 
@@ -68,15 +69,15 @@ public class KeyStoreConfig {
         try {
             Key key = keyStore.getKey(alias, privatekeyPassword.toCharArray());
             if (!(key instanceof PrivateKey)) {
-                throw new no.digipost.signature.client.core.exceptions.KeyException("Failed to retrieve private key from key store. Expected a PriveteKey, got " + key.getClass().getCanonicalName());
+                throw new KeyException("Failed to retrieve private key from key store. Expected a PriveteKey, got " + key.getClass().getCanonicalName());
             }
             return (PrivateKey) key;
         } catch (KeyStoreException e) {
-            throw new no.digipost.signature.client.core.exceptions.KeyException("Failed to retrieve private key from key store. Is key store initialized?", e);
+            throw new KeyException("Failed to retrieve private key from key store. Is key store initialized?", e);
         } catch (NoSuchAlgorithmException e) {
-            throw new no.digipost.signature.client.core.exceptions.KeyException("Failed to retrieve private key from key store. Verify that the key is supported on the platform.", e);
+            throw new KeyException("Failed to retrieve private key from key store. Verify that the key is supported on the platform.", e);
         } catch (UnrecoverableKeyException e) {
-            throw new no.digipost.signature.client.core.exceptions.KeyException("Failed to retrieve private key from key store. Verify that the password is correct.", e);
+            throw new KeyException("Failed to retrieve private key from key store. Verify that the password is correct.", e);
         }
     }
 
@@ -86,9 +87,9 @@ public class KeyStoreConfig {
             ks.load(keyStore, keyStorePassword.toCharArray());
             return new KeyStoreConfig(ks, alias, keyStorePassword, privatekeyPassword);
         } catch (FileNotFoundException e) {
-            throw new no.digipost.signature.client.core.exceptions.KeyException("Failed to initialize key store. Are you sure the file exists?", e);
+            throw new KeyException("Failed to initialize key store. Are you sure the file exists?", e);
         } catch (KeyStoreException | NoSuchAlgorithmException | IOException | java.security.cert.CertificateException e) {
-            throw new no.digipost.signature.client.core.exceptions.KeyException("Failed to initialize key store", e);
+            throw new KeyException("Failed to initialize key store", e);
         }
     }
 

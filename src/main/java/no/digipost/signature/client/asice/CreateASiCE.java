@@ -22,6 +22,8 @@ import no.digipost.signature.client.asice.manifest.Manifest;
 import no.digipost.signature.client.asice.signature.CreateSignature;
 import no.digipost.signature.client.asice.signature.Signature;
 import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.Signer;
 import no.digipost.signature.client.core.internal.KeyStoreConfig;
 
 import java.util.ArrayList;
@@ -33,8 +35,8 @@ public class CreateASiCE {
     private static final CreateManifest createManifest = new CreateManifest();
     private static final CreateSignature createSignature = new CreateSignature();
 
-    public static DocumentBundle createASiCE(final Document document, final KeyStoreConfig keyStoreConfig) {
-        Manifest manifest = createManifest.createManifest(document);
+    public static DocumentBundle createASiCE(final Document document, Signer signer, Sender sender, final KeyStoreConfig keyStoreConfig) {
+        Manifest manifest = createManifest.createManifest(document, signer, sender);
 
         List<ASiCEAttachable> files = new ArrayList<>();
         files.add(document);

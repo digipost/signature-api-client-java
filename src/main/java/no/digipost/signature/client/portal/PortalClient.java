@@ -19,7 +19,6 @@ import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
-import no.digipost.signature.client.core.internal.KeyStoreConfig;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
 
@@ -32,15 +31,15 @@ import static no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSign
 public class PortalClient {
 
     private final ClientHelper client;
-    private final KeyStoreConfig keyStoreConfig;
+    private final ClientConfiguration clientConfiguration;
 
     public PortalClient(ClientConfiguration clientConfiguration) {
+        this.clientConfiguration = clientConfiguration;
         this.client = new ClientHelper(clientConfiguration);
-        this.keyStoreConfig = clientConfiguration.getKeyStoreConfig();
     }
 
     public void create(PortalSignatureJob job) {
-        client.sendPortalSignatureJobRequest(toJaxb(job), createASiCE(job.getDocument(), keyStoreConfig));
+        client.sendPortalSignatureJobRequest(toJaxb(job), createASiCE(job.getDocument(), job.getSigner(), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig()));
     }
 
     public PortalSignatureJobStatusChanged getStatusChange() {
@@ -48,7 +47,7 @@ public class PortalClient {
         if (statusChange == null) {
             return null;
         }
-        return new PortalSignatureJobStatusChanged(statusChange.getStatus(), statusChange.getId(), statusChange.getXadesUrl(), statusChange.getPadesUrl(), statusChange.getConfirmationUrl());
+        return JaxbEntityMapping.fromJaxb(statusChange);
     }
 
     public InputStream getXAdES(XAdESReference xAdESReference) {

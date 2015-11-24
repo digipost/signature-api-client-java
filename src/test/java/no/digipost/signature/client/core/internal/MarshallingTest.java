@@ -15,8 +15,10 @@
  */
 package no.digipost.signature.client.core.internal;
 
+import no.digipost.signering.schema.v1.common.*;
 import no.digipost.signering.schema.v1.signature_document.XMLManifest;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.XMLExitUrls;
 import org.junit.Test;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
@@ -36,8 +38,16 @@ public class MarshallingTest {
 
     @Test
     public void valid_objects_can_be_marshalled() {
-        XMLSignatureJobRequest signatureJobRequest = new XMLSignatureJobRequest("12345678910", "http://localhost", "http://localhost", "1234");
-        XMLManifest manifest = new XMLManifest("Subject", "Message", "application/pdf", "document.pdf");
+        XMLSender sender = new XMLSender().withOrganization("123456789");
+        XMLSigner signer = new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber("12345678910"));
+        XMLDocument document = new XMLDocument(new XMLTitle().withNonSensitive("Subject").withLang("NO"), "Message", "document.pdf", "application/pdf");
+        XMLExitUrls exitUrls = new XMLExitUrls()
+                .withCompletionUrl("http://localhost/completed")
+                .withCancellationUrl("http://localhost/canceled")
+                .withErrorUrl("http://localhost/failed");
+
+        XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", signer, sender, document, exitUrls);
+        XMLManifest manifest = new XMLManifest(new XMLSigners().withSigner(signer), sender, document);
 
         marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
         marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));
@@ -45,7 +55,15 @@ public class MarshallingTest {
 
     @Test
     public void invalid_signature_job_request_causes_exceptions() {
-        XMLSignatureJobRequest signatureJobRequest = new XMLSignatureJobRequest("11111", "12345678910", null, "http://localhost");
+        XMLSender sender = new XMLSender().withOrganization("123456789");
+        XMLSigner signer = new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber("12345678910"));
+        XMLDocument document = new XMLDocument(new XMLTitle().withNonSensitive("Subject").withLang("NO"), "Message", "document.pdf", "application/pdf");
+        XMLExitUrls exitUrls = new XMLExitUrls()
+                .withCompletionUrl(null)
+                .withCancellationUrl("http://localhost/canceled")
+                .withErrorUrl("http://localhost/failed");
+
+        XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", signer, sender, document, exitUrls);
 
         try {
             marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
@@ -57,13 +75,16 @@ public class MarshallingTest {
 
     @Test
     public void invalid_manifest_causes_exceptions() {
-        XMLManifest manifest = new XMLManifest("Subject", "Message", "application/pdf", null);
+        XMLSender sender = new XMLSender().withOrganization("123456789");
+        XMLSigner signer = new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber("12345678910"));
+        XMLDocument document = new XMLDocument(new XMLTitle().withNonSensitive("Subject").withLang("NO"), "Message", null, "application/pdf");
+        XMLManifest manifest = new XMLManifest(new XMLSigners().withSigner(signer), sender, document);
 
         try {
             marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));
-            fail("Should have failed with XSD-validation error due to filename being empty.");
+            fail("Should have failed with XSD-validation error due to href-attribute on primary document element being empty.");
         } catch (MarshallingFailureException e) {
-            assertThat(e.getMessage(), allOf(containsString("file-name"), containsString("is expected")));
+            assertThat(e.getMessage(), allOf(containsString("href"), containsString("must appear")));
         }
     }
 

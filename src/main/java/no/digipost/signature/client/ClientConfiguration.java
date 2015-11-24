@@ -15,6 +15,7 @@
  */
 package no.digipost.signature.client;
 
+import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.internal.KeyStoreConfig;
 
 import java.net.URI;
@@ -23,10 +24,12 @@ public class ClientConfiguration {
 
     private URI signatureServiceRoot;
     private KeyStoreConfig keyStoreConfig;
+    private Sender sender;
 
-    public ClientConfiguration(URI signatureServiceRoot, KeyStoreConfig keyStoreConfig) {
+    public ClientConfiguration(URI signatureServiceRoot, KeyStoreConfig keyStoreConfig, Sender sender) {
         this.signatureServiceRoot = signatureServiceRoot;
         this.keyStoreConfig = keyStoreConfig;
+        this.sender = sender;
     }
 
     public URI getSignatureServiceRoot() {
@@ -35,5 +38,9 @@ public class ClientConfiguration {
 
     public KeyStoreConfig getKeyStoreConfig() {
         return keyStoreConfig;
+    }
+
+    public Sender getSender() {
+        return sender;
     }
 }

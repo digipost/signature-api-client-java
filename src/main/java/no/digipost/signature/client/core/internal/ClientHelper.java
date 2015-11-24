@@ -22,9 +22,9 @@ import no.digipost.signering.schema.v1.common.XMLError;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatusResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatusResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobResponse;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 
@@ -59,7 +59,7 @@ public class ClientHelper {
         target = httpClient.target(clientConfiguration.getSignatureServiceRoot());
     }
 
-    public XMLSignatureJobResponse sendSignatureJobRequest(final XMLSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
+    public XMLDirectSignatureJobResponse sendSignatureJobRequest(final XMLDirectSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
         BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
@@ -75,7 +75,7 @@ public class ClientHelper {
                     .post(Entity.entity(multiPart, multiPart.getMediaType()), Response.class);
             Status status = Status.fromStatusCode(response.getStatus());
             if (status == OK) {
-                return response.readEntity(XMLSignatureJobResponse.class);
+                return response.readEntity(XMLDirectSignatureJobResponse.class);
             } else {
                 throw mapErrorWhenSendingJob(response, status, signatureJobRequest.getId());
             }
@@ -116,11 +116,11 @@ public class ClientHelper {
         }
     }
 
-    public XMLSignatureJobStatusResponse sendSignatureJobStatusRequest(String statusUrl) {
+    public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(String statusUrl) {
         return httpClient.target(statusUrl)
                 .request()
                 .get()
-                .readEntity(XMLSignatureJobStatusResponse.class);
+                .readEntity(XMLDirectSignatureJobStatusResponse.class);
     }
 
     public InputStream getSignedDocumentStream(String url) {

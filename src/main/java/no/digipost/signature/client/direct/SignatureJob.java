@@ -16,16 +16,17 @@
 package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.Signer;
 
 public class SignatureJob {
 
     private String id;
-    private String signer;
+    private Signer signer;
     private Document document;
     private String completionUrl;
     private String cancellationUrl;
 
-    private SignatureJob(final String id, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
+    private SignatureJob(final String id, final Signer signer, final Document document, final String completionUrl, final String cancellationUrl) {
         this.id = id;
         this.signer = signer;
         this.document = document;
@@ -37,7 +38,7 @@ public class SignatureJob {
         return id;
     }
 
-    public String getSigner() {
+    public Signer getSigner() {
         return signer;
     }
 
@@ -53,7 +54,7 @@ public class SignatureJob {
         return cancellationUrl;
     }
 
-    public static Builder builder(final String id, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
+    public static Builder builder(final String id, final Signer signer, final Document document, final String completionUrl, final String cancellationUrl) {
         return new Builder(id, signer, document, completionUrl, cancellationUrl);
     }
 
@@ -62,7 +63,7 @@ public class SignatureJob {
         private final SignatureJob target;
         private boolean built = false;
 
-        public Builder(final String id, final String signer, final Document document, final String completionUrl, final String cancellationUrl) {
+        public Builder(final String id, final Signer signer, final Document document, final String completionUrl, final String cancellationUrl) {
             target = new SignatureJob(id, signer, document, completionUrl, cancellationUrl);
         }
 

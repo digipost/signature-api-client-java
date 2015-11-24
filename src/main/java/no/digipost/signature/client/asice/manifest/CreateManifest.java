@@ -16,9 +16,12 @@
 package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.Signer;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.XmlValidationException;
 import no.digipost.signature.client.core.internal.Marshalling;
+import no.digipost.signering.schema.v1.common.*;
 import no.digipost.signering.schema.v1.signature_document.XMLManifest;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
@@ -33,12 +36,18 @@ public class CreateManifest {
 
     private static final Jaxb2Marshaller marshaller = Marshalling.instance();
 
-    public Manifest createManifest(final Document document) {
+    public Manifest createManifest(final Document document, Signer signer, Sender sender) {
         XMLManifest manifest = new XMLManifest()
-                        .withSubject(document.getSubject())
-                        .withMessage(document.getMessage())
-                        .withFileName(document.getFileName())
-                        .withMimeType(document.getMimeType());
+                .withSigners(new XMLSigners().withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber()))))
+                .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
+                .withPrimaryDocument(new XMLDocument()
+                        .withTitle(new XMLTitle()
+                                .withNonSensitive(document.getSubject())
+                                .withLang("NO"))
+                        .withDescription(document.getMessage())
+                        .withHref(document.getFileName())
+                        .withMime(document.getMimeType())
+                );
 
         try (ByteArrayOutputStream manifestStream = new ByteArrayOutputStream()) {
             marshaller.marshal(manifest, new StreamResult(manifestStream));

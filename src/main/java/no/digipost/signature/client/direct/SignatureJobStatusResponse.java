@@ -17,14 +17,14 @@ package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatus;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatus;
 
 public class SignatureJobStatusResponse {
     private SignatureJobStatus status;
     private XAdESReference xAdESUrl;
     private PAdESReference pAdESUrl;
 
-    public SignatureJobStatusResponse(XMLSignatureJobStatus status, String xAdESUrl, String pAdESUrl) {
+    public SignatureJobStatusResponse(XMLDirectSignatureJobStatus status, String xAdESUrl, String pAdESUrl) {
         this.status = SignatureJobStatus.fromXmlType(status);
         this.xAdESUrl = new XAdESReference(xAdESUrl);
         this.pAdESUrl = new PAdESReference(pAdESUrl);

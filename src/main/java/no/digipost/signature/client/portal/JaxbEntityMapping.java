@@ -15,15 +15,25 @@
  */
 package no.digipost.signature.client.portal;
 
+import no.digipost.signering.schema.v1.common.XMLPerson;
+import no.digipost.signering.schema.v1.common.XMLSigner;
+import no.digipost.signering.schema.v1.common.XMLSigners;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
+import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
+import no.digipost.signering.schema.v1.portal_signature_job.XMLSuccessLinks;
 
 final class JaxbEntityMapping {
 
     static XMLPortalSignatureJobRequest toJaxb(PortalSignatureJob job) {
         return new XMLPortalSignatureJobRequest()
                 .withId(job.getId())
-                .withSigner(job.getSigner());
+                .withSigners(new XMLSigners().withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber()))));
     }
 
 
+    static PortalSignatureJobStatusChanged fromJaxb(XMLPortalSignatureJobStatusChangeResponse statusChange) {
+        XMLSuccessLinks links = statusChange.getAdditionalInfo().getSuccessInfo().getLinks();
+        return new PortalSignatureJobStatusChanged(statusChange.getStatus(), statusChange.getId(),
+                links.getXadesUrl(), links.getPadesUrl(), links.getConfirmationUrl());
+    }
 }

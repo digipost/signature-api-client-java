@@ -21,9 +21,9 @@ import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJo
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signering.schema.v1.signature_document.XMLManifest;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobResponse;
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobStatusResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatusResponse;
 import org.etsi.uri._01903.v1_3.QualifyingProperties;
 import org.etsi.uri._2918.v1_2.XAdESSignatures;
 import org.springframework.core.io.ClassPathResource;
@@ -35,7 +35,7 @@ public class Marshalling {
     private static final class Jaxb2MarshallerHolder {
         private static Jaxb2Marshaller instance; static {
             instance = new Jaxb2Marshaller();
-            instance.setClassesToBeBound(XMLManifest.class, XMLSignatureJobRequest.class, XMLSignatureJobResponse.class, XMLSignatureJobStatusResponse.class,
+            instance.setClassesToBeBound(XMLManifest.class, XMLDirectSignatureJobRequest.class, XMLDirectSignatureJobResponse.class, XMLDirectSignatureJobStatusResponse.class,
                     XMLPortalSignatureJobRequest.class, QualifyingProperties.class, XAdESSignatures.class, XMLPortalSignatureJobStatusChangeResponse.class,
                     XMLPortalSignatureJobStatusChangeRequest.class, XMLError.class);
             instance.setSchemas(Schemas.allSchemaResources());

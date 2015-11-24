@@ -16,15 +16,16 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.Signer;
 
 
 public class PortalSignatureJob {
 
     private final String id;
-    private final String signer;
+    private final Signer signer;
     private final Document document;
 
-    public PortalSignatureJob(String id, String signer, Document document) {
+    public PortalSignatureJob(String id, Signer signer, Document document) {
         this.id = id;
         this.signer = signer;
         this.document = document;
@@ -34,7 +35,7 @@ public class PortalSignatureJob {
         return id;
     }
 
-    public String getSigner() {
+    public Signer getSigner() {
         return signer;
     }
 

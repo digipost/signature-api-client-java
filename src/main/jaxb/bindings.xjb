@@ -10,7 +10,7 @@
         <xjc:javaType adapter="no.digipost.signature.client.jaxb.XSDateTimeAdapter" name="java.util.Date" xmlType="xs:dateTime"/>
     </globalBindings>
 
-    <bindings schemaLocation="maven:no.digipost.signature:signature-api-specification:jar::!/signature-document.xsd" node="/xs:schema">
+    <bindings schemaLocation="../../../target/generated-resources/xsd/signature-document.xsd" node="/xs:schema">
         <schemaBindings>
             <nameXmlTransform>
                 <typeName prefix="XML" />
@@ -19,7 +19,7 @@
             </nameXmlTransform>
         </schemaBindings>
     </bindings>
-    <bindings schemaLocation="maven:no.digipost.signature:signature-api-specification:jar::!/signature-job.xsd" node="/xs:schema">
+    <bindings schemaLocation="../../../target/generated-resources/xsd/signature-job.xsd" node="/xs:schema">
         <schemaBindings>
             <nameXmlTransform>
                 <typeName prefix="XML" />
@@ -28,7 +28,7 @@
             </nameXmlTransform>
         </schemaBindings>
     </bindings>
-    <bindings schemaLocation="maven:no.digipost.signature:signature-api-specification:jar::!/portal-signature-job.xsd" node="/xs:schema">
+    <bindings schemaLocation="../../../target/generated-resources/xsd/portal-signature-job.xsd" node="/xs:schema">
         <schemaBindings>
             <nameXmlTransform>
                 <typeName prefix="XML" />
@@ -37,7 +37,7 @@
             </nameXmlTransform>
         </schemaBindings>
     </bindings>
-    <bindings schemaLocation="maven:no.digipost.signature:signature-api-specification:jar::!/common.xsd" node="/xs:schema">
+    <bindings schemaLocation="../../../target/generated-resources/xsd/common.xsd" node="/xs:schema">
         <schemaBindings>
             <nameXmlTransform>
                 <typeName prefix="XML" />

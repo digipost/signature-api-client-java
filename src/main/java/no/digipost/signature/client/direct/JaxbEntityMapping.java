@@ -15,16 +15,27 @@
  */
 package no.digipost.signature.client.direct;
 
-import no.digipost.signering.schema.v1.signature_job.XMLSignatureJobRequest;
+import no.digipost.signering.schema.v1.common.XMLPerson;
+import no.digipost.signering.schema.v1.common.XMLSigner;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobRequest;
+import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatusResponse;
+import no.digipost.signering.schema.v1.signature_job.XMLExitUrls;
 
-class JaxbEntityMapping {
+final class JaxbEntityMapping {
 
-    static XMLSignatureJobRequest toJaxb(SignatureJob signatureJob) {
-        return new XMLSignatureJobRequest()
-                .withId(signatureJob.getId().toString())
-                .withSigner(signatureJob.getSigner())
-                .withCompletionUrl(signatureJob.getCompletionUrl())
-                .withCancellationUrl(signatureJob.getCancellationUrl());
+    static XMLDirectSignatureJobRequest toJaxb(SignatureJob signatureJob) {
+        return new XMLDirectSignatureJobRequest()
+                .withId(signatureJob.getId())
+                .withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(signatureJob.getSigner().getPersonalIdentificationNumber())))
+                .withExitUrls(new XMLExitUrls()
+                        .withCompletionUrl(signatureJob.getCompletionUrl())
+                        .withCancellationUrl(signatureJob.getCancellationUrl())
+                );
     }
 
+    static SignatureJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse xmlSignatureJobStatusResponse) {
+        return new SignatureJobStatusResponse(xmlSignatureJobStatusResponse.getStatus(),
+                xmlSignatureJobStatusResponse.getAdditionalInfo().getSuccessInfo().getLinks().getXadesUrl(),
+                xmlSignatureJobStatusResponse.getAdditionalInfo().getSuccessInfo().getLinks().getPadesUrl());
+    }
 }

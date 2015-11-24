@@ -16,6 +16,8 @@
 package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.Signer;
 import org.junit.Test;
 
 import static org.junit.Assert.fail;
@@ -28,7 +30,7 @@ public class CreateManifestTest {
 
         Document document = Document.builder("Subject", "Message", "file.txt", "hello".getBytes()).build();
         try {
-            createManifest.createManifest(document);
+            createManifest.createManifest(document, new Signer("12345678910"), new Sender("123456789"));
         } catch (Exception e) {
             fail("Expected no exception, got: " + e.getMessage());
         }
