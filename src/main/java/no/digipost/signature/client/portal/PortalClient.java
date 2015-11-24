@@ -16,6 +16,7 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.ClientConfiguration;
+import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
@@ -58,7 +59,7 @@ public class PortalClient {
         return client.getSignedDocumentStream(pAdESReference.getpAdESUrl());
     }
 
-    public void confirm(String url) {
-        client.updateStatus(url, new XMLPortalSignatureJobStatusChangeRequest(CONFIRMED));
+    public void confirm(ConfirmationReference confirmationReference) {
+        client.updateStatus(confirmationReference.getConfirmationUrl(), new XMLPortalSignatureJobStatusChangeRequest(CONFIRMED));
     }
 }

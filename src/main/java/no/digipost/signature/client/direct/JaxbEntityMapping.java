@@ -20,6 +20,7 @@ import no.digipost.signering.schema.v1.common.*;
 import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatusResponse;
 import no.digipost.signering.schema.v1.signature_job.XMLExitUrls;
+import no.digipost.signering.schema.v1.signature_job.XMLSuccessLinks;
 
 import static no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatus.COMPLETED;
 
@@ -44,13 +45,13 @@ final class JaxbEntityMapping {
                 );
     }
 
-    static SignatureJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse xmlSignatureJobStatusResponse) {
-        if (xmlSignatureJobStatusResponse.getStatus() == COMPLETED) {
-            return new SignatureJobStatusResponse(xmlSignatureJobStatusResponse.getStatus(),
-                    xmlSignatureJobStatusResponse.getAdditionalInfo().getSuccessInfo().getLinks().getXadesUrl(),
-                    xmlSignatureJobStatusResponse.getAdditionalInfo().getSuccessInfo().getLinks().getPadesUrl());
+    static SignatureJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse) {
+        if (statusResponse.getStatus() == COMPLETED) {
+            XMLSuccessLinks links = statusResponse.getAdditionalInfo().getSuccessInfo().getLinks();
+            return new SignatureJobStatusResponse(statusResponse.getStatus(), statusResponse.getId(),
+                    links.getXadesUrl(), links.getPadesUrl(), links.getConfirmationUrl());
         } else {
-            return new SignatureJobStatusResponse(xmlSignatureJobStatusResponse.getStatus());
+            return new SignatureJobStatusResponse(statusResponse.getStatus(), statusResponse.getId());
         }
     }
 }

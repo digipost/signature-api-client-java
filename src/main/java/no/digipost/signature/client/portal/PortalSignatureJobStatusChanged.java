@@ -15,6 +15,7 @@
  */
 package no.digipost.signature.client.portal;
 
+import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatus;
@@ -26,14 +27,14 @@ public class PortalSignatureJobStatusChanged {
     private String id;
     private XAdESReference xAdESUrl;
     private PAdESReference pAdESUrl;
-    private String confirmationUrl;
+    private ConfirmationReference confirmationUrl;
 
     public PortalSignatureJobStatusChanged(XMLPortalSignatureJobStatus status, String id, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
         this.status = PortalSignatureJobStatus.fromXmlType(status);
         this.id = id;
         this.xAdESUrl = new XAdESReference(xAdESUrl);
         this.pAdESUrl = new PAdESReference(pAdESUrl);
-        this.confirmationUrl = confirmationUrl;
+        this.confirmationUrl = new ConfirmationReference(confirmationUrl);
     }
 
     public PortalSignatureJobStatus getStatus() {
@@ -48,7 +49,7 @@ public class PortalSignatureJobStatusChanged {
         return pAdESUrl;
     }
 
-    public String getConfirmationUrl() {
+    public ConfirmationReference getConfirmationUrl() {
         return confirmationUrl;
     }
 
