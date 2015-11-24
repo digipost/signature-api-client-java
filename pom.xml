@@ -294,7 +294,9 @@
                 <configuration>
                     <specVersion>2.2</specVersion>
                     <schemaDirectory>${project.basedir}/target/generated-resources/xsd</schemaDirectory>
-                    <schemaIncludes>**/*.xsd</schemaIncludes>
+                    <schemaIncludes>
+                        <include>**/*.xsd</include>
+                    </schemaIncludes>
                     <catalog>${project.basedir}/target/generated-resources/xsd/catalog.xml</catalog>
                     <strict>false</strict>
                     <extension>true</extension>
