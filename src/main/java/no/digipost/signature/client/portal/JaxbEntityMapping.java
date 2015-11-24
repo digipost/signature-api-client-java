@@ -15,19 +15,26 @@
  */
 package no.digipost.signature.client.portal;
 
-import no.digipost.signering.schema.v1.common.XMLPerson;
-import no.digipost.signering.schema.v1.common.XMLSigner;
-import no.digipost.signering.schema.v1.common.XMLSigners;
+import no.digipost.signature.client.core.Sender;
+import no.digipost.signering.schema.v1.common.*;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLSuccessLinks;
 
 final class JaxbEntityMapping {
 
-    static XMLPortalSignatureJobRequest toJaxb(PortalSignatureJob job) {
+    static XMLPortalSignatureJobRequest toJaxb(PortalSignatureJob job, Sender sender) {
         return new XMLPortalSignatureJobRequest()
                 .withId(job.getId())
-                .withSigners(new XMLSigners().withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber()))));
+                .withSigners(new XMLSigners().withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber()))))
+                .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
+                .withPrimaryDocument(new XMLDocument()
+                        .withTitle(new XMLTitle()
+                                .withNonSensitive(job.getDocument().getSubject())
+                                .withLang("NO"))
+                        .withDescription(job.getDocument().getMessage())
+                        .withHref(job.getDocument().getFileName())
+                        .withMime(job.getDocument().getMimeType()));
     }
 
 

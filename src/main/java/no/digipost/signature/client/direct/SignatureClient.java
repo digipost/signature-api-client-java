@@ -42,7 +42,7 @@ public class SignatureClient {
 
     public SignatureJobResponse create(final SignatureJob signatureJob) {
         DocumentBundle documentBundle = createASiCE(signatureJob.getDocument(), signatureJob.getSigner(), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig());
-        XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(signatureJob);
+        XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(signatureJob, clientConfiguration.getSender());
 
         XMLDirectSignatureJobResponse xmlSignatureJobResponse = client.sendSignatureJobRequest(signatureJobRequest, documentBundle);
         return new SignatureJobResponse(xmlSignatureJobResponse.getRedirectUrl(), xmlSignatureJobResponse.getStatusUrl());

@@ -39,7 +39,7 @@ public class PortalClient {
     }
 
     public void create(PortalSignatureJob job) {
-        client.sendPortalSignatureJobRequest(toJaxb(job), createASiCE(job.getDocument(), job.getSigner(), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig()));
+        client.sendPortalSignatureJobRequest(toJaxb(job, clientConfiguration.getSender()), createASiCE(job.getDocument(), job.getSigner(), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig()));
     }
 
     public PortalSignatureJobStatusChanged getStatusChange() {

@@ -30,6 +30,10 @@ public class SignatureJobStatusResponse {
         this.pAdESUrl = new PAdESReference(pAdESUrl);
     }
 
+    public SignatureJobStatusResponse(XMLDirectSignatureJobStatus status) {
+        this(status, null, null);
+    }
+
     public SignatureJobStatus getStatus() {
         return status;
     }

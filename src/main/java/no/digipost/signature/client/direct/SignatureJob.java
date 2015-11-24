@@ -25,13 +25,15 @@ public class SignatureJob {
     private Document document;
     private String completionUrl;
     private String cancellationUrl;
+    private String errorUrl;
 
-    private SignatureJob(final String id, final Signer signer, final Document document, final String completionUrl, final String cancellationUrl) {
+    private SignatureJob(String id, Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
         this.id = id;
         this.signer = signer;
         this.document = document;
         this.completionUrl = completionUrl;
         this.cancellationUrl = cancellationUrl;
+        this.errorUrl = errorUrl;
     }
 
     public String getId() {
@@ -54,8 +56,12 @@ public class SignatureJob {
         return cancellationUrl;
     }
 
-    public static Builder builder(final String id, final Signer signer, final Document document, final String completionUrl, final String cancellationUrl) {
-        return new Builder(id, signer, document, completionUrl, cancellationUrl);
+    public String getErrorUrl() {
+        return errorUrl;
+    }
+
+    public static Builder builder(String id, Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
+        return new Builder(id, signer, document, completionUrl, cancellationUrl, errorUrl);
     }
 
     public static class Builder {
@@ -63,8 +69,8 @@ public class SignatureJob {
         private final SignatureJob target;
         private boolean built = false;
 
-        public Builder(final String id, final Signer signer, final Document document, final String completionUrl, final String cancellationUrl) {
-            target = new SignatureJob(id, signer, document, completionUrl, cancellationUrl);
+        public Builder(String id, Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
+            target = new SignatureJob(id, signer, document, completionUrl, cancellationUrl, errorUrl);
         }
 
         public SignatureJob build() {

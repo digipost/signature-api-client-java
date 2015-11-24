@@ -15,27 +15,42 @@
  */
 package no.digipost.signature.client.direct;
 
-import no.digipost.signering.schema.v1.common.XMLPerson;
-import no.digipost.signering.schema.v1.common.XMLSigner;
+import no.digipost.signature.client.core.Sender;
+import no.digipost.signering.schema.v1.common.*;
 import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatusResponse;
 import no.digipost.signering.schema.v1.signature_job.XMLExitUrls;
 
+import static no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatus.COMPLETED;
+
 final class JaxbEntityMapping {
 
-    static XMLDirectSignatureJobRequest toJaxb(SignatureJob signatureJob) {
+    static XMLDirectSignatureJobRequest toJaxb(SignatureJob signatureJob, Sender sender) {
         return new XMLDirectSignatureJobRequest()
                 .withId(signatureJob.getId())
                 .withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(signatureJob.getSigner().getPersonalIdentificationNumber())))
+                .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
+                .withPrimaryDocument(new XMLDocument()
+                        .withTitle(new XMLTitle()
+                                .withNonSensitive(signatureJob.getDocument().getSubject())
+                                .withLang("NO"))
+                        .withDescription(signatureJob.getDocument().getMessage())
+                        .withHref(signatureJob.getDocument().getFileName())
+                        .withMime(signatureJob.getDocument().getMimeType()))
                 .withExitUrls(new XMLExitUrls()
                         .withCompletionUrl(signatureJob.getCompletionUrl())
                         .withCancellationUrl(signatureJob.getCancellationUrl())
+                        .withErrorUrl(signatureJob.getErrorUrl())
                 );
     }
 
     static SignatureJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse xmlSignatureJobStatusResponse) {
-        return new SignatureJobStatusResponse(xmlSignatureJobStatusResponse.getStatus(),
-                xmlSignatureJobStatusResponse.getAdditionalInfo().getSuccessInfo().getLinks().getXadesUrl(),
-                xmlSignatureJobStatusResponse.getAdditionalInfo().getSuccessInfo().getLinks().getPadesUrl());
+        if (xmlSignatureJobStatusResponse.getStatus() == COMPLETED) {
+            return new SignatureJobStatusResponse(xmlSignatureJobStatusResponse.getStatus(),
+                    xmlSignatureJobStatusResponse.getAdditionalInfo().getSuccessInfo().getLinks().getXadesUrl(),
+                    xmlSignatureJobStatusResponse.getAdditionalInfo().getSuccessInfo().getLinks().getPadesUrl());
+        } else {
+            return new SignatureJobStatusResponse(xmlSignatureJobStatusResponse.getStatus());
+        }
     }
 }
