@@ -21,18 +21,18 @@ import no.digipost.signature.client.core.Signer;
 
 public class PortalSignatureJob {
 
-    private final String id;
+    private final String reference;
     private final Signer signer;
     private final Document document;
 
-    public PortalSignatureJob(String id, Signer signer, Document document) {
-        this.id = id;
+    public PortalSignatureJob(String reference, Signer signer, Document document) {
+        this.reference = reference;
         this.signer = signer;
         this.document = document;
     }
 
-    public String getId() {
-        return id;
+    public String getReference() {
+        return reference;
     }
 
     public Signer getSigner() {

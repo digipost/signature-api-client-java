@@ -20,15 +20,15 @@ import no.digipost.signature.client.core.Signer;
 
 public class SignatureJob {
 
-    private String id;
+    private String reference;
     private Signer signer;
     private Document document;
     private String completionUrl;
     private String cancellationUrl;
     private String errorUrl;
 
-    private SignatureJob(String id, Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
-        this.id = id;
+    public SignatureJob(String reference, Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
+        this.reference = reference;
         this.signer = signer;
         this.document = document;
         this.completionUrl = completionUrl;
@@ -36,8 +36,8 @@ public class SignatureJob {
         this.errorUrl = errorUrl;
     }
 
-    public String getId() {
-        return id;
+    public String getReference() {
+        return reference;
     }
 
     public Signer getSigner() {
@@ -60,23 +60,4 @@ public class SignatureJob {
         return errorUrl;
     }
 
-    public static Builder builder(String id, Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
-        return new Builder(id, signer, document, completionUrl, cancellationUrl, errorUrl);
-    }
-
-    public static class Builder {
-
-        private final SignatureJob target;
-        private boolean built = false;
-
-        public Builder(String id, Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
-            target = new SignatureJob(id, signer, document, completionUrl, cancellationUrl, errorUrl);
-        }
-
-        public SignatureJob build() {
-            if (built) throw new IllegalStateException("Can't build twice");
-            built = true;
-            return target;
-        }
-    }
 }

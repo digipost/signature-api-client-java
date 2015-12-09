@@ -21,30 +21,37 @@ import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatus;
 
 public class SignatureJobStatusResponse {
+
+    private long signatureJobId;
+    private String reference;
     private SignatureJobStatus status;
-    private String id;
     private XAdESReference xAdESUrl;
     private PAdESReference pAdESUrl;
     private ConfirmationReference confirmationUrl;
 
-    public SignatureJobStatusResponse(XMLDirectSignatureJobStatus status, String id, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
+    public SignatureJobStatusResponse(long signatureJobId, String reference, XMLDirectSignatureJobStatus status, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
+        this.signatureJobId = signatureJobId;
         this.status = SignatureJobStatus.fromXmlType(status);
-        this.id = id;
+        this.reference = reference;
         this.xAdESUrl = new XAdESReference(xAdESUrl);
         this.pAdESUrl = new PAdESReference(pAdESUrl);
         this.confirmationUrl = new ConfirmationReference(confirmationUrl);
     }
 
-    public SignatureJobStatusResponse(XMLDirectSignatureJobStatus status, String id) {
-        this(status, id, null, null, null);
+    public SignatureJobStatusResponse(long signatureJobId, String reference, XMLDirectSignatureJobStatus status) {
+        this(signatureJobId, reference, status, null, null, null);
+    }
+
+    public long getSignatureJobId() {
+        return signatureJobId;
     }
 
     public SignatureJobStatus getStatus() {
         return status;
     }
 
-    public String getId() {
-        return id;
+    public String getReference() {
+        return reference;
     }
 
     public XAdESReference getxAdESUrl() {

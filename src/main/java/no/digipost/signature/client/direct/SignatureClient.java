@@ -40,16 +40,16 @@ public class SignatureClient {
         this.client = new ClientHelper(clientConfiguration);
     }
 
-    public SignatureJobResponse create(final SignatureJob signatureJob) {
+    public SignatureJobResponse create(SignatureJob signatureJob) {
         DocumentBundle documentBundle = createASiCE(signatureJob.getDocument(), signatureJob.getSigner(), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig());
         XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(signatureJob, clientConfiguration.getSender());
 
         XMLDirectSignatureJobResponse xmlSignatureJobResponse = client.sendSignatureJobRequest(signatureJobRequest, documentBundle);
-        return new SignatureJobResponse(xmlSignatureJobResponse.getRedirectUrl(), xmlSignatureJobResponse.getStatusUrl());
+        return fromJaxb(xmlSignatureJobResponse);
     }
 
-    public SignatureJobStatusResponse getStatus(SignatureJobReference signatureJobReference) {
-        XMLDirectSignatureJobStatusResponse xmlSignatureJobStatusResponse = client.sendSignatureJobStatusRequest(signatureJobReference.getStatusUrl());
+    public SignatureJobStatusResponse getStatus(StatusReference statusReference) {
+        XMLDirectSignatureJobStatusResponse xmlSignatureJobStatusResponse = client.sendSignatureJobStatusRequest(statusReference.getStatusUrl());
         return fromJaxb(xmlSignatureJobStatusResponse);
     }
 

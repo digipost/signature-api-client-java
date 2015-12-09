@@ -23,18 +23,24 @@ import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJo
 
 public class PortalSignatureJobStatusChanged {
 
+    private long signatureJobId;
+    private String reference;
     private PortalSignatureJobStatus status;
-    private String id;
     private XAdESReference xAdESUrl;
     private PAdESReference pAdESUrl;
     private ConfirmationReference confirmationUrl;
 
-    public PortalSignatureJobStatusChanged(XMLPortalSignatureJobStatus status, String id, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
+    public PortalSignatureJobStatusChanged(long signatureJobId, String reference, XMLPortalSignatureJobStatus status, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
+        this.signatureJobId = signatureJobId;
+        this.reference = reference;
         this.status = PortalSignatureJobStatus.fromXmlType(status);
-        this.id = id;
         this.xAdESUrl = new XAdESReference(xAdESUrl);
         this.pAdESUrl = new PAdESReference(pAdESUrl);
         this.confirmationUrl = new ConfirmationReference(confirmationUrl);
+    }
+
+    public long getSignatureJobId() {
+        return signatureJobId;
     }
 
     public PortalSignatureJobStatus getStatus() {
@@ -53,7 +59,7 @@ public class PortalSignatureJobStatusChanged {
         return confirmationUrl;
     }
 
-    public String getId() {
-        return id;
+    public String getReference() {
+        return reference;
     }
 }

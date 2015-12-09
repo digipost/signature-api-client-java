@@ -16,19 +16,31 @@
 package no.digipost.signature.client.direct;
 
 public class SignatureJobResponse {
+    private long signatureJobId;
+    private String reference;
     private String redirectUrl;
-    private String statusUrl;
+    private StatusReference statusUrl;
 
-    public SignatureJobResponse(String redirectUrl, String statusUrl) {
+    public SignatureJobResponse(long signatureJobId, String reference, String redirectUrl, String statusUrl) {
+        this.signatureJobId = signatureJobId;
+        this.reference = reference;
         this.redirectUrl = redirectUrl;
-        this.statusUrl = statusUrl;
+        this.statusUrl = new StatusReference(statusUrl);
+    }
+
+    public long getSignatureJobId() {
+        return signatureJobId;
+    }
+
+    public String getReference() {
+        return reference;
     }
 
     public String getRedirectUrl() {
         return redirectUrl;
     }
 
-    public String getStatusUrl() {
+    public StatusReference getStatusUrl() {
         return statusUrl;
     }
 }

@@ -17,7 +17,7 @@ package no.digipost.signature.client.core.internal;
 
 public enum ErrorCodes {
 
-    DUPLICATE_JOB_ID;
+    ;
 
     public boolean sameAs(String other) {
         return this.name().equals(other);

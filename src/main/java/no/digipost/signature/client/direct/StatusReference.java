@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.exceptions;
+package no.digipost.signature.client.direct;
 
+public class StatusReference {
 
-public class DuplicateSignatureJobIdException extends SignatureException {
+    private String statusUrl;
 
-    private String id;
-
-    public DuplicateSignatureJobIdException(String id) {
-        super("A signature job with id " + id + " has already been created. Signature jobs must have unique ids");
-        this.id = id;
+    public StatusReference(String statusUrl) {
+        this.statusUrl = statusUrl;
     }
 
-    public String getId() {
-        return id;
+    public String getStatusUrl() {
+        return statusUrl;
     }
 }

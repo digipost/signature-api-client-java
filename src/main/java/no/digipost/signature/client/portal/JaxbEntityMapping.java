@@ -25,7 +25,7 @@ final class JaxbEntityMapping {
 
     static XMLPortalSignatureJobRequest toJaxb(PortalSignatureJob job, Sender sender) {
         return new XMLPortalSignatureJobRequest()
-                .withId(job.getId())
+                .withReference(job.getReference())
                 .withSigners(new XMLSigners().withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber()))))
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
                 .withPrimaryDocument(new XMLDocument()
@@ -40,7 +40,7 @@ final class JaxbEntityMapping {
 
     static PortalSignatureJobStatusChanged fromJaxb(XMLPortalSignatureJobStatusChangeResponse statusChange) {
         XMLSuccessLinks links = statusChange.getAdditionalInfo().getSuccessInfo().getLinks();
-        return new PortalSignatureJobStatusChanged(statusChange.getStatus(), statusChange.getId(),
+        return new PortalSignatureJobStatusChanged(statusChange.getSignatureJobId(), statusChange.getReference(), statusChange.getStatus(),
                 links.getXadesUrl(), links.getPadesUrl(), links.getConfirmationUrl());
     }
 }
