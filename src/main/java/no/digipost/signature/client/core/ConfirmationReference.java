@@ -17,13 +17,13 @@ package no.digipost.signature.client.core;
 
 public class ConfirmationReference {
 
-    private final String confirmationUrl;
+    private final String url;
 
-    public ConfirmationReference(String confirmationUrl) {
-        this.confirmationUrl = confirmationUrl;
+    public ConfirmationReference(String url) {
+        this.url = url;
     }
 
     public String getConfirmationUrl() {
-        return confirmationUrl;
+        return url;
     }
 }

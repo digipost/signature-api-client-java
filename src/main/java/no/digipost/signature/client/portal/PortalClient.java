@@ -20,14 +20,12 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
-import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
 
 import java.io.InputStream;
 
 import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
-import static no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobSenderStatus.CONFIRMED;
 
 public class PortalClient {
 
@@ -60,6 +58,6 @@ public class PortalClient {
     }
 
     public void confirm(ConfirmationReference confirmationReference) {
-        client.updateStatus(confirmationReference.getConfirmationUrl(), new XMLPortalSignatureJobStatusChangeRequest(CONFIRMED));
+        client.notify(confirmationReference.getConfirmationUrl());
     }
 }

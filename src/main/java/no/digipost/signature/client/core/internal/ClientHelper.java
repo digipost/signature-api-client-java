@@ -22,7 +22,6 @@ import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signering.schema.v1.common.XMLError;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
-import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobRequest;
 import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobResponse;
@@ -35,6 +34,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -142,11 +142,12 @@ public class ClientHelper {
         }
     }
 
-    public void updateStatus(String url, XMLPortalSignatureJobStatusChangeRequest xmlPortalSignatureJobStatusChangeRequest) {
+    public void notify(String url) {
         Response response = httpClient.target(url)
                 .request()
                 .accept(APPLICATION_XML_TYPE)
-                .put(Entity.entity(xmlPortalSignatureJobStatusChangeRequest, APPLICATION_XML_TYPE));
+                .header("Content-Length", 0)
+                .post(Entity.entity(null, APPLICATION_XML_TYPE));
         Status status = Status.fromStatusCode(response.getStatus());
         if (status != OK) {
             XMLError error = response.readEntity(XMLError.class);

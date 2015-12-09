@@ -18,7 +18,6 @@ package no.digipost.signature.client.core.internal;
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import no.digipost.signering.schema.v1.common.XMLError;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
-import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signering.schema.v1.signature_document.XMLManifest;
 import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobRequest;
@@ -37,7 +36,7 @@ public class Marshalling {
             instance = new Jaxb2Marshaller();
             instance.setClassesToBeBound(XMLManifest.class, XMLDirectSignatureJobRequest.class, XMLDirectSignatureJobResponse.class, XMLDirectSignatureJobStatusResponse.class,
                     XMLPortalSignatureJobRequest.class, QualifyingProperties.class, XAdESSignatures.class, XMLPortalSignatureJobStatusChangeResponse.class,
-                    XMLPortalSignatureJobStatusChangeRequest.class, XMLError.class);
+                    XMLError.class);
             instance.setSchemas(Schemas.allSchemaResources());
             try {
                 instance.afterPropertiesSet();
