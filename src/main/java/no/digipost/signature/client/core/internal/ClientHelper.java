@@ -17,6 +17,7 @@ package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
+import no.digipost.signature.client.core.Confirmable;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
@@ -142,8 +143,8 @@ public class ClientHelper {
         }
     }
 
-    public void notify(String url) {
-        Response response = httpClient.target(url)
+    public void confirm(Confirmable confirmable) {
+        Response response = httpClient.target(confirmable.getConfirmationReference().getConfirmationUrl())
                 .request()
                 .accept(APPLICATION_XML_TYPE)
                 .header("Content-Length", 0)

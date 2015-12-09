@@ -40,7 +40,7 @@ final class JaxbEntityMapping {
 
     static PortalSignatureJobStatusChanged fromJaxb(XMLPortalSignatureJobStatusChangeResponse statusChange) {
         XMLSuccessLinks links = statusChange.getAdditionalInfo().getSuccessInfo().getLinks();
-        return new PortalSignatureJobStatusChanged(statusChange.getSignatureJobId(), statusChange.getStatus(),
+        return new PortalSignatureJobStatusChanged(statusChange.getSignatureJobId(), PortalSignatureJobStatus.fromXmlType(statusChange.getStatus()),
                 links.getXadesUrl(), links.getPadesUrl(), links.getConfirmationUrl());
     }
 }

@@ -15,11 +15,21 @@
  */
 package no.digipost.signature.client.portal;
 
+import no.digipost.signature.client.core.Confirmable;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatus;
 
 public enum PortalSignatureJobStatus {
 
+    /**
+     * When the client {@link Confirmable confirms} a job with this status,
+     * the job and its associated resources will become unavailable through the Signature API.
+     */
     COMPLETED,
+
+    /**
+     * When the client {@link Confirmable confirms} a job with this status,
+     * the job and its associated resources will become unavailable through the Signature API.
+     */
     CANCELED;
 
     public static PortalSignatureJobStatus fromXmlType(XMLPortalSignatureJobStatus xmlJobStatus) {

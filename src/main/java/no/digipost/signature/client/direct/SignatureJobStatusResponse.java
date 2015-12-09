@@ -15,28 +15,29 @@
  */
 package no.digipost.signature.client.direct;
 
+import no.digipost.signature.client.core.Confirmable;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
-import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatus;
 
-public class SignatureJobStatusResponse {
+
+public class SignatureJobStatusResponse implements Confirmable {
 
     private long signatureJobId;
     private SignatureJobStatus status;
     private XAdESReference xAdESUrl;
     private PAdESReference pAdESUrl;
-    private ConfirmationReference confirmationUrl;
+    private ConfirmationReference confirmationReference;
 
-    public SignatureJobStatusResponse(long signatureJobId, XMLDirectSignatureJobStatus status, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
+    public SignatureJobStatusResponse(long signatureJobId, SignatureJobStatus status, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
         this.signatureJobId = signatureJobId;
-        this.status = SignatureJobStatus.fromXmlType(status);
+        this.status = status;
         this.xAdESUrl = new XAdESReference(xAdESUrl);
         this.pAdESUrl = new PAdESReference(pAdESUrl);
-        this.confirmationUrl = new ConfirmationReference(confirmationUrl);
+        this.confirmationReference = new ConfirmationReference(confirmationUrl);
     }
 
-    public SignatureJobStatusResponse(long signatureJobId, XMLDirectSignatureJobStatus status) {
+    public SignatureJobStatusResponse(long signatureJobId, SignatureJobStatus status) {
         this(signatureJobId, status, null, null, null);
     }
 
@@ -56,7 +57,8 @@ public class SignatureJobStatusResponse {
         return pAdESUrl;
     }
 
-    public ConfirmationReference getConfirmationUrl() {
-        return confirmationUrl;
+    @Override
+    public ConfirmationReference getConfirmationReference() {
+        return confirmationReference;
     }
 }

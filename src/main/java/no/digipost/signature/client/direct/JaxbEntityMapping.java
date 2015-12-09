@@ -49,10 +49,11 @@ final class JaxbEntityMapping {
     static SignatureJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse) {
         if (statusResponse.getStatus() == COMPLETED) {
             XMLSuccessLinks links = statusResponse.getAdditionalInfo().getSuccessInfo().getLinks();
-            return new SignatureJobStatusResponse(statusResponse.getSignatureJobId(), statusResponse.getStatus(),
+            return new SignatureJobStatusResponse(statusResponse.getSignatureJobId(), SignatureJobStatus.fromXmlType(statusResponse.getStatus()),
                     links.getXadesUrl(), links.getPadesUrl(), links.getConfirmationUrl());
         } else {
-            return new SignatureJobStatusResponse(statusResponse.getSignatureJobId(), statusResponse.getStatus());
+            return new SignatureJobStatusResponse(statusResponse.getSignatureJobId(), SignatureJobStatus.fromXmlType(statusResponse.getStatus()));
+
         }
     }
 }
