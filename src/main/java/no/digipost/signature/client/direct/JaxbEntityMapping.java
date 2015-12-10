@@ -24,7 +24,8 @@ import static no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJo
 final class JaxbEntityMapping {
 
     static XMLDirectSignatureJobRequest toJaxb(SignatureJob signatureJob, Sender sender) {
-        XMLDirectSignatureJobRequest request = new XMLDirectSignatureJobRequest()
+        return new XMLDirectSignatureJobRequest()
+                .withReference(signatureJob.getReference())
                 .withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(signatureJob.getSigner().getPersonalIdentificationNumber())))
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
                 .withPrimaryDocument(new XMLDocument()
@@ -39,10 +40,6 @@ final class JaxbEntityMapping {
                         .withCancellationUrl(signatureJob.getCancellationUrl())
                         .withErrorUrl(signatureJob.getErrorUrl())
                 );
-        if (signatureJob.getReference() != null) {
-            request.setReference(signatureJob.getReference());
-        }
-        return request;
     }
 
     static SignatureJobResponse fromJaxb(XMLDirectSignatureJobResponse xmlSignatureJobResponse) {
