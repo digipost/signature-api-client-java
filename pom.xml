@@ -18,6 +18,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <spring.version>4.2.1.RELEASE</spring.version>
         <jersey.version>2.22</jersey.version>
+        <xsd.directory>${project.basedir}/target/generated-resources/xsd</xsd.directory>
     </properties>
 
     <dependencies>
@@ -217,18 +218,13 @@
                     </execution>
                     <execution>
                         <id>unpack-xsd-resources</id>
+                        <phase>initialize</phase>
                         <goals>
-                            <goal>unpack</goal>
+                            <goal>unpack-dependencies</goal>
                         </goals>
-                        <phase>generate-sources</phase>
                         <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>no.digipost.signature</groupId>
-                                    <artifactId>signature-api-specification</artifactId>
-                                </artifactItem>
-                            </artifactItems>
-                            <outputDirectory>${project.basedir}/target/generated-resources/xsd</outputDirectory>
+                            <includeArtifactIds>signature-api-specification</includeArtifactIds>
+                            <outputDirectory>${xsd.directory}</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -301,11 +297,11 @@
                 </executions>
                 <configuration>
                     <specVersion>2.2</specVersion>
-                    <schemaDirectory>${project.basedir}/target/generated-resources/xsd</schemaDirectory>
+                    <schemaDirectory>${xsd.directory}</schemaDirectory>
                     <schemaIncludes>
                         <include>**/*.xsd</include>
                     </schemaIncludes>
-                    <catalog>${project.basedir}/target/generated-resources/xsd/catalog.xml</catalog>
+                    <catalog>${xsd.directory}/catalog.xml</catalog>
                     <strict>false</strict>
                     <extension>true</extension>
                     <removeOldOutput>true</removeOldOutput>
