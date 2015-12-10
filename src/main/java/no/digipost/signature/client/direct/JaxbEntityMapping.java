@@ -24,8 +24,7 @@ import static no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJo
 final class JaxbEntityMapping {
 
     static XMLDirectSignatureJobRequest toJaxb(SignatureJob signatureJob, Sender sender) {
-        return new XMLDirectSignatureJobRequest()
-                .withReference(signatureJob.getReference())
+        XMLDirectSignatureJobRequest request = new XMLDirectSignatureJobRequest()
                 .withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(signatureJob.getSigner().getPersonalIdentificationNumber())))
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
                 .withPrimaryDocument(new XMLDocument()
@@ -40,20 +39,23 @@ final class JaxbEntityMapping {
                         .withCancellationUrl(signatureJob.getCancellationUrl())
                         .withErrorUrl(signatureJob.getErrorUrl())
                 );
+        if (signatureJob.getReference() != null) {
+            request.setReference(signatureJob.getReference());
+        }
+        return request;
     }
 
     static SignatureJobResponse fromJaxb(XMLDirectSignatureJobResponse xmlSignatureJobResponse) {
-        return new SignatureJobResponse(xmlSignatureJobResponse.getSignatureJobId(), xmlSignatureJobResponse.getReference(),
-                xmlSignatureJobResponse.getRedirectUrl(), xmlSignatureJobResponse.getStatusUrl());
+        return new SignatureJobResponse(xmlSignatureJobResponse.getSignatureJobId(), xmlSignatureJobResponse.getRedirectUrl(), xmlSignatureJobResponse.getStatusUrl());
     }
 
     static SignatureJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse) {
         if (statusResponse.getStatus() == COMPLETED) {
             XMLSuccessLinks links = statusResponse.getAdditionalInfo().getSuccessInfo().getLinks();
-            return new SignatureJobStatusResponse(statusResponse.getSignatureJobId(), statusResponse.getReference(),
-                    statusResponse.getStatus(), links.getXadesUrl(), links.getPadesUrl(), links.getConfirmationUrl());
+            return new SignatureJobStatusResponse(statusResponse.getSignatureJobId(), statusResponse.getStatus(),
+                    links.getXadesUrl(), links.getPadesUrl(), links.getConfirmationUrl());
         } else {
-            return new SignatureJobStatusResponse(statusResponse.getSignatureJobId(), statusResponse.getReference(), statusResponse.getStatus());
+            return new SignatureJobStatusResponse(statusResponse.getSignatureJobId(), statusResponse.getStatus());
         }
     }
 }

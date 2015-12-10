@@ -21,12 +21,11 @@ import no.digipost.signature.client.core.Signer;
 
 public class PortalSignatureJob {
 
-    private final String reference;
-    private final Signer signer;
-    private final Document document;
+    private String reference;
+    private Signer signer;
+    private Document document;
 
-    public PortalSignatureJob(String reference, Signer signer, Document document) {
-        this.reference = reference;
+    private PortalSignatureJob(Signer signer, Document document) {
         this.signer = signer;
         this.document = document;
     }
@@ -41,6 +40,31 @@ public class PortalSignatureJob {
 
     public Document getDocument() {
         return document;
+    }
+
+    public static Builder builder(Signer signer, Document document) {
+        return new Builder(signer, document);
+    }
+
+    public static class Builder {
+
+        private final PortalSignatureJob target;
+        private boolean built = false;
+
+        public Builder(Signer signer, Document document) {
+            target = new PortalSignatureJob(signer, document);
+        }
+
+        public Builder withReference(String reference) {
+            target.reference = reference;
+            return this;
+        }
+
+        public PortalSignatureJob build() {
+            if (built) throw new IllegalStateException("Can't build twice");
+            built = true;
+            return target;
+        }
     }
 
 }

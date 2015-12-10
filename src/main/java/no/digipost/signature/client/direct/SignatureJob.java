@@ -27,8 +27,7 @@ public class SignatureJob {
     private String cancellationUrl;
     private String errorUrl;
 
-    public SignatureJob(String reference, Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
-        this.reference = reference;
+    private SignatureJob(Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
         this.signer = signer;
         this.document = document;
         this.completionUrl = completionUrl;
@@ -58,6 +57,31 @@ public class SignatureJob {
 
     public String getErrorUrl() {
         return errorUrl;
+    }
+
+    public static Builder builder(Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
+        return new Builder(signer, document, completionUrl, cancellationUrl, errorUrl);
+    }
+
+    public static class Builder {
+
+        private final SignatureJob target;
+        private boolean built = false;
+
+        public Builder(Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
+            target = new SignatureJob(signer, document, completionUrl, cancellationUrl, errorUrl);
+        }
+
+        public Builder withReference(String reference) {
+            target.reference = reference;
+            return this;
+        }
+
+        public SignatureJob build() {
+            if (built) throw new IllegalStateException("Can't build twice");
+            built = true;
+            return target;
+        }
     }
 
 }

@@ -17,23 +17,17 @@ package no.digipost.signature.client.direct;
 
 public class SignatureJobResponse {
     private long signatureJobId;
-    private String reference;
     private String redirectUrl;
     private StatusReference statusUrl;
 
-    public SignatureJobResponse(long signatureJobId, String reference, String redirectUrl, String statusUrl) {
+    public SignatureJobResponse(long signatureJobId, String redirectUrl, String statusUrl) {
         this.signatureJobId = signatureJobId;
-        this.reference = reference;
         this.redirectUrl = redirectUrl;
         this.statusUrl = new StatusReference(statusUrl);
     }
 
     public long getSignatureJobId() {
         return signatureJobId;
-    }
-
-    public String getReference() {
-        return reference;
     }
 
     public String getRedirectUrl() {

@@ -24,8 +24,7 @@ import no.digipost.signering.schema.v1.portal_signature_job.XMLSuccessLinks;
 final class JaxbEntityMapping {
 
     static XMLPortalSignatureJobRequest toJaxb(PortalSignatureJob job, Sender sender) {
-        return new XMLPortalSignatureJobRequest()
-                .withReference(job.getReference())
+        XMLPortalSignatureJobRequest request = new XMLPortalSignatureJobRequest()
                 .withSigners(new XMLSigners().withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber()))))
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
                 .withPrimaryDocument(new XMLDocument()
@@ -35,12 +34,17 @@ final class JaxbEntityMapping {
                         .withDescription(job.getDocument().getMessage())
                         .withHref(job.getDocument().getFileName())
                         .withMime(job.getDocument().getMimeType()));
+
+        if (job.getReference() != null) {
+            request.setReference(job.getReference());
+        }
+        return request;
     }
 
 
     static PortalSignatureJobStatusChanged fromJaxb(XMLPortalSignatureJobStatusChangeResponse statusChange) {
         XMLSuccessLinks links = statusChange.getAdditionalInfo().getSuccessInfo().getLinks();
-        return new PortalSignatureJobStatusChanged(statusChange.getSignatureJobId(), statusChange.getReference(), statusChange.getStatus(),
+        return new PortalSignatureJobStatusChanged(statusChange.getSignatureJobId(), statusChange.getStatus(),
                 links.getXadesUrl(), links.getPadesUrl(), links.getConfirmationUrl());
     }
 }
