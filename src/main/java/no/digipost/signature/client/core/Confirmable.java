@@ -31,8 +31,6 @@ package no.digipost.signature.client.core;
  */
 public interface Confirmable {
 
-    /**
-     * @return The confirmation reference which contains the
-     */
     ConfirmationReference getConfirmationReference();
+
 }
