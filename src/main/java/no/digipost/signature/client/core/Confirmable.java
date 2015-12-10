@@ -19,8 +19,8 @@ package no.digipost.signature.client.core;
  * An entity received from the Signature API which must be confirmed
  * as received by the client. The confirmation may result in resource(s)
  * being made unavailable to the client. Typically, if the confirmation is
- * for received status of a finished (successful or cancelled) job, the server
- * is free to handle the job as it see fit, and make the job unavailable to
+ * for received status of a complete (signed or cancelled) job, the server
+ * is free to handle the job as it see fit, e.g make the job unavailable to
  * the client through the API.
  * <p>
  *   <strong>Confirming is a required part of the communication protocol with

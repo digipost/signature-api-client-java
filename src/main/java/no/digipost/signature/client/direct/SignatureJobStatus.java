@@ -20,17 +20,17 @@ import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatus
 public enum SignatureJobStatus {
 
     CREATED,
-    COMPLETED,
-    CANCELED;
+    SIGNED,
+    CANCELLED;
 
     public static SignatureJobStatus fromXmlType(XMLDirectSignatureJobStatus xmlJobStatus) {
         switch (xmlJobStatus) {
             case CREATED:
                 return CREATED;
-            case COMPLETED:
-                return COMPLETED;
-            case CANCELED:
-                return CANCELED;
+            case SIGNED:
+                return SIGNED;
+            case CANCELLED:
+                return CANCELLED;
             default:
                 throw new IllegalArgumentException("Unexpected status: " + xmlJobStatus);
         }

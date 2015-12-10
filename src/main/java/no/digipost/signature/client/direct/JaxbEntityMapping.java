@@ -19,7 +19,7 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signering.schema.v1.common.*;
 import no.digipost.signering.schema.v1.signature_job.*;
 
-import static no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatus.COMPLETED;
+import static no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatus.SIGNED;
 
 final class JaxbEntityMapping {
 
@@ -47,8 +47,8 @@ final class JaxbEntityMapping {
     }
 
     static SignatureJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse) {
-        if (statusResponse.getStatus() == COMPLETED) {
-            XMLSuccessLinks links = statusResponse.getAdditionalInfo().getSuccessInfo().getLinks();
+        if (statusResponse.getStatus() == SIGNED) {
+            XMLJobSignedLinks links = statusResponse.getAdditionalInfo().getJobSignedInfo().getLinks();
             return new SignatureJobStatusResponse(statusResponse.getSignatureJobId(), SignatureJobStatus.fromXmlType(statusResponse.getStatus()),
                     links.getXadesUrl(), links.getPadesUrl(), links.getConfirmationUrl());
         } else {

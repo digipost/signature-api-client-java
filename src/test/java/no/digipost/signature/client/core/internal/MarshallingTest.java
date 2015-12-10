@@ -42,7 +42,7 @@ public class MarshallingTest {
         XMLSigner signer = new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber("12345678910"));
         XMLDocument document = new XMLDocument(new XMLTitle().withNonSensitive("Subject").withLang("NO"), "Message", "document.pdf", "application/pdf");
         XMLExitUrls exitUrls = new XMLExitUrls()
-                .withCompletionUrl("http://localhost/completed")
+                .withCompletionUrl("http://localhost/signed")
                 .withCancellationUrl("http://localhost/canceled")
                 .withErrorUrl("http://localhost/failed");
 

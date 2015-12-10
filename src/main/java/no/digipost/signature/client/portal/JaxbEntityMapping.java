@@ -17,9 +17,9 @@ package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signering.schema.v1.common.*;
+import no.digipost.signering.schema.v1.portal_signature_job.XMLJobSignedLinks;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
-import no.digipost.signering.schema.v1.portal_signature_job.XMLSuccessLinks;
 
 final class JaxbEntityMapping {
 
@@ -39,7 +39,7 @@ final class JaxbEntityMapping {
 
 
     static PortalSignatureJobStatusChanged fromJaxb(XMLPortalSignatureJobStatusChangeResponse statusChange) {
-        XMLSuccessLinks links = statusChange.getAdditionalInfo().getSuccessInfo().getLinks();
+        XMLJobSignedLinks links = statusChange.getAdditionalInfo().getJobSignedInfo().getLinks();
         return new PortalSignatureJobStatusChanged(statusChange.getSignatureJobId(), PortalSignatureJobStatus.fromXmlType(statusChange.getStatus()),
                 links.getXadesUrl(), links.getPadesUrl(), links.getConfirmationUrl());
     }

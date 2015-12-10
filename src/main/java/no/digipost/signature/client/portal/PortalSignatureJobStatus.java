@@ -24,20 +24,20 @@ public enum PortalSignatureJobStatus {
      * When the client {@link Confirmable confirms} a job with this status,
      * the job and its associated resources will become unavailable through the Signature API.
      */
-    COMPLETED,
+    SIGNED,
 
     /**
      * When the client {@link Confirmable confirms} a job with this status,
      * the job and its associated resources will become unavailable through the Signature API.
      */
-    CANCELED;
+    CANCELLED;
 
     public static PortalSignatureJobStatus fromXmlType(XMLPortalSignatureJobStatus xmlJobStatus) {
         switch (xmlJobStatus) {
-            case COMPLETED:
-                return COMPLETED;
-            case CANCELED:
-                return CANCELED;
+            case SIGNED:
+                return SIGNED;
+            case CANCELLED:
+                return CANCELLED;
             default:
                 throw new IllegalArgumentException("Unexpected status: " + xmlJobStatus);
         }
