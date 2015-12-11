@@ -53,6 +53,10 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
         return status;
     }
 
+    public boolean is(PortalSignatureJobStatus status) {
+        return this.status == status;
+    }
+
     public XAdESReference getxAdESUrl() {
         return xAdESUrl;
     }
@@ -64,6 +68,11 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
     @Override
     public ConfirmationReference getConfirmationReference() {
         return confirmationReference;
+    }
+
+    @Override
+    public String toString() {
+        return "updated status for signature job with id " + signatureJobId + ": " + status;
     }
 
 }
