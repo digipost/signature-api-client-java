@@ -17,7 +17,6 @@ package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
-import no.digipost.signature.client.core.Confirmable;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;

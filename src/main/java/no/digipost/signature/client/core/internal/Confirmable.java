@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client.core.internal;
+
+import no.digipost.signature.client.core.ConfirmationReference;
 
 /**
  * An entity received from the Signature API which must be confirmed

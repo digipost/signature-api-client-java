@@ -53,6 +53,10 @@ public class SignatureClient {
         return fromJaxb(xmlSignatureJobStatusResponse);
     }
 
+    public void confirm(SignatureJobStatusResponse receivedStatusResponse) {
+        client.confirm(receivedStatusResponse);
+    }
+
     public InputStream getXAdES(XAdESReference xAdESReference) {
         return client.getSignedDocumentStream(xAdESReference.getxAdESUrl());
     }
@@ -60,5 +64,6 @@ public class SignatureClient {
     public InputStream getPAdES(PAdESReference pAdESReference) {
         return client.getSignedDocumentStream(pAdESReference.getpAdESUrl());
     }
+
 
 }
