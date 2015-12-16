@@ -25,7 +25,7 @@ public class TooEagerPollingException extends RuntimeException {
     private final Date nextPermittedPollTime;
 
     public TooEagerPollingException(String nextPermittedPollTime) {
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
         try {
             this.nextPermittedPollTime = formatter.parse(nextPermittedPollTime);
         } catch (ParseException e) {
