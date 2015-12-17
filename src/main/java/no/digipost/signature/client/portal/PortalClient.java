@@ -16,6 +16,7 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.ClientConfiguration;
+import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
@@ -25,7 +26,6 @@ import java.io.InputStream;
 
 import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
-import static no.digipost.signature.client.portal.PortalSignatureJobStatus.NO_CHANGES;
 import static no.digipost.signature.client.portal.PortalSignatureJobStatusChanged.NO_UPDATED_STATUS;
 
 public class PortalClient {
@@ -64,15 +64,12 @@ public class PortalClient {
 
     /**
      * Confirms that the status retrieved from {@link #getStatusChange()} is received and may
-     * be discarded by the Signature service and not retrieved again. Calling this method for
-     * the {@link PortalSignatureJobStatus#NO_CHANGES NO_CHANGES} status update has no effect.
+     * be discarded by the Signature service and not retrieved again. Calling this method on
+     * a status update with no {@link ConfirmationReference} has no effect.
      *
      * @param receivedStatusChanged the updated status retrieved from {@link #getStatusChange()}.
      */
     public void confirm(PortalSignatureJobStatusChanged receivedStatusChanged) {
-        if (receivedStatusChanged.is(NO_CHANGES)) {
-            return;
-        }
         client.confirm(receivedStatusChanged);
     }
 

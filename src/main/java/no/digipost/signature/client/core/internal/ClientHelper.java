@@ -143,15 +143,17 @@ public class ClientHelper {
     }
 
     public void confirm(Confirmable confirmable) {
-        Response response = httpClient.target(confirmable.getConfirmationReference().getConfirmationUrl())
-                .request()
-                .accept(APPLICATION_XML_TYPE)
-                .header("Content-Length", 0)
-                .post(Entity.entity(null, APPLICATION_XML_TYPE));
-        Status status = Status.fromStatusCode(response.getStatus());
-        if (status != OK) {
-            XMLError error = response.readEntity(XMLError.class);
-            throw new UnexpectedResponseException(error, status, OK);
+        if (confirmable.getConfirmationReference() != null) {
+            Response response = httpClient.target(confirmable.getConfirmationReference().getConfirmationUrl())
+                    .request()
+                    .accept(APPLICATION_XML_TYPE)
+                    .header("Content-Length", 0)
+                    .post(Entity.entity(null, APPLICATION_XML_TYPE));
+            Status status = Status.fromStatusCode(response.getStatus());
+            if (status != OK) {
+                XMLError error = response.readEntity(XMLError.class);
+                throw new UnexpectedResponseException(error, status, OK);
+            }
         }
     }
 }

@@ -15,7 +15,10 @@
  */
 package no.digipost.signature.client.direct;
 
+import no.digipost.signature.client.core.ConfirmationReference;
+import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signering.schema.v1.common.*;
 import no.digipost.signering.schema.v1.signature_job.*;
 
@@ -47,13 +50,16 @@ final class JaxbEntityMapping {
     }
 
     static SignatureJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse) {
+        XMLJobSignedLinks links;
         if (statusResponse.getStatus() == SIGNED) {
-            XMLJobSignedLinks links = statusResponse.getAdditionalInfo().getJobSignedInfo().getLinks();
-            return new SignatureJobStatusResponse(statusResponse.getSignatureJobId(), SignatureJobStatus.fromXmlType(statusResponse.getStatus()),
-                    links.getXadesUrl(), links.getPadesUrl(), links.getConfirmationUrl());
+            links = statusResponse.getAdditionalInfo().getJobSignedInfo().getLinks();
         } else {
-            return new SignatureJobStatusResponse(statusResponse.getSignatureJobId(), SignatureJobStatus.fromXmlType(statusResponse.getStatus()));
-
+            links = new XMLJobSignedLinks();
         }
+        return new SignatureJobStatusResponse(
+                statusResponse.getSignatureJobId(), SignatureJobStatus.fromXmlType(statusResponse.getStatus()),
+                ConfirmationReference.of(statusResponse.getConfirmationUrl()),
+                XAdESReference.of(links.getXadesUrl()),
+                PAdESReference.of(links.getPadesUrl()));
     }
 }

@@ -17,6 +17,7 @@ package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
+import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
@@ -70,7 +71,8 @@ public class SignatureClient {
      * If the confirmed {@link SignatureJobStatus} is a terminal status
      * (e.g. {@link SignatureJobStatus#SIGNED signed} or {@link SignatureJobStatus#CANCELLED cancelled}),
      * the Signature service may make the job's associated resources unavailable through the API when
-     * receiving the confirmation.
+     * receiving the confirmation. Calling this method for a response with no {@link ConfirmationReference}
+     * has no effect.
      *
      * @param receivedStatusResponse the updated status retrieved from {@link #getStatusChange()}.
      */

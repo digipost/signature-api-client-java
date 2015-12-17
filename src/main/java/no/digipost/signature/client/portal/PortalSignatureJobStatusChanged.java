@@ -55,16 +55,16 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
 
     private final Long signatureJobId;
     private final PortalSignatureJobStatus status;
-    private final XAdESReference xAdESUrl;
-    private final PAdESReference pAdESUrl;
+    private final XAdESReference xAdESReference;
+    private final PAdESReference pAdESReference;
     private final ConfirmationReference confirmationReference;
 
-    PortalSignatureJobStatusChanged(Long signatureJobId, PortalSignatureJobStatus status, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
+    PortalSignatureJobStatusChanged(Long signatureJobId, PortalSignatureJobStatus status, ConfirmationReference confirmationReference, XAdESReference xAdESReference, PAdESReference pAdESReference) {
         this.signatureJobId = signatureJobId;
         this.status = status;
-        this.xAdESUrl = new XAdESReference(xAdESUrl);
-        this.pAdESUrl = new PAdESReference(pAdESUrl);
-        this.confirmationReference = new ConfirmationReference(confirmationUrl);
+        this.xAdESReference = xAdESReference;
+        this.pAdESReference = pAdESReference;
+        this.confirmationReference = confirmationReference;
     }
 
     public long getSignatureJobId() {
@@ -80,11 +80,11 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
     }
 
     public XAdESReference getxAdESUrl() {
-        return xAdESUrl;
+        return xAdESReference;
     }
 
     public PAdESReference getpAdESUrl() {
-        return pAdESUrl;
+        return pAdESReference;
     }
 
     @Override

@@ -25,20 +25,16 @@ public class SignatureJobStatusResponse implements Confirmable {
 
     private final long signatureJobId;
     private final SignatureJobStatus status;
+    private final ConfirmationReference confirmationReference;
     private final XAdESReference xAdESUrl;
     private final PAdESReference pAdESUrl;
-    private final ConfirmationReference confirmationReference;
 
-    public SignatureJobStatusResponse(long signatureJobId, SignatureJobStatus status, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
+    public SignatureJobStatusResponse(long signatureJobId, SignatureJobStatus status, ConfirmationReference confirmationUrl, XAdESReference xAdESUrl, PAdESReference pAdESUrl) {
         this.signatureJobId = signatureJobId;
         this.status = status;
-        this.xAdESUrl = new XAdESReference(xAdESUrl);
-        this.pAdESUrl = new PAdESReference(pAdESUrl);
-        this.confirmationReference = new ConfirmationReference(confirmationUrl);
-    }
-
-    public SignatureJobStatusResponse(long signatureJobId, SignatureJobStatus status) {
-        this(signatureJobId, status, null, null, null);
+        this.confirmationReference = confirmationUrl;
+        this.xAdESUrl = xAdESUrl;
+        this.pAdESUrl = pAdESUrl;
     }
 
     public long getSignatureJobId() {
