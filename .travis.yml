@@ -19,7 +19,7 @@ before_install:
 install:
   - export mavenBuildGoal="$([[ ${TRAVIS_TAG} == '' ]] && echo deploy || echo verify)"
   - echo "Maven will ${mavenBuildGoal}"
-  - mvn clean ${mavenBuildGoal} --settings ~/.m2/deploy-settings.xml
+  - mvn clean ${mavenBuildGoal} -U --settings ~/.m2/deploy-settings.xml
 
 script:
   - echo "no build script"
