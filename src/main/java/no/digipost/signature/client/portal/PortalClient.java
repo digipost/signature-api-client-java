@@ -46,11 +46,12 @@ public class PortalClient {
 
     /**
      * If there is a job with an updated {@link PortalSignatureJobStatus status}, the returned object contains
-     * necessary information to act on the status change. If no jobs has changed status since the last call to this
-     * method, {@link PortalSignatureJobStatusChanged#NO_UPDATED_STATUS} is returned. The returned object can be queried using
+     * necessary information to act on the status change. The returned object can be queried using
      * {@link PortalSignatureJobStatusChanged#is(PortalSignatureJobStatus) .is(}{@link PortalSignatureJobStatus#NO_CHANGES NO_CHANGES)}
-     * to determine if there has been a status change. When processing of the status change is complete, the returned
-     * {@code PortalSignatureJobStatus} must be {@link #confirm(PortalSignatureJobStatusChanged) confirmed}.
+     * to determine if there has been a status change. When processing of the status change is complete, (e.g. retrieving
+     * {@link #getPAdES(PAdESReference) PAdES} and/or {@link #getXAdES(XAdESReference) XAdES} documents for a
+     * {@link PortalSignatureJobStatus#SIGNED signed} job), the returned
+     * status must be {@link #confirm(PortalSignatureJobStatusChanged) confirmed}.
      *
      * @return the changed status for a job, or {@link PortalSignatureJobStatusChanged#NO_UPDATED_STATUS NO_UPDATED_STATUS},
      *         never {@code null}.
@@ -63,7 +64,8 @@ public class PortalClient {
 
     /**
      * Confirms that the status retrieved from {@link #getStatusChange()} is received and may
-     * be discarded by the Signature service and not retrieved again.
+     * be discarded by the Signature service and not retrieved again. Calling this method for
+     * the {@link PortalSignatureJobStatus#NO_CHANGES NO_CHANGES} status update has no effect.
      *
      * @param receivedStatusChanged the updated status retrieved from {@link #getStatusChange()}.
      */

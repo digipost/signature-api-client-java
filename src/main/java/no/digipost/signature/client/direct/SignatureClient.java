@@ -48,11 +48,32 @@ public class SignatureClient {
         return fromJaxb(xmlSignatureJobResponse);
     }
 
+
+    /**
+     * Get the current status for the given {@link StatusReference}, which references the status for a specific job.
+     * When processing of the status is complete (e.g. retrieving {@link #getPAdES(PAdESReference) PAdES} and/or
+     * {@link #getXAdES(XAdESReference) XAdES} documents for a  {@link SignatureJobStatus#SIGNED signed} job),
+     * the returned status must be {@link #confirm(SignatureJobStatusResponse) confirmed}.
+     *
+     * @param statusReference the reference to the status of a specific job.
+     * @return the {@link SignatureJobStatusResponse} for the job referenced by the given {@link StatusReference},
+     *         never {@code null}.
+     */
     public SignatureJobStatusResponse getStatus(StatusReference statusReference) {
         XMLDirectSignatureJobStatusResponse xmlSignatureJobStatusResponse = client.sendSignatureJobStatusRequest(statusReference.getStatusUrl());
         return fromJaxb(xmlSignatureJobStatusResponse);
     }
 
+
+    /**
+     * Confirms that the status retrieved from {@link #getStatus(StatusReference)} is received.
+     * If the confirmed {@link SignatureJobStatus} is a terminal status
+     * (e.g. {@link SignatureJobStatus#SIGNED signed} or {@link SignatureJobStatus#CANCELLED cancelled}),
+     * the Signature service may make the job's associated resources unavailable through the API when
+     * receiving the confirmation.
+     *
+     * @param receivedStatusResponse the updated status retrieved from {@link #getStatusChange()}.
+     */
     public void confirm(SignatureJobStatusResponse receivedStatusResponse) {
         client.confirm(receivedStatusResponse);
     }
