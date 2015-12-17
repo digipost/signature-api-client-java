@@ -19,8 +19,20 @@ import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatus
 
 public enum SignatureJobStatus {
 
+    /**
+     * The signature job is created, and the receiver is currently doing the
+     * signing ceremony.
+     */
     CREATED,
+
+    /**
+     * The document(s) of the job has been signed by the receiver.
+     */
     SIGNED,
+
+    /**
+     * The signature job has been cancelled.
+     */
     CANCELLED;
 
     public static SignatureJobStatus fromXmlType(XMLDirectSignatureJobStatus xmlJobStatus) {

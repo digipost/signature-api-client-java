@@ -34,6 +34,10 @@ import static no.digipost.signature.client.portal.PortalSignatureJobStatus.NO_CH
 public class PortalSignatureJobStatusChanged implements Confirmable {
 
 
+    /**
+     * This instance indicates that there has been no status updates since the last poll request for
+     * {@link PortalSignatureJobStatusChanged}. Its status is {@link PortalSignatureJobStatus#NO_CHANGES NO_CHANGES}.
+     */
     public static final PortalSignatureJobStatusChanged NO_UPDATED_STATUS = new PortalSignatureJobStatusChanged(null, NO_CHANGES, null, null, null) {
         @Override
         public long getSignatureJobId() {
