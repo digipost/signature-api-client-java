@@ -23,11 +23,11 @@ import no.digipost.signature.client.core.internal.Confirmable;
 
 public class SignatureJobStatusResponse implements Confirmable {
 
-    private long signatureJobId;
-    private SignatureJobStatus status;
-    private XAdESReference xAdESUrl;
-    private PAdESReference pAdESUrl;
-    private ConfirmationReference confirmationReference;
+    private final long signatureJobId;
+    private final SignatureJobStatus status;
+    private final XAdESReference xAdESUrl;
+    private final PAdESReference pAdESUrl;
+    private final ConfirmationReference confirmationReference;
 
     public SignatureJobStatusResponse(long signatureJobId, SignatureJobStatus status, String xAdESUrl, String pAdESUrl, String confirmationUrl) {
         this.signatureJobId = signatureJobId;

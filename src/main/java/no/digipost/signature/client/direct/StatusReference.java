@@ -17,7 +17,7 @@ package no.digipost.signature.client.direct;
 
 public class StatusReference {
 
-    private String statusUrl;
+    private final String statusUrl;
 
     public StatusReference(String statusUrl) {
         this.statusUrl = statusUrl;
