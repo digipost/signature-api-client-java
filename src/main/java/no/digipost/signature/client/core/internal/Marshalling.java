@@ -52,7 +52,7 @@ public class Marshalling {
 
     public static class Schemas {
         public static final ClassPathResource SIGNATURE_DOCUMENT_SCHEMA = new ClassPathResource("signature-document.xsd");
-        public static final ClassPathResource SIGNATURE_JOB_SCHEMA = new ClassPathResource("signature-job.xsd");
+        public static final ClassPathResource DIRECT_SIGNATURE_JOB_SCHEMA = new ClassPathResource("direct-signature-job.xsd");
         public static final ClassPathResource PORTAL_SIGNATURE_JOB_SCHEMA = new ClassPathResource("portal-signature-job.xsd");
         public static final ClassPathResource SIGNATURE_JOB_COMMON_SCHEMA = new ClassPathResource("common.xsd");
         public static final ClassPathResource XMLDSIG_SCHEMA = new ClassPathResource("thirdparty/xmldsig-core-schema.xsd");
@@ -61,7 +61,7 @@ public class Marshalling {
 
         public static Resource[] allSchemaResources() {
             return new Resource[]{
-                    SIGNATURE_DOCUMENT_SCHEMA, SIGNATURE_JOB_SCHEMA, PORTAL_SIGNATURE_JOB_SCHEMA, SIGNATURE_JOB_COMMON_SCHEMA, XMLDSIG_SCHEMA, ASICE_SCHEMA, XADES_SCHEMA
+                    SIGNATURE_DOCUMENT_SCHEMA, DIRECT_SIGNATURE_JOB_SCHEMA, PORTAL_SIGNATURE_JOB_SCHEMA, SIGNATURE_JOB_COMMON_SCHEMA, XMLDSIG_SCHEMA, ASICE_SCHEMA, XADES_SCHEMA
             };
         }
     }

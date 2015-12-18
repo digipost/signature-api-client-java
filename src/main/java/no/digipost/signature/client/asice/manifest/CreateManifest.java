@@ -38,12 +38,10 @@ public class CreateManifest {
 
     public Manifest createManifest(final Document document, Signer signer, Sender sender) {
         XMLManifest manifest = new XMLManifest()
-                .withSigners(new XMLSigners().withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber()))))
+                .withSigners(new XMLSigners().withSigner(new XMLSigner().withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())))
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
                 .withPrimaryDocument(new XMLDocument()
-                        .withTitle(new XMLTitle()
-                                .withNonSensitive(document.getSubject())
-                                .withLang("NO"))
+                        .withTitle(document.getSubject())
                         .withDescription(document.getMessage())
                         .withHref(document.getFileName())
                         .withMime(document.getMimeType())

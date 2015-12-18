@@ -19,24 +19,22 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
-import no.digipost.signering.schema.v1.common.*;
-import no.digipost.signering.schema.v1.portal_signature_job.XMLJobSignedLinks;
+import no.digipost.signering.schema.v1.common.XMLDocument;
+import no.digipost.signering.schema.v1.common.XMLSender;
+import no.digipost.signering.schema.v1.common.XMLSigner;
+import no.digipost.signering.schema.v1.common.XMLSigners;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
 import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
-
-import static no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatus.SIGNED;
 
 final class JaxbEntityMapping {
 
     static XMLPortalSignatureJobRequest toJaxb(PortalSignatureJob job, Sender sender) {
         return new XMLPortalSignatureJobRequest()
                 .withReference(job.getReference())
-                .withSigners(new XMLSigners().withSigner(new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber()))))
+                .withSigners(new XMLSigners().withSigner(new XMLSigner().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber())))
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
                 .withPrimaryDocument(new XMLDocument()
-                        .withTitle(new XMLTitle()
-                                .withNonSensitive(job.getDocument().getSubject())
-                                .withLang("NO"))
+                        .withTitle(job.getDocument().getSubject())
                         .withDescription(job.getDocument().getMessage())
                         .withHref(job.getDocument().getFileName())
                         .withMime(job.getDocument().getMimeType()));
@@ -44,16 +42,12 @@ final class JaxbEntityMapping {
 
 
     static PortalSignatureJobStatusChanged fromJaxb(XMLPortalSignatureJobStatusChangeResponse statusChange) {
-        XMLJobSignedLinks links;
-        if (statusChange.getStatus() == SIGNED) {
-            links = statusChange.getAdditionalInfo().getJobSignedInfo().getLinks();
-        } else {
-            links = new XMLJobSignedLinks();
-        }
         return new PortalSignatureJobStatusChanged(
                 statusChange.getSignatureJobId(), PortalSignatureJobStatus.fromXmlType(statusChange.getStatus()),
                 ConfirmationReference.of(statusChange.getConfirmationUrl()),
-                XAdESReference.of(links.getXadesUrl()),
-                PAdESReference.of(links.getPadesUrl()));
+                SignatureStatus.fromXmlType(statusChange.getSignatures().getSignature().getStatus()),
+                XAdESReference.of(statusChange.getSignatures().getSignature().getXadesUrl()),
+                PAdESReference.of(statusChange.getSignatures().getPadesUrl())
+        );
     }
 }

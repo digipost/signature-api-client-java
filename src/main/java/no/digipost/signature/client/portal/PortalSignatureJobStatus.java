@@ -21,17 +21,18 @@ import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJo
 public enum PortalSignatureJobStatus {
 
 
-    /**
+	/**
      * When the client {@link Confirmable confirms} a job with this status,
-     * the job and its associated resources will become unavailable through the Signature API.
+     * the job is removed from the queue and will not be returned upon subsequent polling,
+     * until the status has changed again.
      */
-    SIGNED,
+    PARTIALLY_COMPLETED,
 
     /**
      * When the client {@link Confirmable confirms} a job with this status,
      * the job and its associated resources will become unavailable through the Signature API.
      */
-    CANCELLED,
+    COMPLETED,
 
     /**
      * There has not been any changes since the last received status change.
@@ -40,10 +41,10 @@ public enum PortalSignatureJobStatus {
 
     public static PortalSignatureJobStatus fromXmlType(XMLPortalSignatureJobStatus xmlJobStatus) {
         switch (xmlJobStatus) {
-            case SIGNED:
-                return SIGNED;
-            case CANCELLED:
-                return CANCELLED;
+            case PARTIALLY_COMPLETED:
+                return PARTIALLY_COMPLETED;
+            case COMPLETED:
+                return COMPLETED;
             default:
                 throw new IllegalArgumentException("Unexpected status: " + xmlJobStatus);
         }

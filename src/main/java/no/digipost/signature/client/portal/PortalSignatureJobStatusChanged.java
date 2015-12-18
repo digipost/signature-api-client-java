@@ -38,7 +38,7 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
      * This instance indicates that there has been no status updates since the last poll request for
      * {@link PortalSignatureJobStatusChanged}. Its status is {@link PortalSignatureJobStatus#NO_CHANGES NO_CHANGES}.
      */
-    public static final PortalSignatureJobStatusChanged NO_UPDATED_STATUS = new PortalSignatureJobStatusChanged(null, NO_CHANGES, null, null, null) {
+    public static final PortalSignatureJobStatusChanged NO_UPDATED_STATUS = new PortalSignatureJobStatusChanged(null, NO_CHANGES, null, null, null, null) {
         @Override
         public long getSignatureJobId() {
             throw new IllegalStateException(
@@ -58,13 +58,15 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
     private final XAdESReference xAdESReference;
     private final PAdESReference pAdESReference;
     private final ConfirmationReference confirmationReference;
+    private final SignatureStatus signatureStatus;
 
-    PortalSignatureJobStatusChanged(Long signatureJobId, PortalSignatureJobStatus status, ConfirmationReference confirmationReference, XAdESReference xAdESReference, PAdESReference pAdESReference) {
+    PortalSignatureJobStatusChanged(Long signatureJobId, PortalSignatureJobStatus status, ConfirmationReference confirmationReference, SignatureStatus signatureStatus, XAdESReference xAdESReference, PAdESReference pAdESReference) {
         this.signatureJobId = signatureJobId;
         this.status = status;
         this.xAdESReference = xAdESReference;
         this.pAdESReference = pAdESReference;
         this.confirmationReference = confirmationReference;
+        this.signatureStatus = signatureStatus;
     }
 
     public long getSignatureJobId() {
@@ -85,6 +87,10 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
 
     public PAdESReference getpAdESUrl() {
         return pAdESReference;
+    }
+
+    public SignatureStatus getSignatureStatus() {
+        return signatureStatus;
     }
 
     @Override

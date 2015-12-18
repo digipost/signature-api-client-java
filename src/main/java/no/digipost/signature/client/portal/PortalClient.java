@@ -50,8 +50,8 @@ public class PortalClient {
      * {@link PortalSignatureJobStatusChanged#is(PortalSignatureJobStatus) .is(}{@link PortalSignatureJobStatus#NO_CHANGES NO_CHANGES)}
      * to determine if there has been a status change. When processing of the status change is complete, (e.g. retrieving
      * {@link #getPAdES(PAdESReference) PAdES} and/or {@link #getXAdES(XAdESReference) XAdES} documents for a
-     * {@link PortalSignatureJobStatus#SIGNED signed} job), the returned
-     * status must be {@link #confirm(PortalSignatureJobStatusChanged) confirmed}.
+     * {@link PortalSignatureJobStatus#COMPLETED completed} job where all signers have {@link SignatureStatus signed} their documents),
+     * the returned status must be {@link #confirm(PortalSignatureJobStatusChanged) confirmed}.
      *
      * @return the changed status for a job, or {@link PortalSignatureJobStatusChanged#NO_UPDATED_STATUS NO_UPDATED_STATUS},
      *         never {@code null}.

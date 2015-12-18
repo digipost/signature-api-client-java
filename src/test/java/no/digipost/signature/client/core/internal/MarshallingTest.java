@@ -39,8 +39,8 @@ public class MarshallingTest {
     @Test
     public void valid_objects_can_be_marshalled() {
         XMLSender sender = new XMLSender().withOrganization("123456789");
-        XMLSigner signer = new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber("12345678910"));
-        XMLDocument document = new XMLDocument(new XMLTitle().withNonSensitive("Subject").withLang("NO"), "Message", "document.pdf", "application/pdf");
+        XMLSigner signer = new XMLSigner().withPersonalIdentificationNumber("12345678910");
+        XMLDocument document = new XMLDocument("Subject", "Message", "document.pdf", "application/pdf");
         XMLExitUrls exitUrls = new XMLExitUrls()
                 .withCompletionUrl("http://localhost/signed")
                 .withCancellationUrl("http://localhost/canceled")
@@ -56,8 +56,8 @@ public class MarshallingTest {
     @Test
     public void invalid_signature_job_request_causes_exceptions() {
         XMLSender sender = new XMLSender().withOrganization("123456789");
-        XMLSigner signer = new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber("12345678910"));
-        XMLDocument document = new XMLDocument(new XMLTitle().withNonSensitive("Subject").withLang("NO"), "Message", "document.pdf", "application/pdf");
+        XMLSigner signer = new XMLSigner().withPersonalIdentificationNumber("12345678910");
+        XMLDocument document = new XMLDocument("Subject", "Message", "document.pdf", "application/pdf");
         XMLExitUrls exitUrls = new XMLExitUrls()
                 .withCompletionUrl(null)
                 .withCancellationUrl("http://localhost/canceled")
@@ -76,8 +76,8 @@ public class MarshallingTest {
     @Test
     public void invalid_manifest_causes_exceptions() {
         XMLSender sender = new XMLSender().withOrganization("123456789");
-        XMLSigner signer = new XMLSigner().withPerson(new XMLPerson().withPersonalIdentificationNumber("12345678910"));
-        XMLDocument document = new XMLDocument(new XMLTitle().withNonSensitive("Subject").withLang("NO"), "Message", null, "application/pdf");
+        XMLSigner signer = new XMLSigner().withPersonalIdentificationNumber("12345678910");
+        XMLDocument document = new XMLDocument("Subject", "Message", null, "application/pdf");
         XMLManifest manifest = new XMLManifest(new XMLSigners().withSigner(signer), sender, document);
 
         try {

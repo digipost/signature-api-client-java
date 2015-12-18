@@ -19,7 +19,7 @@
             </nameXmlTransform>
         </schemaBindings>
     </bindings>
-    <bindings schemaLocation="../../../target/generated-resources/xsd/signature-job.xsd" node="/xs:schema">
+    <bindings schemaLocation="../../../target/generated-resources/xsd/direct-signature-job.xsd" node="/xs:schema">
         <schemaBindings>
             <nameXmlTransform>
                 <typeName prefix="XML" />
