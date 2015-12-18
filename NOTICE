@@ -11,7 +11,6 @@ This software includes third party software subject to the following licenses:
   AOP alliance under Public Domain
   aopalliance version 1.0 repackaged as a module under CDDL + GPLv2 with classpath exception
   Apache Commons Codec under The Apache Software License, Version 2.0
-  Apache Commons Logging under The Apache Software License, Version 2.0
   Apache HttpClient under Apache License, Version 2.0
   Apache HttpCore under Apache License, Version 2.0
   Commons IO under The Apache Software License, Version 2.0
@@ -24,6 +23,7 @@ This software includes third party software subject to the following licenses:
   javax.annotation API under CDDL + GPLv2 with classpath exception
   javax.inject:1 as OSGi bundle under CDDL + GPLv2 with classpath exception
   javax.ws.rs-api under CDDL 1.1 or GPL2 w/ CPE
+  JCL 1.1.1 implemented over SLF4J under MIT License
   jersey-core-client under CDDL+GPL License
   jersey-core-common under CDDL+GPL License
   jersey-media-multipart under CDDL+GPL License
