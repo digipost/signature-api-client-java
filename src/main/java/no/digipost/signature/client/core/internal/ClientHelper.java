@@ -20,14 +20,11 @@ import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
-import no.posten.signering.schema.v1.XMLError;
-import no.posten.signering.schema.v1.XMLPortalSignatureJobRequest;
-import no.posten.signering.schema.v1.XMLPortalSignatureJobStatusChangeResponse;
-import no.posten.signering.schema.v1.XMLDirectSignatureJobRequest;
-import no.posten.signering.schema.v1.XMLDirectSignatureJobResponse;
-import no.posten.signering.schema.v1.XMLDirectSignatureJobStatusResponse;
+import no.posten.signering.schema.v1.*;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -45,6 +42,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static javax.ws.rs.core.Response.Status.*;
 
 public class ClientHelper {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ClientHelper.class);
 
     public static final String SIGNATURE_JOBS_PATH = "/signature-jobs";
     public static final String PORTAL_SIGNATURE_JOBS_PATH = "/portal/signature-jobs";
@@ -144,7 +143,9 @@ public class ClientHelper {
 
     public void confirm(Confirmable confirmable) {
         if (confirmable.getConfirmationReference() != null) {
-            Response response = httpClient.target(confirmable.getConfirmationReference().getConfirmationUrl())
+            String url = confirmable.getConfirmationReference().getConfirmationUrl();
+            LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
+            Response response = httpClient.target(url)
                     .request()
                     .accept(APPLICATION_XML_TYPE)
                     .header("Content-Length", 0)
@@ -154,6 +155,8 @@ public class ClientHelper {
                 XMLError error = response.readEntity(XMLError.class);
                 throw new UnexpectedResponseException(error, status, OK);
             }
+        } else {
+            LOG.info("Does not need to send confirmation for '{}'", confirmable);
         }
     }
 }
