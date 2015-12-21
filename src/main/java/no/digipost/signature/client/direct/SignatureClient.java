@@ -74,7 +74,7 @@ public class SignatureClient {
      * receiving the confirmation. Calling this method for a response with no {@link ConfirmationReference}
      * has no effect.
      *
-     * @param receivedStatusResponse the updated status retrieved from {@link #getStatusChange()}.
+     * @param receivedStatusResponse the updated status retrieved from {@link #getStatus(StatusReference)}.
      */
     public void confirm(SignatureJobStatusResponse receivedStatusResponse) {
         client.confirm(receivedStatusResponse);
