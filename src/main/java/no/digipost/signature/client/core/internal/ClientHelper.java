@@ -152,7 +152,12 @@ public class ClientHelper {
                     .post(Entity.entity(null, APPLICATION_XML_TYPE));
             Status status = Status.fromStatusCode(response.getStatus());
             if (status != OK) {
-                XMLError error = response.readEntity(XMLError.class);
+                XMLError error;
+                try {
+                    error = response.readEntity(XMLError.class);
+                } catch (Exception e) {
+                    throw new UnexpectedResponseException(null, e, status, OK);
+                }
                 throw new UnexpectedResponseException(error, status, OK);
             }
         } else {
