@@ -15,16 +15,12 @@
  */
 package no.digipost.signature.client.core.internal;
 
-import no.digipost.signering.schema.v1.common.*;
-import no.digipost.signering.schema.v1.signature_document.XMLManifest;
-import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobRequest;
-import no.digipost.signering.schema.v1.signature_job.XMLExitUrls;
+import no.digipost.signering.schema.v1.*;
 import org.junit.Test;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.xml.transform.stream.StreamResult;
-
 import java.io.ByteArrayOutputStream;
 
 import static org.hamcrest.Matchers.allOf;

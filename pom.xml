@@ -299,7 +299,8 @@
                     <specVersion>2.2</specVersion>
                     <schemaDirectory>${xsd.directory}</schemaDirectory>
                     <schemaIncludes>
-                        <include>**/*.xsd</include>
+                        <include>direct-and-portal.xsd</include>
+                        <include>thirdparty/*.xsd</include>
                     </schemaIncludes>
                     <catalog>${xsd.directory}/catalog.xml</catalog>
                     <strict>false</strict>

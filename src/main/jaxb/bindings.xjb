@@ -10,34 +10,7 @@
         <xjc:javaType adapter="no.digipost.signature.client.jaxb.XSDateTimeAdapter" name="java.util.Date" xmlType="xs:dateTime"/>
     </globalBindings>
 
-    <bindings schemaLocation="../../../target/generated-resources/xsd/signature-document.xsd" node="/xs:schema">
-        <schemaBindings>
-            <nameXmlTransform>
-                <typeName prefix="XML" />
-                <anonymousTypeName prefix="XML" />
-                <elementName prefix="XML" />
-            </nameXmlTransform>
-        </schemaBindings>
-    </bindings>
-    <bindings schemaLocation="../../../target/generated-resources/xsd/direct-signature-job.xsd" node="/xs:schema">
-        <schemaBindings>
-            <nameXmlTransform>
-                <typeName prefix="XML" />
-                <anonymousTypeName prefix="XML" />
-                <elementName prefix="XML" />
-            </nameXmlTransform>
-        </schemaBindings>
-    </bindings>
-    <bindings schemaLocation="../../../target/generated-resources/xsd/portal-signature-job.xsd" node="/xs:schema">
-        <schemaBindings>
-            <nameXmlTransform>
-                <typeName prefix="XML" />
-                <anonymousTypeName prefix="XML" />
-                <elementName prefix="XML" />
-            </nameXmlTransform>
-        </schemaBindings>
-    </bindings>
-    <bindings schemaLocation="../../../target/generated-resources/xsd/common.xsd" node="/xs:schema">
+    <bindings schemaLocation="../../../target/generated-resources/xsd/direct-and-portal.xsd" node="/xs:schema">
         <schemaBindings>
             <nameXmlTransform>
                 <typeName prefix="XML" />

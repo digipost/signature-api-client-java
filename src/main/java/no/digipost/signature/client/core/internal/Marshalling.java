@@ -16,13 +16,13 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
-import no.digipost.signering.schema.v1.common.XMLError;
-import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobRequest;
-import no.digipost.signering.schema.v1.portal_signature_job.XMLPortalSignatureJobStatusChangeResponse;
-import no.digipost.signering.schema.v1.signature_document.XMLManifest;
-import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobRequest;
-import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobResponse;
-import no.digipost.signering.schema.v1.signature_job.XMLDirectSignatureJobStatusResponse;
+import no.digipost.signering.schema.v1.XMLError;
+import no.digipost.signering.schema.v1.XMLPortalSignatureJobRequest;
+import no.digipost.signering.schema.v1.XMLPortalSignatureJobStatusChangeResponse;
+import no.digipost.signering.schema.v1.XMLManifest;
+import no.digipost.signering.schema.v1.XMLDirectSignatureJobRequest;
+import no.digipost.signering.schema.v1.XMLDirectSignatureJobResponse;
+import no.digipost.signering.schema.v1.XMLDirectSignatureJobStatusResponse;
 import org.etsi.uri._01903.v1_3.QualifyingProperties;
 import org.etsi.uri._2918.v1_2.XAdESSignatures;
 import org.springframework.core.io.ClassPathResource;
@@ -51,17 +51,14 @@ public class Marshalling {
     }
 
     public static class Schemas {
-        public static final ClassPathResource SIGNATURE_DOCUMENT_SCHEMA = new ClassPathResource("signature-document.xsd");
-        public static final ClassPathResource DIRECT_SIGNATURE_JOB_SCHEMA = new ClassPathResource("direct-signature-job.xsd");
-        public static final ClassPathResource PORTAL_SIGNATURE_JOB_SCHEMA = new ClassPathResource("portal-signature-job.xsd");
-        public static final ClassPathResource SIGNATURE_JOB_COMMON_SCHEMA = new ClassPathResource("common.xsd");
+        public static final ClassPathResource DIRECT_AND_PORTAL = new ClassPathResource("direct-and-portal.xsd");
         public static final ClassPathResource XMLDSIG_SCHEMA = new ClassPathResource("thirdparty/xmldsig-core-schema.xsd");
         public static final ClassPathResource ASICE_SCHEMA = new ClassPathResource("thirdparty/ts_102918v010201.xsd");
         public static final ClassPathResource XADES_SCHEMA = new ClassPathResource("thirdparty/XAdES.xsd");
 
         public static Resource[] allSchemaResources() {
             return new Resource[]{
-                    SIGNATURE_DOCUMENT_SCHEMA, DIRECT_SIGNATURE_JOB_SCHEMA, PORTAL_SIGNATURE_JOB_SCHEMA, SIGNATURE_JOB_COMMON_SCHEMA, XMLDSIG_SCHEMA, ASICE_SCHEMA, XADES_SCHEMA
+                    DIRECT_AND_PORTAL, XMLDSIG_SCHEMA, ASICE_SCHEMA, XADES_SCHEMA
             };
         }
     }
