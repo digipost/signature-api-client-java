@@ -57,4 +57,9 @@ public class SignatureJobStatusResponse implements Confirmable {
     public ConfirmationReference getConfirmationReference() {
         return confirmationReference;
     }
+
+    @Override
+    public String toString() {
+        return "status for signature job with ID " + signatureJobId + ": " + status;
+    }
 }
