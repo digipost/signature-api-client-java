@@ -18,15 +18,19 @@ package no.digipost.signature.client.portal;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Signer;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 
 public class PortalSignatureJob {
 
     private String reference;
-    private Signer signer;
+    private List<Signer> signers;
     private Document document;
 
-    private PortalSignatureJob(Signer signer, Document document) {
-        this.signer = signer;
+    private PortalSignatureJob(List<Signer> signers, Document document) {
+        this.signers = signers;
         this.document = document;
     }
 
@@ -34,16 +38,20 @@ public class PortalSignatureJob {
         return reference;
     }
 
-    public Signer getSigner() {
-        return signer;
+    public List<Signer> getSigners() {
+        return Collections.unmodifiableList(signers);
     }
 
     public Document getDocument() {
         return document;
     }
 
-    public static Builder builder(Signer signer, Document document) {
-        return new Builder(signer, document);
+    public static Builder builder(Document document, Signer... signers) {
+        return builder(document, Arrays.asList(signers));
+    }
+
+    public static Builder builder(Document document, List<Signer> signers) {
+        return new Builder(signers, document);
     }
 
     public static class Builder {
@@ -51,8 +59,8 @@ public class PortalSignatureJob {
         private final PortalSignatureJob target;
         private boolean built = false;
 
-        public Builder(Signer signer, Document document) {
-            target = new PortalSignatureJob(signer, document);
+        private Builder(List<Signer> signers, Document document) {
+            target = new PortalSignatureJob(signers, document);
         }
 
         public Builder withReference(String reference) {

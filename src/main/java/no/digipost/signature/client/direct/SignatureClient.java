@@ -27,6 +27,7 @@ import no.posten.signering.schema.v1.XMLDirectSignatureJobStatusResponse;
 
 import java.io.InputStream;
 
+import static java.util.Collections.singletonList;
 import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.toJaxb;
@@ -42,7 +43,7 @@ public class SignatureClient {
     }
 
     public SignatureJobResponse create(SignatureJob signatureJob) {
-        DocumentBundle documentBundle = createASiCE(signatureJob.getDocument(), signatureJob.getSigner(), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig());
+        DocumentBundle documentBundle = createASiCE(signatureJob.getDocument(), singletonList(signatureJob.getSigner()), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig());
         XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(signatureJob, clientConfiguration.getSender());
 
         XMLDirectSignatureJobResponse xmlSignatureJobResponse = client.sendSignatureJobRequest(signatureJobRequest, documentBundle);
@@ -74,7 +75,7 @@ public class SignatureClient {
      * receiving the confirmation. Calling this method for a response with no {@link ConfirmationReference}
      * has no effect.
      *
-     * @param receivedStatusResponse the updated status retrieved from {@link #getStatusChange()}.
+     * @param receivedStatusResponse the updated status retrieved from {@link #getStatus(StatusReference)}.
      */
     public void confirm(SignatureJobStatusResponse receivedStatusResponse) {
         client.confirm(receivedStatusResponse);

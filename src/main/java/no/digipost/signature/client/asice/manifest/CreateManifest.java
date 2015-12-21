@@ -29,14 +29,20 @@ import org.xml.sax.SAXParseException;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 public class CreateManifest {
 
     private static final Jaxb2Marshaller marshaller = Marshalling.instance();
 
-    public Manifest createManifest(final Document document, Signer signer, Sender sender) {
+    public Manifest createManifest(Document document, List<Signer> signers, Sender sender) {
+        XMLSigners xmlSigners = new XMLSigners();
+        for (Signer signer : signers) {
+            xmlSigners.getSigners().add(new XMLSigner().withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber()));
+        }
+
         XMLManifest manifest = new XMLManifest()
-                .withSigners(new XMLSigners().withSigner(new XMLSigner().withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())))
+                .withSigners(xmlSigners)
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
                 .withPrimaryDocument(new XMLDocument()
                         .withTitle(document.getSubject())

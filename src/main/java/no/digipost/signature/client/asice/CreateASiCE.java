@@ -35,8 +35,8 @@ public class CreateASiCE {
     private static final CreateManifest createManifest = new CreateManifest();
     private static final CreateSignature createSignature = new CreateSignature();
 
-    public static DocumentBundle createASiCE(final Document document, Signer signer, Sender sender, final KeyStoreConfig keyStoreConfig) {
-        Manifest manifest = createManifest.createManifest(document, signer, sender);
+    public static DocumentBundle createASiCE(final Document document, List<Signer> signers, Sender sender, final KeyStoreConfig keyStoreConfig) {
+        Manifest manifest = createManifest.createManifest(document, signers, sender);
 
         List<ASiCEAttachable> files = new ArrayList<>();
         files.add(document);

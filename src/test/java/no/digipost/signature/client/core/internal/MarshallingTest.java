@@ -43,7 +43,7 @@ public class MarshallingTest {
                 .withErrorUrl("http://localhost/failed");
 
         XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", signer, sender, document, exitUrls);
-        XMLManifest manifest = new XMLManifest(new XMLSigners().withSigner(signer), sender, document);
+        XMLManifest manifest = new XMLManifest(new XMLSigners().withSigners(signer), sender, document);
 
         marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
         marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));
@@ -74,7 +74,7 @@ public class MarshallingTest {
         XMLSender sender = new XMLSender().withOrganization("123456789");
         XMLSigner signer = new XMLSigner().withPersonalIdentificationNumber("12345678910");
         XMLDocument document = new XMLDocument("Subject", "Message", null, "application/pdf");
-        XMLManifest manifest = new XMLManifest(new XMLSigners().withSigner(signer), sender, document);
+        XMLManifest manifest = new XMLManifest(new XMLSigners().withSigners(signer), sender, document);
 
         try {
             marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));

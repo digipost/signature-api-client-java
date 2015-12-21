@@ -27,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 
 import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
 
@@ -39,7 +40,7 @@ public class CreateASiCETest {
         Document document = Document.builder("Subject", "Message", "file.txt", "hello".getBytes())
                 .fileType(Document.FileType.TXT)
                 .build();
-        DocumentBundle aSiCE = createASiCE(document, new Signer("12345678910"), new Sender("123456789"), TestKonfigurasjon.CLIENT_KEYSTORE);
+        DocumentBundle aSiCE = createASiCE(document, Collections.singletonList(new Signer("12345678910")), new Sender("123456789"), TestKonfigurasjon.CLIENT_KEYSTORE);
 
         File tempFile = File.createTempFile("test", ".zip");
         IOUtils.copy(new ByteArrayInputStream(aSiCE.getBytes()), new FileOutputStream(tempFile));

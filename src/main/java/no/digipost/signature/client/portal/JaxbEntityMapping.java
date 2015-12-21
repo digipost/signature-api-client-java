@@ -15,10 +15,7 @@
  */
 package no.digipost.signature.client.portal;
 
-import no.digipost.signature.client.core.ConfirmationReference;
-import no.digipost.signature.client.core.PAdESReference;
-import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.XAdESReference;
+import no.digipost.signature.client.core.*;
 import no.posten.signering.schema.v1.XMLDocument;
 import no.posten.signering.schema.v1.XMLSender;
 import no.posten.signering.schema.v1.XMLSigner;
@@ -29,9 +26,14 @@ import no.posten.signering.schema.v1.XMLPortalSignatureJobStatusChangeResponse;
 final class JaxbEntityMapping {
 
     static XMLPortalSignatureJobRequest toJaxb(PortalSignatureJob job, Sender sender) {
+        XMLSigners xmlSigners = new XMLSigners();
+        for (Signer signer : job.getSigners()) {
+            xmlSigners.getSigners().add(new XMLSigner().withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber()));
+        }
+
         return new XMLPortalSignatureJobRequest()
                 .withReference(job.getReference())
-                .withSigners(new XMLSigners().withSigner(new XMLSigner().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber())))
+                .withSigners(xmlSigners)
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
                 .withPrimaryDocument(new XMLDocument()
                         .withTitle(job.getDocument().getSubject())
