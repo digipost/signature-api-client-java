@@ -16,13 +16,13 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
-import no.digipost.signering.schema.v1.XMLError;
-import no.digipost.signering.schema.v1.XMLPortalSignatureJobRequest;
-import no.digipost.signering.schema.v1.XMLPortalSignatureJobStatusChangeResponse;
-import no.digipost.signering.schema.v1.XMLManifest;
-import no.digipost.signering.schema.v1.XMLDirectSignatureJobRequest;
-import no.digipost.signering.schema.v1.XMLDirectSignatureJobResponse;
-import no.digipost.signering.schema.v1.XMLDirectSignatureJobStatusResponse;
+import no.posten.signering.schema.v1.XMLError;
+import no.posten.signering.schema.v1.XMLPortalSignatureJobRequest;
+import no.posten.signering.schema.v1.XMLPortalSignatureJobStatusChangeResponse;
+import no.posten.signering.schema.v1.XMLManifest;
+import no.posten.signering.schema.v1.XMLDirectSignatureJobRequest;
+import no.posten.signering.schema.v1.XMLDirectSignatureJobResponse;
+import no.posten.signering.schema.v1.XMLDirectSignatureJobStatusResponse;
 import org.etsi.uri._01903.v1_3.QualifyingProperties;
 import org.etsi.uri._2918.v1_2.XAdESSignatures;
 import org.springframework.core.io.ClassPathResource;

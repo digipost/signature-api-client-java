@@ -15,7 +15,7 @@
  */
 package no.digipost.signature.client.core.exceptions;
 
-import no.digipost.signering.schema.v1.XMLError;
+import no.posten.signering.schema.v1.XMLError;
 
 import javax.ws.rs.core.Response.Status;
 

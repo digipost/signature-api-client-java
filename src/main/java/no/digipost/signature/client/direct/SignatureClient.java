@@ -21,9 +21,9 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
-import no.digipost.signering.schema.v1.XMLDirectSignatureJobRequest;
-import no.digipost.signering.schema.v1.XMLDirectSignatureJobResponse;
-import no.digipost.signering.schema.v1.XMLDirectSignatureJobStatusResponse;
+import no.posten.signering.schema.v1.XMLDirectSignatureJobRequest;
+import no.posten.signering.schema.v1.XMLDirectSignatureJobResponse;
+import no.posten.signering.schema.v1.XMLDirectSignatureJobStatusResponse;
 
 import java.io.InputStream;
 

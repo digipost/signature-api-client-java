@@ -20,12 +20,12 @@ import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
-import no.digipost.signering.schema.v1.XMLError;
-import no.digipost.signering.schema.v1.XMLPortalSignatureJobRequest;
-import no.digipost.signering.schema.v1.XMLPortalSignatureJobStatusChangeResponse;
-import no.digipost.signering.schema.v1.XMLDirectSignatureJobRequest;
-import no.digipost.signering.schema.v1.XMLDirectSignatureJobResponse;
-import no.digipost.signering.schema.v1.XMLDirectSignatureJobStatusResponse;
+import no.posten.signering.schema.v1.XMLError;
+import no.posten.signering.schema.v1.XMLPortalSignatureJobRequest;
+import no.posten.signering.schema.v1.XMLPortalSignatureJobStatusChangeResponse;
+import no.posten.signering.schema.v1.XMLDirectSignatureJobRequest;
+import no.posten.signering.schema.v1.XMLDirectSignatureJobResponse;
+import no.posten.signering.schema.v1.XMLDirectSignatureJobStatusResponse;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 
