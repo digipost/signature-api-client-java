@@ -16,12 +16,10 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.*;
-import no.posten.signering.schema.v1.XMLDocument;
-import no.posten.signering.schema.v1.XMLSender;
-import no.posten.signering.schema.v1.XMLSigner;
-import no.posten.signering.schema.v1.XMLSigners;
-import no.posten.signering.schema.v1.XMLPortalSignatureJobRequest;
-import no.posten.signering.schema.v1.XMLPortalSignatureJobStatusChangeResponse;
+import no.posten.signering.schema.v1.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 final class JaxbEntityMapping {
 
@@ -44,12 +42,21 @@ final class JaxbEntityMapping {
 
 
     static PortalSignatureJobStatusChanged fromJaxb(XMLPortalSignatureJobStatusChangeResponse statusChange) {
+        List<Signature> signatures = new ArrayList<>();
+        for (XMLSignature xmlSignature : statusChange.getSignatures().getSignatures()) {
+            signatures.add(new Signature(
+                    new Signer(xmlSignature.getPersonalIdentificationNumber()),
+                    SignatureStatus.fromXmlType(xmlSignature.getStatus()),
+                    XAdESReference.of(xmlSignature.getXadesUrl())
+            ));
+        }
+
+
         return new PortalSignatureJobStatusChanged(
                 statusChange.getSignatureJobId(), PortalSignatureJobStatus.fromXmlType(statusChange.getStatus()),
                 ConfirmationReference.of(statusChange.getConfirmationUrl()),
-                SignatureStatus.fromXmlType(statusChange.getSignatures().getSignature().getStatus()),
-                XAdESReference.of(statusChange.getSignatures().getSignature().getXadesUrl()),
-                PAdESReference.of(statusChange.getSignatures().getPadesUrl())
+                PAdESReference.of(statusChange.getSignatures().getPadesUrl()),
+                signatures
         );
     }
 }

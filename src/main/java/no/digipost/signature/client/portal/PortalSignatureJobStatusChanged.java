@@ -17,8 +17,9 @@ package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
-import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.Confirmable;
+
+import java.util.List;
 
 import static no.digipost.signature.client.portal.PortalSignatureJobStatus.NO_CHANGES;
 
@@ -38,7 +39,7 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
      * This instance indicates that there has been no status updates since the last poll request for
      * {@link PortalSignatureJobStatusChanged}. Its status is {@link PortalSignatureJobStatus#NO_CHANGES NO_CHANGES}.
      */
-    public static final PortalSignatureJobStatusChanged NO_UPDATED_STATUS = new PortalSignatureJobStatusChanged(null, NO_CHANGES, null, null, null, null) {
+    public static final PortalSignatureJobStatusChanged NO_UPDATED_STATUS = new PortalSignatureJobStatusChanged(null, NO_CHANGES, null, null, null) {
         @Override
         public long getSignatureJobId() {
             throw new IllegalStateException(
@@ -55,18 +56,16 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
 
     private final Long signatureJobId;
     private final PortalSignatureJobStatus status;
-    private final XAdESReference xAdESReference;
     private final PAdESReference pAdESReference;
     private final ConfirmationReference confirmationReference;
-    private final SignatureStatus signatureStatus;
+    private final List<Signature> signatures;
 
-    PortalSignatureJobStatusChanged(Long signatureJobId, PortalSignatureJobStatus status, ConfirmationReference confirmationReference, SignatureStatus signatureStatus, XAdESReference xAdESReference, PAdESReference pAdESReference) {
+    PortalSignatureJobStatusChanged(Long signatureJobId, PortalSignatureJobStatus status, ConfirmationReference confirmationReference, PAdESReference pAdESReference, List<Signature> signatures) {
         this.signatureJobId = signatureJobId;
         this.status = status;
-        this.xAdESReference = xAdESReference;
         this.pAdESReference = pAdESReference;
         this.confirmationReference = confirmationReference;
-        this.signatureStatus = signatureStatus;
+        this.signatures = signatures;
     }
 
     public long getSignatureJobId() {
@@ -81,16 +80,12 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
         return this.status == status;
     }
 
-    public XAdESReference getxAdESUrl() {
-        return xAdESReference;
-    }
-
     public PAdESReference getpAdESUrl() {
         return pAdESReference;
     }
 
-    public SignatureStatus getSignatureStatus() {
-        return signatureStatus;
+    public List<Signature> getSignatures() {
+        return signatures;
     }
 
     @Override
