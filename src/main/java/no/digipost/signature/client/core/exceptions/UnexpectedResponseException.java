@@ -21,14 +21,20 @@ import javax.ws.rs.core.Response.Status;
 
 public class UnexpectedResponseException extends SignatureException {
 
-    private XMLError error;
-    private Status actualStatus;
+    private final XMLError error;
+    private final Status actualStatus;
 
-    public UnexpectedResponseException(XMLError error, Status actual, Status... expected) {
-        super("expected " + prettyprintExpectedStatuses(expected) +
-              ", but got " + actual.getStatusCode() + " " + actual.getReasonPhrase());
+    public UnexpectedResponseException(XMLError error, Status actual, Status ... expected) {
+        this(error, null, actual, expected);
+    }
+
+    public UnexpectedResponseException(XMLError error, Throwable cause, Status actual, Status ... expected) {
+        super("Expected " + prettyprintExpectedStatuses(expected) +
+              ", but got " + actual.getStatusCode() + " " + actual.getReasonPhrase() +
+              (cause != null ? " - " + cause.getClass().getSimpleName() + ": '" + cause.getMessage() + "'.": ""),
+              cause);
         this.error = error;
-        actualStatus = actual;
+        this.actualStatus = actual;
     }
 
     public Status getActualStatus() {
@@ -36,15 +42,15 @@ public class UnexpectedResponseException extends SignatureException {
     }
 
     public String getErrorCode() {
-        return error.getErrorCode();
+        return error != null ? error.getErrorCode() : null;
     }
 
     public String getErrorMessage() {
-        return error.getErrorMessage();
+        return error != null ? error.getErrorMessage() : null;
     }
 
     public String getErrorType() {
-        return error.getErrorType();
+        return error != null ? error.getErrorType() : null;
     }
 
     private static String prettyprintExpectedStatuses(Status... statuses) {

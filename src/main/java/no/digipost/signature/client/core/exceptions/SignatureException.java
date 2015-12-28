@@ -25,7 +25,7 @@ public class SignatureException extends RuntimeException {
         super(message);
     }
 
-    public SignatureException(final String message, final Exception e) {
-        super(message, e);
+    public SignatureException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 }
