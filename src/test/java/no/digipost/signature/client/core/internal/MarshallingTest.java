@@ -15,7 +15,7 @@
  */
 package no.digipost.signature.client.core.internal;
 
-import no.posten.signering.schema.v1.*;
+import no.digipost.signature.client.api.xml.*;
 import org.junit.Test;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;

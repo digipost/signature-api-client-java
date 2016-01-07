@@ -20,7 +20,7 @@ import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
-import no.posten.signering.schema.v1.*;
+import no.digipost.signature.client.api.xml.*;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.slf4j.Logger;

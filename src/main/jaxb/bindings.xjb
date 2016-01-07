@@ -12,6 +12,7 @@
 
     <bindings schemaLocation="../../../target/generated-resources/xsd/direct-and-portal.xsd" node="/xs:schema">
         <schemaBindings>
+            <package name="no.digipost.signature.client.api.xml"></package>
             <nameXmlTransform>
                 <typeName prefix="XML" />
                 <anonymousTypeName prefix="XML" />
@@ -22,17 +23,17 @@
 
     <bindings schemaLocation="../../../target/generated-resources/xsd/thirdparty/ts_102918v010201.xsd" node="/xs:schema">
         <schemaBindings>
-            <package name="no.digipost.signature.xsd.thirdparty.asice" />
+            <package name="no.digipost.signature.client.api.xml.thirdparty.asice" />
         </schemaBindings>
     </bindings>
     <bindings schemaLocation="../../../target/generated-resources/xsd/thirdparty/XAdES.xsd" node="/xs:schema">
         <schemaBindings>
-            <package name="no.digipost.signature.xsd.thirdparty.xades" />
+            <package name="no.digipost.signature.client.api.xml.thirdparty.xades" />
         </schemaBindings>
     </bindings>
     <bindings schemaLocation="../../../target/generated-resources/xsd/thirdparty/xmldsig-core-schema.xsd" node="/xs:schema">
         <schemaBindings>
-            <package name="no.digipost.signature.xsd.thirdparty.xmldsig" />
+            <package name="no.digipost.signature.client.api.xml.thirdparty.xmldsig" />
         </schemaBindings>
     </bindings>
 

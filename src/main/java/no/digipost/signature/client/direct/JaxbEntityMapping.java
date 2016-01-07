@@ -19,13 +19,13 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
-import no.posten.signering.schema.v1.XMLDocument;
-import no.posten.signering.schema.v1.XMLSender;
-import no.posten.signering.schema.v1.XMLSigner;
-import no.posten.signering.schema.v1.XMLDirectSignatureJobRequest;
-import no.posten.signering.schema.v1.XMLDirectSignatureJobResponse;
-import no.posten.signering.schema.v1.XMLDirectSignatureJobStatusResponse;
-import no.posten.signering.schema.v1.XMLExitUrls;
+import no.digipost.signature.client.api.xml.XMLDocument;
+import no.digipost.signature.client.api.xml.XMLSender;
+import no.digipost.signature.client.api.xml.XMLSigner;
+import no.digipost.signature.client.api.xml.XMLDirectSignatureJobRequest;
+import no.digipost.signature.client.api.xml.XMLDirectSignatureJobResponse;
+import no.digipost.signature.client.api.xml.XMLDirectSignatureJobStatusResponse;
+import no.digipost.signature.client.api.xml.XMLExitUrls;
 
 final class JaxbEntityMapping {
 

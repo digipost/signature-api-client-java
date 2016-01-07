@@ -16,7 +16,7 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.internal.Confirmable;
-import no.posten.signering.schema.v1.XMLPortalSignatureJobStatus;
+import no.digipost.signature.client.api.xml.XMLPortalSignatureJobStatus;
 
 public enum PortalSignatureJobStatus {
 

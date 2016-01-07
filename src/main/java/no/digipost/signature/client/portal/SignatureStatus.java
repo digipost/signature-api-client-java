@@ -15,7 +15,7 @@
  */
 package no.digipost.signature.client.portal;
 
-import no.posten.signering.schema.v1.XMLSignatureStatus;
+import no.digipost.signature.client.api.xml.XMLSignatureStatus;
 
 public enum SignatureStatus {
 

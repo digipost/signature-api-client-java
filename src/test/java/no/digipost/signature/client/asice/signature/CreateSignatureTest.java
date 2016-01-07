@@ -19,17 +19,17 @@ import no.digipost.signature.client.TestKonfigurasjon;
 import no.digipost.signature.client.asice.ASiCEAttachable;
 import no.digipost.signature.client.core.internal.KeyStoreConfig;
 import no.digipost.signature.client.core.internal.Marshalling;
-import no.digipost.signature.xsd.thirdparty.asice.XAdESSignatures;
-import no.digipost.signature.xsd.thirdparty.xades.*;
-import no.digipost.signature.xsd.thirdparty.xmldsig.Object;
-import no.digipost.signature.xsd.thirdparty.xmldsig.Reference;
-import no.digipost.signature.xsd.thirdparty.xmldsig.SignedInfo;
-import no.digipost.signature.xsd.thirdparty.xmldsig.X509IssuerSerialType;
+import no.digipost.signature.client.api.xml.thirdparty.asice.XAdESSignatures;
+import no.digipost.signature.client.api.xml.thirdparty.xades.*;
+import no.digipost.signature.client.api.xml.thirdparty.xmldsig.Reference;
+import no.digipost.signature.client.api.xml.thirdparty.xmldsig.SignedInfo;
+import no.digipost.signature.client.api.xml.thirdparty.xmldsig.X509IssuerSerialType;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.xml.transform.stream.StreamSource;
+
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.util.List;
@@ -70,7 +70,7 @@ public class CreateSignatureTest {
         XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getBytes())));
 
         assertThat(xAdESSignatures.getSignatures(), hasSize(1));
-        no.digipost.signature.xsd.thirdparty.xmldsig.Signature dSignature = xAdESSignatures.getSignatures().get(0);
+        no.digipost.signature.client.api.xml.thirdparty.xmldsig.Signature dSignature = xAdESSignatures.getSignatures().get(0);
         verify_signed_info(dSignature.getSignedInfo());
         assertThat(dSignature.getSignatureValue(), is(notNullValue()));
         assertThat(dSignature.getKeyInfo(), is(notNullValue()));
@@ -81,7 +81,7 @@ public class CreateSignatureTest {
         Signature signature = createSignature.createSignature(files, noekkelpar);
 
         XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getBytes())));
-        no.digipost.signature.xsd.thirdparty.xmldsig.Object object = xAdESSignatures.getSignatures().get(0).getObjects().get(0);
+        no.digipost.signature.client.api.xml.thirdparty.xmldsig.Object object = xAdESSignatures.getSignatures().get(0).getObjects().get(0);
 
         QualifyingProperties xadesProperties = (QualifyingProperties) object.getContent().get(0);
         SigningCertificate signingCertificate = xadesProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificate();

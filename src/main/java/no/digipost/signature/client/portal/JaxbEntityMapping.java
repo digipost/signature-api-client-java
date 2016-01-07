@@ -16,7 +16,7 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.*;
-import no.posten.signering.schema.v1.*;
+import no.digipost.signature.client.api.xml.*;
 
 import java.util.ArrayList;
 import java.util.List;

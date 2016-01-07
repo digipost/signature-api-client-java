@@ -283,7 +283,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <excludePackageNames>org.w3._2000._09.xmldsig_:org.etsi.*:no.digipost.signering.schema.*</excludePackageNames>
+                    <excludePackageNames>no.digipost.signature.client.api.xml.*</excludePackageNames>
                 </configuration>
             </plugin>
             <plugin>
