@@ -16,15 +16,9 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
-import no.posten.signering.schema.v1.XMLError;
-import no.posten.signering.schema.v1.XMLPortalSignatureJobRequest;
-import no.posten.signering.schema.v1.XMLPortalSignatureJobStatusChangeResponse;
-import no.posten.signering.schema.v1.XMLManifest;
-import no.posten.signering.schema.v1.XMLDirectSignatureJobRequest;
-import no.posten.signering.schema.v1.XMLDirectSignatureJobResponse;
-import no.posten.signering.schema.v1.XMLDirectSignatureJobStatusResponse;
-import no.digipost.signature.xsd.thirdparty.QualifyingProperties;
-import no.digipost.signature.xsd.thirdparty.XAdESSignatures;
+import no.digipost.signature.xsd.thirdparty.asice.XAdESSignatures;
+import no.digipost.signature.xsd.thirdparty.xades.QualifyingProperties;
+import no.posten.signering.schema.v1.*;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;

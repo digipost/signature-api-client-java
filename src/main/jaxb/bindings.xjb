@@ -22,17 +22,17 @@
 
     <bindings schemaLocation="../../../target/generated-resources/xsd/thirdparty/ts_102918v010201.xsd" node="/xs:schema">
         <schemaBindings>
-            <package name="no.digipost.signature.xsd.thirdparty" />
+            <package name="no.digipost.signature.xsd.thirdparty.asice" />
         </schemaBindings>
     </bindings>
     <bindings schemaLocation="../../../target/generated-resources/xsd/thirdparty/XAdES.xsd" node="/xs:schema">
         <schemaBindings>
-            <package name="no.digipost.signature.xsd.thirdparty" />
+            <package name="no.digipost.signature.xsd.thirdparty.xades" />
         </schemaBindings>
     </bindings>
     <bindings schemaLocation="../../../target/generated-resources/xsd/thirdparty/xmldsig-core-schema.xsd" node="/xs:schema">
         <schemaBindings>
-            <package name="no.digipost.signature.xsd.thirdparty" />
+            <package name="no.digipost.signature.xsd.thirdparty.xmldsig" />
         </schemaBindings>
     </bindings>
 
