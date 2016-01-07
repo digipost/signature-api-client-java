@@ -18,10 +18,8 @@ package no.digipost.signature.client.asice.signature;
 import no.digipost.signature.client.asice.ASiCEAttachable;
 import no.digipost.signature.client.core.exceptions.CertificateException;
 import no.digipost.signature.client.core.exceptions.XmlConfigurationException;
-import org.etsi.uri._01903.v1_3.*;
+import no.digipost.signature.xsd.thirdparty.*;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-import org.w3._2000._09.xmldsig_.DigestMethod;
-import org.w3._2000._09.xmldsig_.X509IssuerSerialType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
