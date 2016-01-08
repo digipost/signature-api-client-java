@@ -15,7 +15,7 @@
  */
 package no.digipost.signature.client.direct;
 
-import no.digipost.signature.client.api.xml.XMLDirectSignatureJobStatus;
+import no.digipost.signature.api.xml.XMLDirectSignatureJobStatus;
 
 public enum SignatureJobStatus {
 

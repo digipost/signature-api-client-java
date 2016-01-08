@@ -15,7 +15,7 @@
  */
 package no.digipost.signature.client.core.exceptions;
 
-import no.digipost.signature.client.api.xml.XMLError;
+import no.digipost.signature.api.xml.XMLError;
 
 import javax.ws.rs.core.Response.Status;
 

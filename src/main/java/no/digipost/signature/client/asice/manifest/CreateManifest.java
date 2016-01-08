@@ -21,7 +21,7 @@ import no.digipost.signature.client.core.Signer;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.XmlValidationException;
 import no.digipost.signature.client.core.internal.Marshalling;
-import no.digipost.signature.client.api.xml.*;
+import no.digipost.signature.api.xml.*;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.xml.sax.SAXParseException;

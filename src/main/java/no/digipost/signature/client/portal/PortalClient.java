@@ -20,7 +20,7 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
-import no.digipost.signature.client.api.xml.XMLPortalSignatureJobStatusChangeResponse;
+import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 
 import java.io.InputStream;
 

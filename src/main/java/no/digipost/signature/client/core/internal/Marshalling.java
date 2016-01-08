@@ -16,9 +16,9 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
-import no.digipost.signature.client.api.xml.thirdparty.asice.XAdESSignatures;
-import no.digipost.signature.client.api.xml.thirdparty.xades.QualifyingProperties;
-import no.digipost.signature.client.api.xml.*;
+import no.digipost.signature.api.xml.thirdparty.asice.XAdESSignatures;
+import no.digipost.signature.api.xml.thirdparty.xades.QualifyingProperties;
+import no.digipost.signature.api.xml.*;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
