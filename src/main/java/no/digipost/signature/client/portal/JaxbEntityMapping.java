@@ -15,8 +15,8 @@
  */
 package no.digipost.signature.client.portal;
 
-import no.digipost.signature.client.core.*;
 import no.digipost.signature.api.xml.*;
+import no.digipost.signature.client.core.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,7 @@ final class JaxbEntityMapping {
                 .withReference(job.getReference())
                 .withSigners(xmlSigners)
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
-                .withPrimaryDocument(new XMLDocument()
+                .withDocument(new XMLDocument()
                         .withTitle(job.getDocument().getSubject())
                         .withDescription(job.getDocument().getMessage())
                         .withHref(job.getDocument().getFileName())

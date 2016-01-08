@@ -15,18 +15,19 @@
  */
 package no.digipost.signature.client.asice.manifest;
 
+import no.digipost.signature.api.xml.*;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.Signer;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.XmlValidationException;
 import no.digipost.signature.client.core.internal.Marshalling;
-import no.digipost.signature.api.xml.*;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.transform.stream.StreamResult;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -44,7 +45,7 @@ public class CreateManifest {
         XMLManifest manifest = new XMLManifest()
                 .withSigners(xmlSigners)
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
-                .withPrimaryDocument(new XMLDocument()
+                .withDocument(new XMLDocument()
                         .withTitle(document.getSubject())
                         .withDescription(document.getMessage())
                         .withHref(document.getFileName())

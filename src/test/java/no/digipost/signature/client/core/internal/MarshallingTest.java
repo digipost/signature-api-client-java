@@ -21,6 +21,7 @@ import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.xml.transform.stream.StreamResult;
+
 import java.io.ByteArrayOutputStream;
 
 import static org.hamcrest.Matchers.allOf;
@@ -78,7 +79,7 @@ public class MarshallingTest {
 
         try {
             marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));
-            fail("Should have failed with XSD-validation error due to href-attribute on primary document element being empty.");
+            fail("Should have failed with XSD-validation error due to href-attribute on document element being empty.");
         } catch (MarshallingFailureException e) {
             assertThat(e.getMessage(), allOf(containsString("href"), containsString("must appear")));
         }

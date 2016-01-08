@@ -15,17 +15,11 @@
  */
 package no.digipost.signature.client.direct;
 
+import no.digipost.signature.api.xml.*;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
-import no.digipost.signature.api.xml.XMLDocument;
-import no.digipost.signature.api.xml.XMLSender;
-import no.digipost.signature.api.xml.XMLSigner;
-import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
-import no.digipost.signature.api.xml.XMLDirectSignatureJobResponse;
-import no.digipost.signature.api.xml.XMLDirectSignatureJobStatusResponse;
-import no.digipost.signature.api.xml.XMLExitUrls;
 
 final class JaxbEntityMapping {
 
@@ -34,7 +28,7 @@ final class JaxbEntityMapping {
                 .withReference(signatureJob.getReference())
                 .withSigner(new XMLSigner().withPersonalIdentificationNumber(signatureJob.getSigner().getPersonalIdentificationNumber()))
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
-                .withPrimaryDocument(new XMLDocument()
+                .withDocument(new XMLDocument()
                         .withTitle(signatureJob.getDocument().getSubject())
                         .withDescription(signatureJob.getDocument().getMessage())
                         .withHref(signatureJob.getDocument().getFileName())
