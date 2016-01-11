@@ -43,7 +43,7 @@ public class MarshallingTest {
                 .withCancellationUrl("http://localhost/canceled")
                 .withErrorUrl("http://localhost/failed");
 
-        XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", signer, sender, document, exitUrls);
+        XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", signer, sender, exitUrls);
         XMLManifest manifest = new XMLManifest(new XMLSigners().withSigners(signer), sender, document);
 
         marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
@@ -54,13 +54,12 @@ public class MarshallingTest {
     public void invalid_signature_job_request_causes_exceptions() {
         XMLSender sender = new XMLSender().withOrganization("123456789");
         XMLSigner signer = new XMLSigner().withPersonalIdentificationNumber("12345678910");
-        XMLDocument document = new XMLDocument("Subject", "Message", "document.pdf", "application/pdf");
         XMLExitUrls exitUrls = new XMLExitUrls()
                 .withCompletionUrl(null)
                 .withCancellationUrl("http://localhost/canceled")
                 .withErrorUrl("http://localhost/failed");
 
-        XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", signer, sender, document, exitUrls);
+        XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", signer, sender, exitUrls);
 
         try {
             marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
