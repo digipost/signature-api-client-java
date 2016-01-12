@@ -15,7 +15,10 @@
  */
 package no.digipost.signature.client.portal;
 
+import no.digipost.signature.api.xml.XMLPortalSignatureJobRequest;
+import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
 import no.digipost.signature.client.ClientConfiguration;
+import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
@@ -25,6 +28,7 @@ import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 import java.io.InputStream;
 
 import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
+import static no.digipost.signature.client.portal.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
 import static no.digipost.signature.client.portal.PortalSignatureJobStatusChanged.NO_UPDATED_STATUS;
 
@@ -39,8 +43,12 @@ public class PortalClient {
     }
 
 
-    public void create(PortalSignatureJob job) {
-        client.sendPortalSignatureJobRequest(toJaxb(job, clientConfiguration.getSender()), createASiCE(job.getDocument(), job.getSigners(), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig()));
+    public PortalSignatureJobResponse create(PortalSignatureJob job) {
+        DocumentBundle documentBundle = createASiCE(job.getDocument(), job.getSigners(), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig());
+        XMLPortalSignatureJobRequest signatureJobRequest = toJaxb(job, clientConfiguration.getSender());
+
+        XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse = client.sendPortalSignatureJobRequest(signatureJobRequest, documentBundle);
+        return fromJaxb(xmlPortalSignatureJobResponse);
     }
 
 

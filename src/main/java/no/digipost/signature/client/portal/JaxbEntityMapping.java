@@ -35,6 +35,10 @@ final class JaxbEntityMapping {
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()));
     }
 
+    static PortalSignatureJobResponse fromJaxb(XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse) {
+        return new PortalSignatureJobResponse(xmlPortalSignatureJobResponse.getSignatureJobId());
+    }
+
 
     static PortalSignatureJobStatusChanged fromJaxb(XMLPortalSignatureJobStatusChangeResponse statusChange) {
         List<Signature> signatures = new ArrayList<>();

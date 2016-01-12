@@ -15,12 +15,12 @@
  */
 package no.digipost.signature.client.core.internal;
 
+import no.digipost.signature.api.xml.*;
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
-import no.digipost.signature.api.xml.*;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.slf4j.Logger;
@@ -31,10 +31,11 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
@@ -63,50 +64,16 @@ public class ClientHelper {
         BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
-        try (MultiPart multiPart = new MultiPart()) {
-            multiPart
-                    .bodyPart(signatureJobBodyPart)
-                    .bodyPart(documentBundleBodyPart);
-
-            Response response = target.path(SIGNATURE_JOBS_PATH)
-                    .request()
-                    .header(CONTENT_TYPE, multiPart.getMediaType())
-                    .accept(APPLICATION_XML_TYPE)
-                    .post(Entity.entity(multiPart, multiPart.getMediaType()), Response.class);
-            Status status = Status.fromStatusCode(response.getStatus());
-            if (status == OK) {
-                return response.readEntity(XMLDirectSignatureJobResponse.class);
-            } else {
-                XMLError error = response.readEntity(XMLError.class);
-                throw new UnexpectedResponseException(error, status, OK);
-            }
-        } catch (IOException e) {
-            throw new RuntimeIOException(e);
-        }
+        return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
+                .postAsMultiPart(SIGNATURE_JOBS_PATH, XMLDirectSignatureJobResponse.class);
     }
 
-    public void sendPortalSignatureJobRequest(final XMLPortalSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
+    public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(final XMLPortalSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
         BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
-        try (MultiPart multiPart = new MultiPart()) {
-            multiPart
-                .bodyPart(signatureJobBodyPart)
-                .bodyPart(documentBundleBodyPart);
-
-            Response response = target.path(PORTAL_SIGNATURE_JOBS_PATH)
-                    .request()
-                    .header(CONTENT_TYPE, multiPart.getMediaType())
-                    .accept(APPLICATION_XML_TYPE)
-                    .post(Entity.entity(multiPart, multiPart.getMediaType()));
-            Status status = fromStatusCode(response.getStatus());
-            if (status != OK) {
-                XMLError error = response.readEntity(XMLError.class);
-                throw new UnexpectedResponseException(error, status, OK);
-            }
-        } catch (IOException e) {
-            throw new RuntimeIOException(e);
-        }
+        return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
+                .postAsMultiPart(PORTAL_SIGNATURE_JOBS_PATH, XMLPortalSignatureJobResponse.class);
     }
 
     public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(String statusUrl) {
@@ -162,6 +129,38 @@ public class ClientHelper {
             }
         } else {
             LOG.info("Does not need to send confirmation for '{}'", confirmable);
+        }
+    }
+
+    private class UsingBodyParts {
+
+        private final List<BodyPart> parts;
+
+        UsingBodyParts(BodyPart... parts) {
+            this.parts = Arrays.asList(parts);
+        }
+
+        <T> T postAsMultiPart(String path, Class<T> responseType) {
+            try (MultiPart multiPart = new MultiPart()) {
+                for (BodyPart bodyPart : parts) {
+                    multiPart.bodyPart(bodyPart);
+                }
+
+                Response response = target.path(path)
+                        .request()
+                        .header(CONTENT_TYPE, multiPart.getMediaType())
+                        .accept(APPLICATION_XML_TYPE)
+                        .post(Entity.entity(multiPart, multiPart.getMediaType()));
+                Status status = fromStatusCode(response.getStatus());
+                if (status == OK) {
+                    return response.readEntity(responseType);
+                } else {
+                    XMLError error = response.readEntity(XMLError.class);
+                    throw new UnexpectedResponseException(error, status, OK);
+                }
+            } catch (IOException e) {
+                throw new RuntimeIOException(e);
+            }
         }
     }
 }
