@@ -18,6 +18,8 @@ package no.digipost.signature.client.direct;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Signer;
 
+import java.util.UUID;
+
 public class SignatureJob {
 
     private String reference;
@@ -70,6 +72,10 @@ public class SignatureJob {
 
         public Builder(Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
             target = new SignatureJob(signer, document, completionUrl, cancellationUrl, errorUrl);
+        }
+
+        public Builder withReference(UUID uuid) {
+            return withReference(uuid.toString());
         }
 
         public Builder withReference(String reference) {
