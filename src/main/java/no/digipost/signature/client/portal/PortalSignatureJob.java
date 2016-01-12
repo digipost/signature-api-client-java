@@ -18,9 +18,11 @@ package no.digipost.signature.client.portal;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Signer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.unmodifiableList;
 
 
 public class PortalSignatureJob {
@@ -30,7 +32,7 @@ public class PortalSignatureJob {
     private Document document;
 
     private PortalSignatureJob(List<Signer> signers, Document document) {
-        this.signers = signers;
+        this.signers = unmodifiableList(new ArrayList<>(signers));
         this.document = document;
     }
 
@@ -39,12 +41,14 @@ public class PortalSignatureJob {
     }
 
     public List<Signer> getSigners() {
-        return Collections.unmodifiableList(signers);
+        return signers;
     }
 
     public Document getDocument() {
         return document;
     }
+
+
 
     public static Builder builder(Document document, Signer... signers) {
         return builder(document, Arrays.asList(signers));
