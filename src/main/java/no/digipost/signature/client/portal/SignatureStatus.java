@@ -20,6 +20,7 @@ import no.digipost.signature.api.xml.XMLSignatureStatus;
 public enum SignatureStatus {
 
     WAITING,
+    REJECTED,
     SIGNED;
 
     public static SignatureStatus fromXmlType(XMLSignatureStatus xmlSignatureStatus) {
@@ -28,6 +29,8 @@ public enum SignatureStatus {
                 return WAITING;
             case SIGNED:
                 return SIGNED;
+            case REJECTED:
+                return REJECTED;
             default:
                 throw new IllegalArgumentException("Unexpected status: " + xmlSignatureStatus);
         }
