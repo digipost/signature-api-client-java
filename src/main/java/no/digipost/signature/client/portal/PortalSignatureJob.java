@@ -18,10 +18,7 @@ package no.digipost.signature.client.portal;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Signer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static java.util.Collections.unmodifiableList;
 
@@ -31,6 +28,8 @@ public class PortalSignatureJob {
     private String reference;
     private List<Signer> signers;
     private Document document;
+    private Date distributionTime;
+
 
     private PortalSignatureJob(List<Signer> signers, Document document) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
@@ -49,6 +48,9 @@ public class PortalSignatureJob {
         return document;
     }
 
+    public Date getDistributionTime() {
+        return distributionTime;
+    }
 
 
     public static Builder builder(Document document, Signer... signers) {
@@ -77,11 +79,17 @@ public class PortalSignatureJob {
             return this;
         }
 
+        public Builder withDistributionTime(Date distributionTime) {
+            target.distributionTime = distributionTime;
+            return this;
+        }
+
         public PortalSignatureJob build() {
             if (built) throw new IllegalStateException("Can't build twice");
             built = true;
             return target;
         }
+
     }
 
 }

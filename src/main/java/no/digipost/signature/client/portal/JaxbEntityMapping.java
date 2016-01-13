@@ -32,6 +32,7 @@ final class JaxbEntityMapping {
         return new XMLPortalSignatureJobRequest()
                 .withReference(job.getReference())
                 .withSigners(xmlSigners)
+                .withDistributionTime(job.getDistributionTime())
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()));
     }
 
