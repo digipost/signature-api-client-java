@@ -23,6 +23,7 @@ import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import javax.xml.transform.stream.StreamResult;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Date;
 
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
@@ -48,6 +49,10 @@ public class MarshallingTest {
 
         marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
         marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));
+
+        XMLPortalSignatureJobRequest portalJob = new XMLPortalSignatureJobRequest("123abc", new XMLSigners().withSigners(signer), sender, null);
+        marshaller.marshal(portalJob, new StreamResult(new ByteArrayOutputStream()));
+        marshaller.marshal(portalJob.withDistributionTime(new Date()), new StreamResult(new ByteArrayOutputStream()));
     }
 
     @Test
