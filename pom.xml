@@ -156,9 +156,6 @@
                     <version>1.0.6.1</version>
                     <configuration>
                         <noticeTemplate>${project.basedir}/src/main/notice/NOTICE.template</noticeTemplate>
-                        <licenseMapping>
-                            <param>${project.basedir}/src/main/notice/license-mappings.xml</param>
-                        </licenseMapping>
                     </configuration>
                 </plugin>
                 <plugin>
