@@ -13,9 +13,21 @@ Dette klientbiblioteket og APIene er pr. i dag "work in progress", og det vil fo
 
 *Mer informasjon vil komme senere, inntil da kan du se på dokumentasjonen i klassene `SignatureClient` og `PortalClient`.*
 
+### Maven-avhengighet
+
+Klientbiblioteket er releaset til [Maven Central](https://repo1.maven.org/maven2/no/digipost/signature/signature-api-client-java/). For å avhenge av biblioteket, legg til følgende i `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>no.digipost.signature</groupId>
+    <artifactId>signature-api-client-java</artifactId>
+    <version></version>
+</dependency>
+```
+
 ### Hvordan få ting til å bygge og kjøre tester
 
-Legg inn filen `src/test/java/no.digipost.signering.client/TestKonfigurasjon.java` og fyll med følgende innhold:
+Legg inn filen `src/test/java/no/digipost/signering/client/TestKonfigurasjon.java` og fyll med følgende innhold:
 
 ```java
 package no.digipost.signering.client;
