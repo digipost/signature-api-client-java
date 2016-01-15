@@ -23,7 +23,7 @@ import java.util.List;
 
 final class JaxbEntityMapping {
 
-    static XMLPortalSignatureJobRequest toJaxb(PortalSignatureJob job, Sender sender) {
+    static XMLPortalSignatureJobRequest toJaxb(PortalJob job, Sender sender) {
         XMLSigners xmlSigners = new XMLSigners();
         for (Signer signer : job.getSigners()) {
             xmlSigners.getSigners().add(new XMLSigner().withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber()));
@@ -36,12 +36,12 @@ final class JaxbEntityMapping {
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()));
     }
 
-    static PortalSignatureJobResponse fromJaxb(XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse) {
-        return new PortalSignatureJobResponse(xmlPortalSignatureJobResponse.getSignatureJobId());
+    static PortalJobResponse fromJaxb(XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse) {
+        return new PortalJobResponse(xmlPortalSignatureJobResponse.getSignatureJobId());
     }
 
 
-    static PortalSignatureJobStatusChanged fromJaxb(XMLPortalSignatureJobStatusChangeResponse statusChange) {
+    static PortalJobStatusChanged fromJaxb(XMLPortalSignatureJobStatusChangeResponse statusChange) {
         List<Signature> signatures = new ArrayList<>();
         for (XMLSignature xmlSignature : statusChange.getSignatures().getSignatures()) {
             signatures.add(new Signature(
@@ -52,8 +52,8 @@ final class JaxbEntityMapping {
         }
 
 
-        return new PortalSignatureJobStatusChanged(
-                statusChange.getSignatureJobId(), PortalSignatureJobStatus.fromXmlType(statusChange.getStatus()),
+        return new PortalJobStatusChanged(
+                statusChange.getSignatureJobId(), PortalJobStatus.fromXmlType(statusChange.getStatus()),
                 ConfirmationReference.of(statusChange.getConfirmationUrl()),
                 PAdESReference.of(statusChange.getSignatures().getPadesUrl()),
                 signatures

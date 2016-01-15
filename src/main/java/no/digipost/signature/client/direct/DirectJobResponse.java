@@ -13,17 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.portal;
+package no.digipost.signature.client.direct;
 
-public class PortalSignatureJobResponse {
+public class DirectJobResponse {
+    private long signatureJobId;
+    private String redirectUrl;
+    private StatusReference statusUrl;
 
-    private final long signatureJobId;
-
-    public PortalSignatureJobResponse(long signatureJobId) {
+    public DirectJobResponse(long signatureJobId, String redirectUrl, String statusUrl) {
         this.signatureJobId = signatureJobId;
+        this.redirectUrl = redirectUrl;
+        this.statusUrl = new StatusReference(statusUrl);
     }
 
     public long getSignatureJobId() {
         return signatureJobId;
+    }
+
+    public String getRedirectUrl() {
+        return redirectUrl;
+    }
+
+    public StatusReference getStatusUrl() {
+        return statusUrl;
     }
 }

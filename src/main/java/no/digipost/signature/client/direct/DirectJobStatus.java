@@ -17,7 +17,7 @@ package no.digipost.signature.client.direct;
 
 import no.digipost.signature.api.xml.XMLDirectSignatureJobStatus;
 
-public enum SignatureJobStatus {
+public enum DirectJobStatus {
 
     /**
      * The signature job is created, and the receiver is currently doing the
@@ -35,7 +35,7 @@ public enum SignatureJobStatus {
      */
     CANCELLED;
 
-    public static SignatureJobStatus fromXmlType(XMLDirectSignatureJobStatus xmlJobStatus) {
+    public static DirectJobStatus fromXmlType(XMLDirectSignatureJobStatus xmlJobStatus) {
         switch (xmlJobStatus) {
             case CREATED:
                 return CREATED;

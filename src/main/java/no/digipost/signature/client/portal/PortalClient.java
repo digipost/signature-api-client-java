@@ -30,7 +30,7 @@ import java.io.InputStream;
 import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
-import static no.digipost.signature.client.portal.PortalSignatureJobStatusChanged.NO_UPDATED_STATUS;
+import static no.digipost.signature.client.portal.PortalJobStatusChanged.NO_UPDATED_STATUS;
 
 public class PortalClient {
 
@@ -43,7 +43,7 @@ public class PortalClient {
     }
 
 
-    public PortalSignatureJobResponse create(PortalSignatureJob job) {
+    public PortalJobResponse create(PortalJob job) {
         DocumentBundle documentBundle = createASiCE(job.getDocument(), job.getSigners(), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig());
         XMLPortalSignatureJobRequest signatureJobRequest = toJaxb(job, clientConfiguration.getSender());
 
@@ -53,18 +53,18 @@ public class PortalClient {
 
 
     /**
-     * If there is a job with an updated {@link PortalSignatureJobStatus status}, the returned object contains
+     * If there is a job with an updated {@link PortalJobStatus status}, the returned object contains
      * necessary information to act on the status change. The returned object can be queried using
-     * {@link PortalSignatureJobStatusChanged#is(PortalSignatureJobStatus) .is(}{@link PortalSignatureJobStatus#NO_CHANGES NO_CHANGES)}
+     * {@link PortalJobStatusChanged#is(PortalJobStatus) .is(}{@link PortalJobStatus#NO_CHANGES NO_CHANGES)}
      * to determine if there has been a status change. When processing of the status change is complete, (e.g. retrieving
      * {@link #getPAdES(PAdESReference) PAdES} and/or {@link #getXAdES(XAdESReference) XAdES} documents for a
-     * {@link PortalSignatureJobStatus#COMPLETED completed} job where all signers have {@link SignatureStatus signed} their documents),
-     * the returned status must be {@link #confirm(PortalSignatureJobStatusChanged) confirmed}.
+     * {@link PortalJobStatus#COMPLETED completed} job where all signers have {@link SignatureStatus signed} their documents),
+     * the returned status must be {@link #confirm(PortalJobStatusChanged) confirmed}.
      *
-     * @return the changed status for a job, or {@link PortalSignatureJobStatusChanged#NO_UPDATED_STATUS NO_UPDATED_STATUS},
+     * @return the changed status for a job, or {@link PortalJobStatusChanged#NO_UPDATED_STATUS NO_UPDATED_STATUS},
      *         never {@code null}.
      */
-    public PortalSignatureJobStatusChanged getStatusChange() {
+    public PortalJobStatusChanged getStatusChange() {
         XMLPortalSignatureJobStatusChangeResponse statusChange = client.getStatusChange();
         return statusChange == null ? NO_UPDATED_STATUS : JaxbEntityMapping.fromJaxb(statusChange);
     }
@@ -77,7 +77,7 @@ public class PortalClient {
      *
      * @param receivedStatusChanged the updated status retrieved from {@link #getStatusChange()}.
      */
-    public void confirm(PortalSignatureJobStatusChanged receivedStatusChanged) {
+    public void confirm(PortalJobStatusChanged receivedStatusChanged) {
         client.confirm(receivedStatusChanged);
     }
 

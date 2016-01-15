@@ -21,10 +21,10 @@ import no.digipost.signature.client.core.internal.Confirmable;
 
 import java.util.List;
 
-import static no.digipost.signature.client.portal.PortalSignatureJobStatus.NO_CHANGES;
+import static no.digipost.signature.client.portal.PortalJobStatus.NO_CHANGES;
 
 /**
- * Indicates a job which has got a new {@link PortalSignatureJobStatus status}
+ * Indicates a job which has got a new {@link PortalJobStatus status}
  * since the last time its status was queried.
  *
  * <h3>Confirmation</h3>
@@ -32,35 +32,35 @@ import static no.digipost.signature.client.portal.PortalSignatureJobStatus.NO_CH
  * When the client {@link Confirmable confirms} this, the job and its associated
  * resources will become unavailable through the Signature API.
  */
-public class PortalSignatureJobStatusChanged implements Confirmable {
+public class PortalJobStatusChanged implements Confirmable {
 
 
     /**
      * This instance indicates that there has been no status updates since the last poll request for
-     * {@link PortalSignatureJobStatusChanged}. Its status is {@link PortalSignatureJobStatus#NO_CHANGES NO_CHANGES}.
+     * {@link PortalJobStatusChanged}. Its status is {@link PortalJobStatus#NO_CHANGES NO_CHANGES}.
      */
-    public static final PortalSignatureJobStatusChanged NO_UPDATED_STATUS = new PortalSignatureJobStatusChanged(null, NO_CHANGES, null, null, null) {
+    public static final PortalJobStatusChanged NO_UPDATED_STATUS = new PortalJobStatusChanged(null, NO_CHANGES, null, null, null) {
         @Override
         public long getSignatureJobId() {
             throw new IllegalStateException(
                     "There were " + this + ", and querying the job ID is a programming error. " +
-                    "Use the method is(" + PortalSignatureJobStatus.class.getSimpleName() + "." + NO_CHANGES.name() + ") " +
+                    "Use the method is(" + PortalJobStatus.class.getSimpleName() + "." + NO_CHANGES.name() + ") " +
                     "to check if there were any status change before attempting to get any further information.");
         };
 
         @Override
         public String toString() {
-            return "no signature jobs with updated status";
+            return "no portal jobs with updated status";
         }
     };
 
     private final Long signatureJobId;
-    private final PortalSignatureJobStatus status;
+    private final PortalJobStatus status;
     private final PAdESReference pAdESReference;
     private final ConfirmationReference confirmationReference;
     private final List<Signature> signatures;
 
-    PortalSignatureJobStatusChanged(Long signatureJobId, PortalSignatureJobStatus status, ConfirmationReference confirmationReference, PAdESReference pAdESReference, List<Signature> signatures) {
+    PortalJobStatusChanged(Long signatureJobId, PortalJobStatus status, ConfirmationReference confirmationReference, PAdESReference pAdESReference, List<Signature> signatures) {
         this.signatureJobId = signatureJobId;
         this.status = status;
         this.pAdESReference = pAdESReference;
@@ -72,11 +72,11 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
         return signatureJobId;
     }
 
-    public PortalSignatureJobStatus getStatus() {
+    public PortalJobStatus getStatus() {
         return status;
     }
 
-    public boolean is(PortalSignatureJobStatus status) {
+    public boolean is(PortalJobStatus status) {
         return this.status == status;
     }
 
@@ -95,7 +95,7 @@ public class PortalSignatureJobStatusChanged implements Confirmable {
 
     @Override
     public String toString() {
-        return "updated status for signature job with id " + signatureJobId + ": " + status;
+        return "updated status for portal job with id " + signatureJobId + ": " + status;
     }
 
 }

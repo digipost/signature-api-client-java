@@ -21,15 +21,15 @@ import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.Confirmable;
 
 
-public class SignatureJobStatusResponse implements Confirmable {
+public class DirectJobStatusResponse implements Confirmable {
 
     private final long signatureJobId;
-    private final SignatureJobStatus status;
+    private final DirectJobStatus status;
     private final ConfirmationReference confirmationReference;
     private final XAdESReference xAdESUrl;
     private final PAdESReference pAdESUrl;
 
-    public SignatureJobStatusResponse(long signatureJobId, SignatureJobStatus status, ConfirmationReference confirmationUrl, XAdESReference xAdESUrl, PAdESReference pAdESUrl) {
+    public DirectJobStatusResponse(long signatureJobId, DirectJobStatus status, ConfirmationReference confirmationUrl, XAdESReference xAdESUrl, PAdESReference pAdESUrl) {
         this.signatureJobId = signatureJobId;
         this.status = status;
         this.confirmationReference = confirmationUrl;
@@ -41,7 +41,7 @@ public class SignatureJobStatusResponse implements Confirmable {
         return signatureJobId;
     }
 
-    public SignatureJobStatus getStatus() {
+    public DirectJobStatus getStatus() {
         return status;
     }
 
@@ -60,6 +60,6 @@ public class SignatureJobStatusResponse implements Confirmable {
 
     @Override
     public String toString() {
-        return "status for signature job with ID " + signatureJobId + ": " + status;
+        return "status for direct job with ID " + signatureJobId + ": " + status;
     }
 }

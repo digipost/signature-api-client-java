@@ -13,61 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.portal;
+package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Signer;
 
-import java.util.*;
+import java.util.UUID;
 
-import static java.util.Collections.unmodifiableList;
-
-
-public class PortalSignatureJob {
+public class DirectJob {
 
     private String reference;
-    private List<Signer> signers;
+    private Signer signer;
     private Document document;
-    private Date distributionTime;
+    private String completionUrl;
+    private String cancellationUrl;
+    private String errorUrl;
 
-
-    private PortalSignatureJob(List<Signer> signers, Document document) {
-        this.signers = unmodifiableList(new ArrayList<>(signers));
+    private DirectJob(Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
+        this.signer = signer;
         this.document = document;
+        this.completionUrl = completionUrl;
+        this.cancellationUrl = cancellationUrl;
+        this.errorUrl = errorUrl;
     }
 
     public String getReference() {
         return reference;
     }
 
-    public List<Signer> getSigners() {
-        return signers;
+    public Signer getSigner() {
+        return signer;
     }
 
     public Document getDocument() {
         return document;
     }
 
-    public Date getDistributionTime() {
-        return distributionTime;
+    public String getCompletionUrl() {
+        return completionUrl;
     }
 
-
-    public static Builder builder(Document document, Signer... signers) {
-        return builder(document, Arrays.asList(signers));
+    public String getCancellationUrl() {
+        return cancellationUrl;
     }
 
-    public static Builder builder(Document document, List<Signer> signers) {
-        return new Builder(signers, document);
+    public String getErrorUrl() {
+        return errorUrl;
+    }
+
+    public static Builder builder(Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
+        return new Builder(signer, document, completionUrl, cancellationUrl, errorUrl);
     }
 
     public static class Builder {
 
-        private final PortalSignatureJob target;
+        private final DirectJob target;
         private boolean built = false;
 
-        private Builder(List<Signer> signers, Document document) {
-            target = new PortalSignatureJob(signers, document);
+        public Builder(Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
+            target = new DirectJob(signer, document, completionUrl, cancellationUrl, errorUrl);
         }
 
         public Builder withReference(UUID uuid) {
@@ -79,18 +83,11 @@ public class PortalSignatureJob {
             return this;
         }
 
-        public Builder withDistributionTime(Date distributionTime) {
-            target.distributionTime = distributionTime;
-            return this;
-        }
-
-        public PortalSignatureJob build() {
+        public DirectJob build() {
             if (built) throw new IllegalStateException("Can't build twice");
             built = true;
             return target;
         }
-
     }
 
 }
-

@@ -11,7 +11,7 @@ Dette klientbiblioteket og APIene er pr. i dag "work in progress", og det vil fo
 
 # Hvordan komme i gang med klientbiblioteket
 
-*Mer informasjon vil komme senere, inntil da kan du se på dokumentasjonen i klassene `SignatureClient` og `PortalClient`.*
+*Mer informasjon vil komme senere, inntil da kan du se på dokumentasjonen i klassene `DirectClient` og `PortalClient`.*
 
 ### Maven-avhengighet
 

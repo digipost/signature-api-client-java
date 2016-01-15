@@ -32,17 +32,17 @@ import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.toJaxb;
 
-public class SignatureClient {
+public class DirectClient {
 
     private final ClientConfiguration clientConfiguration;
     private final ClientHelper client;
 
-    public SignatureClient(ClientConfiguration clientConfiguration) {
+    public DirectClient(ClientConfiguration clientConfiguration) {
         this.clientConfiguration = clientConfiguration;
         this.client = new ClientHelper(clientConfiguration);
     }
 
-    public SignatureJobResponse create(SignatureJob signatureJob) {
+    public DirectJobResponse create(DirectJob signatureJob) {
         DocumentBundle documentBundle = createASiCE(signatureJob.getDocument(), singletonList(signatureJob.getSigner()), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig());
         XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(signatureJob, clientConfiguration.getSender());
 
@@ -54,14 +54,14 @@ public class SignatureClient {
     /**
      * Get the current status for the given {@link StatusReference}, which references the status for a specific job.
      * When processing of the status is complete (e.g. retrieving {@link #getPAdES(PAdESReference) PAdES} and/or
-     * {@link #getXAdES(XAdESReference) XAdES} documents for a  {@link SignatureJobStatus#SIGNED signed} job),
-     * the returned status must be {@link #confirm(SignatureJobStatusResponse) confirmed}.
+     * {@link #getXAdES(XAdESReference) XAdES} documents for a  {@link DirectJobStatus#SIGNED signed} job),
+     * the returned status must be {@link #confirm(DirectJobStatusResponse) confirmed}.
      *
      * @param statusReference the reference to the status of a specific job.
-     * @return the {@link SignatureJobStatusResponse} for the job referenced by the given {@link StatusReference},
+     * @return the {@link DirectJobStatusResponse} for the job referenced by the given {@link StatusReference},
      *         never {@code null}.
      */
-    public SignatureJobStatusResponse getStatus(StatusReference statusReference) {
+    public DirectJobStatusResponse getStatus(StatusReference statusReference) {
         XMLDirectSignatureJobStatusResponse xmlSignatureJobStatusResponse = client.sendSignatureJobStatusRequest(statusReference.getStatusUrl());
         return fromJaxb(xmlSignatureJobStatusResponse);
     }
@@ -69,15 +69,15 @@ public class SignatureClient {
 
     /**
      * Confirms that the status retrieved from {@link #getStatus(StatusReference)} is received.
-     * If the confirmed {@link SignatureJobStatus} is a terminal status
-     * (e.g. {@link SignatureJobStatus#SIGNED signed} or {@link SignatureJobStatus#CANCELLED cancelled}),
+     * If the confirmed {@link DirectJobStatus} is a terminal status
+     * (e.g. {@link DirectJobStatus#SIGNED signed} or {@link DirectJobStatus#CANCELLED cancelled}),
      * the Signature service may make the job's associated resources unavailable through the API when
      * receiving the confirmation. Calling this method for a response with no {@link ConfirmationReference}
      * has no effect.
      *
      * @param receivedStatusResponse the updated status retrieved from {@link #getStatus(StatusReference)}.
      */
-    public void confirm(SignatureJobStatusResponse receivedStatusResponse) {
+    public void confirm(DirectJobStatusResponse receivedStatusResponse) {
         client.confirm(receivedStatusResponse);
     }
 

@@ -18,7 +18,7 @@ package no.digipost.signature.client.portal;
 import no.digipost.signature.client.core.internal.Confirmable;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobStatus;
 
-public enum PortalSignatureJobStatus {
+public enum PortalJobStatus {
 
 
 	/**
@@ -39,7 +39,7 @@ public enum PortalSignatureJobStatus {
      */
     NO_CHANGES;
 
-    public static PortalSignatureJobStatus fromXmlType(XMLPortalSignatureJobStatus xmlJobStatus) {
+    public static PortalJobStatus fromXmlType(XMLPortalSignatureJobStatus xmlJobStatus) {
         switch (xmlJobStatus) {
             case PARTIALLY_COMPLETED:
                 return PARTIALLY_COMPLETED;

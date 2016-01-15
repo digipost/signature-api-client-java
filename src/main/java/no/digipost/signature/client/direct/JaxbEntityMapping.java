@@ -23,7 +23,7 @@ import no.digipost.signature.client.core.XAdESReference;
 
 final class JaxbEntityMapping {
 
-    static XMLDirectSignatureJobRequest toJaxb(SignatureJob signatureJob, Sender sender) {
+    static XMLDirectSignatureJobRequest toJaxb(DirectJob signatureJob, Sender sender) {
         return new XMLDirectSignatureJobRequest()
                 .withReference(signatureJob.getReference())
                 .withSigner(new XMLSigner().withPersonalIdentificationNumber(signatureJob.getSigner().getPersonalIdentificationNumber()))
@@ -35,13 +35,13 @@ final class JaxbEntityMapping {
                 );
     }
 
-    static SignatureJobResponse fromJaxb(XMLDirectSignatureJobResponse xmlSignatureJobResponse) {
-        return new SignatureJobResponse(xmlSignatureJobResponse.getSignatureJobId(), xmlSignatureJobResponse.getRedirectUrl(), xmlSignatureJobResponse.getStatusUrl());
+    static DirectJobResponse fromJaxb(XMLDirectSignatureJobResponse xmlSignatureJobResponse) {
+        return new DirectJobResponse(xmlSignatureJobResponse.getSignatureJobId(), xmlSignatureJobResponse.getRedirectUrl(), xmlSignatureJobResponse.getStatusUrl());
     }
 
-    static SignatureJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse) {
-        return new SignatureJobStatusResponse(
-                statusResponse.getSignatureJobId(), SignatureJobStatus.fromXmlType(statusResponse.getStatus()),
+    static DirectJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse) {
+        return new DirectJobStatusResponse(
+                statusResponse.getSignatureJobId(), DirectJobStatus.fromXmlType(statusResponse.getStatus()),
                 ConfirmationReference.of(statusResponse.getConfirmationUrl()),
                 XAdESReference.of(statusResponse.getXadesUrl()),
                 PAdESReference.of(statusResponse.getPadesUrl()));
