@@ -17,6 +17,7 @@ package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
+import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.Confirmable;
 
 import java.util.List;
@@ -32,14 +33,14 @@ import static no.digipost.signature.client.portal.PortalJobStatus.NO_CHANGES;
  * When the client {@link Confirmable confirms} this, the job and its associated
  * resources will become unavailable through the Signature API.
  */
-public class PortalJobStatusChanged implements Confirmable {
+public class PortalJobStatusChanged implements Confirmable, Cancellable {
 
 
     /**
      * This instance indicates that there has been no status updates since the last poll request for
      * {@link PortalJobStatusChanged}. Its status is {@link PortalJobStatus#NO_CHANGES NO_CHANGES}.
      */
-    public static final PortalJobStatusChanged NO_UPDATED_STATUS = new PortalJobStatusChanged(null, NO_CHANGES, null, null, null) {
+    public static final PortalJobStatusChanged NO_UPDATED_STATUS = new PortalJobStatusChanged(null, NO_CHANGES, null, null, null, null) {
         @Override
         public long getSignatureJobId() {
             throw new IllegalStateException(
@@ -58,11 +59,13 @@ public class PortalJobStatusChanged implements Confirmable {
     private final PortalJobStatus status;
     private final PAdESReference pAdESReference;
     private final ConfirmationReference confirmationReference;
+    private final CancellationUrl cancellationUrl;
     private final List<Signature> signatures;
 
-    PortalJobStatusChanged(Long signatureJobId, PortalJobStatus status, ConfirmationReference confirmationReference, PAdESReference pAdESReference, List<Signature> signatures) {
+    PortalJobStatusChanged(Long signatureJobId, PortalJobStatus status, ConfirmationReference confirmationReference, CancellationUrl cancellationUrl, PAdESReference pAdESReference, List<Signature> signatures) {
         this.signatureJobId = signatureJobId;
         this.status = status;
+        this.cancellationUrl = cancellationUrl;
         this.pAdESReference = pAdESReference;
         this.confirmationReference = confirmationReference;
         this.signatures = signatures;
@@ -91,6 +94,11 @@ public class PortalJobStatusChanged implements Confirmable {
     @Override
     public ConfirmationReference getConfirmationReference() {
         return confirmationReference;
+    }
+
+    @Override
+    public CancellationUrl getCancellationUrl() {
+        return cancellationUrl;
     }
 
     @Override

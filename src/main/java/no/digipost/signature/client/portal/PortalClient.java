@@ -22,6 +22,7 @@ import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
+import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 
@@ -79,6 +80,10 @@ public class PortalClient {
      */
     public void confirm(PortalJobStatusChanged receivedStatusChanged) {
         client.confirm(receivedStatusChanged);
+    }
+
+    public void cancel(Cancellable cancellable) {
+        client.cancel(cancellable);
     }
 
 

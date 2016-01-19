@@ -15,24 +15,19 @@
  */
 package no.digipost.signature.client.portal;
 
-import no.digipost.signature.client.core.internal.Cancellable;
+public class CancellationUrl {
 
-public class PortalJobResponse implements Cancellable {
-
-    private final long signatureJobId;
-    private final CancellationUrl cancellationUrl;
-
-    public PortalJobResponse(long signatureJobId, CancellationUrl cancellationUrl) {
-        this.signatureJobId = signatureJobId;
-        this.cancellationUrl = cancellationUrl;
+    public static CancellationUrl of(String url) {
+        return url == null ? null : new CancellationUrl(url);
     }
 
-    public long getSignatureJobId() {
-        return signatureJobId;
+    private final String url;
+
+    private CancellationUrl(String url) {
+        this.url = url;
     }
 
-    @Override
-    public CancellationUrl getCancellationUrl() {
-        return cancellationUrl;
+    public String getUrl() {
+        return url;
     }
 }

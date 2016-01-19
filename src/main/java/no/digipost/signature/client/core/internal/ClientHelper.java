@@ -18,6 +18,7 @@ package no.digipost.signature.client.core.internal;
 import no.digipost.signature.api.xml.*;
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
+import no.digipost.signature.client.core.exceptions.NotCancellableException;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
@@ -90,6 +91,20 @@ public class ClientHelper {
                 .readEntity(InputStream.class);
     }
 
+    public void cancel(Cancellable cancellationUrl) {
+        if (cancellationUrl.getCancellationUrl() != null) {
+            String url = cancellationUrl.getCancellationUrl().getUrl();
+            Response response = postEmptyEntity(url);
+            Status status = Status.fromStatusCode(response.getStatus());
+            if (status == CONFLICT) {
+                throw new NotCancellableException();
+            }
+            handleGeneralError(response, status);
+        } else {
+            throw new NotCancellableException();
+        }
+    }
+
     public XMLPortalSignatureJobStatusChangeResponse getStatusChange() {
         Response response = target.path(PORTAL_SIGNATURE_JOBS_PATH)
                 .request()
@@ -112,21 +127,8 @@ public class ClientHelper {
         if (confirmable.getConfirmationReference() != null) {
             String url = confirmable.getConfirmationReference().getConfirmationUrl();
             LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
-            Response response = httpClient.target(url)
-                    .request()
-                    .accept(APPLICATION_XML_TYPE)
-                    .header("Content-Length", 0)
-                    .post(Entity.entity(null, APPLICATION_XML_TYPE));
-            Status status = Status.fromStatusCode(response.getStatus());
-            if (status != OK) {
-                XMLError error;
-                try {
-                    error = response.readEntity(XMLError.class);
-                } catch (Exception e) {
-                    throw new UnexpectedResponseException(null, e, status, OK);
-                }
-                throw new UnexpectedResponseException(error, status, OK);
-            }
+            Response response = postEmptyEntity(url);
+            handleGeneralError(response, Status.fromStatusCode(response.getStatus()));
         } else {
             LOG.info("Does not need to send confirmation for '{}'", confirmable);
         }
@@ -161,6 +163,26 @@ public class ClientHelper {
             } catch (IOException e) {
                 throw new RuntimeIOException(e);
             }
+        }
+    }
+
+    private Response postEmptyEntity(String url) {
+        return httpClient.target(url)
+                .request()
+                .accept(APPLICATION_XML_TYPE)
+                .header("Content-Length", 0)
+                .post(Entity.entity(null, APPLICATION_XML_TYPE));
+    }
+
+    private void handleGeneralError(Response response, Status status) {
+        if (status != OK) {
+            XMLError error;
+            try {
+                error = response.readEntity(XMLError.class);
+            } catch (Exception e) {
+                throw new UnexpectedResponseException(null, e, status, OK);
+            }
+            throw new UnexpectedResponseException(error, status, OK);
         }
     }
 }
