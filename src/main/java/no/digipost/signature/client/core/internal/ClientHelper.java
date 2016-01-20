@@ -47,7 +47,7 @@ public class ClientHelper {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientHelper.class);
 
-    public static final String SIGNATURE_JOBS_PATH = "/signature-jobs";
+    public static final String DIRECT_SIGNATURE_JOBS_PATH = "/direct/signature-jobs";
     public static final String PORTAL_SIGNATURE_JOBS_PATH = "/portal/signature-jobs";
 
     public static final String NEXT_PERMITTED_POLL_TIME_HEADER = "X-Next-permitted-poll-time";
@@ -66,7 +66,7 @@ public class ClientHelper {
         BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
         return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
-                .postAsMultiPart(SIGNATURE_JOBS_PATH, XMLDirectSignatureJobResponse.class);
+                .postAsMultiPart(DIRECT_SIGNATURE_JOBS_PATH, XMLDirectSignatureJobResponse.class);
     }
 
     public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(final XMLPortalSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
