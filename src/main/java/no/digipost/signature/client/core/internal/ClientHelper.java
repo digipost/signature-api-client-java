@@ -91,9 +91,9 @@ public class ClientHelper {
                 .readEntity(InputStream.class);
     }
 
-    public void cancel(Cancellable cancellationUrl) {
-        if (cancellationUrl.getCancellationUrl() != null) {
-            String url = cancellationUrl.getCancellationUrl().getUrl();
+    public void cancel(Cancellable cancellable) {
+        if (cancellable.getCancellationUrl() != null) {
+            String url = cancellable.getCancellationUrl().getUrl();
             Response response = postEmptyEntity(url);
             Status status = Status.fromStatusCode(response.getStatus());
             if (status == CONFLICT) {
