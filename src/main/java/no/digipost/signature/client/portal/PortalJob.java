@@ -28,7 +28,7 @@ public class PortalJob {
     private String reference;
     private List<Signer> signers;
     private Document document;
-    private Date distributionTime;
+    private Date activationTime;
 
 
     private PortalJob(List<Signer> signers, Document document) {
@@ -48,8 +48,8 @@ public class PortalJob {
         return document;
     }
 
-    public Date getDistributionTime() {
-        return distributionTime;
+    public Date getActivationTime() {
+        return activationTime;
     }
 
 
@@ -79,8 +79,8 @@ public class PortalJob {
             return this;
         }
 
-        public Builder withDistributionTime(Date distributionTime) {
-            target.distributionTime = distributionTime;
+        public Builder withActivationTime(Date activationTime) {
+            target.activationTime = activationTime;
             return this;
         }
 
