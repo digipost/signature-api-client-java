@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.lang.String.format;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
@@ -47,8 +48,8 @@ public class ClientHelper {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientHelper.class);
 
-    public static final String DIRECT_SIGNATURE_JOBS_PATH = "/direct/signature-jobs";
-    public static final String PORTAL_SIGNATURE_JOBS_PATH = "/portal/signature-jobs";
+    private final String directSignatureJobsPath;
+    private final String portalSignatureJobsPath;
 
     public static final String NEXT_PERMITTED_POLL_TIME_HEADER = "X-Next-permitted-poll-time";
 
@@ -57,6 +58,9 @@ public class ClientHelper {
 
 
     public ClientHelper(final ClientConfiguration clientConfiguration) {
+        portalSignatureJobsPath = format("/%s/portal/signature-jobs", clientConfiguration.getSender().getOrganizationNumber());
+        directSignatureJobsPath = "/direct/signature-jobs";
+
         httpClient = SignatureHttpClient.create(clientConfiguration.getKeyStoreConfig());
         target = httpClient.target(clientConfiguration.getSignatureServiceRoot());
     }
@@ -66,7 +70,7 @@ public class ClientHelper {
         BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
         return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
-                .postAsMultiPart(DIRECT_SIGNATURE_JOBS_PATH, XMLDirectSignatureJobResponse.class);
+                .postAsMultiPart(directSignatureJobsPath, XMLDirectSignatureJobResponse.class);
     }
 
     public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(final XMLPortalSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
@@ -74,7 +78,7 @@ public class ClientHelper {
         BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
         return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
-                .postAsMultiPart(PORTAL_SIGNATURE_JOBS_PATH, XMLPortalSignatureJobResponse.class);
+                .postAsMultiPart(portalSignatureJobsPath, XMLPortalSignatureJobResponse.class);
     }
 
     public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(String statusUrl) {
@@ -106,7 +110,7 @@ public class ClientHelper {
     }
 
     public XMLPortalSignatureJobStatusChangeResponse getStatusChange() {
-        Response response = target.path(PORTAL_SIGNATURE_JOBS_PATH)
+        Response response = target.path(portalSignatureJobsPath)
                 .request()
                 .accept(APPLICATION_XML_TYPE)
                 .get();
