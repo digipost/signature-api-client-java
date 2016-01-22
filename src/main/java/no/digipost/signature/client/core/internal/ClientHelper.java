@@ -59,7 +59,7 @@ public class ClientHelper {
 
     public ClientHelper(final ClientConfiguration clientConfiguration) {
         portalSignatureJobsPath = format("/%s/portal/signature-jobs", clientConfiguration.getSender().getOrganizationNumber());
-        directSignatureJobsPath = "/direct/signature-jobs";
+        directSignatureJobsPath = format("/%s/direct/signature-jobs", clientConfiguration.getSender().getOrganizationNumber());
 
         httpClient = SignatureHttpClient.create(clientConfiguration.getKeyStoreConfig());
         target = httpClient.target(clientConfiguration.getSignatureServiceRoot());
