@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.internal;
+package no.digipost.signature.client.core.exceptions;
 
-public enum ErrorCodes {
+import no.digipost.signature.api.xml.XMLError;
 
-    BROKER_NOT_AUTHORIZED;
-
-    public boolean sameAs(String other) {
-        return this.name().equals(other);
+public class BrokerNotAuthorizedException extends SignatureException {
+    public BrokerNotAuthorizedException(XMLError error) {
+        super(error.getErrorMessage());
     }
 }

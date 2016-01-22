@@ -18,10 +18,7 @@ package no.digipost.signature.client.core.internal;
 import no.digipost.signature.api.xml.*;
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
-import no.digipost.signature.client.core.exceptions.NotCancellableException;
-import no.digipost.signature.client.core.exceptions.RuntimeIOException;
-import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
-import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
+import no.digipost.signature.client.core.exceptions.*;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.slf4j.Logger;
@@ -43,6 +40,7 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static javax.ws.rs.core.Response.Status.*;
+import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_AUTHORIZED;
 
 public class ClientHelper {
 
@@ -82,17 +80,11 @@ public class ClientHelper {
     }
 
     public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(String statusUrl) {
-        return httpClient.target(statusUrl)
-                .request()
-                .get()
-                .readEntity(XMLDirectSignatureJobStatusResponse.class);
+        return parseResponse(httpClient.target(statusUrl).request().get(), XMLDirectSignatureJobStatusResponse.class);
     }
 
     public InputStream getSignedDocumentStream(String url) {
-        return httpClient.target(url)
-                .request()
-                .get()
-                .readEntity(InputStream.class);
+        return parseResponse(httpClient.target(url).request().get(), InputStream.class);
     }
 
     public void cancel(Cancellable cancellable) {
@@ -100,10 +92,12 @@ public class ClientHelper {
             String url = cancellable.getCancellationUrl().getUrl();
             Response response = postEmptyEntity(url);
             Status status = Status.fromStatusCode(response.getStatus());
-            if (status == CONFLICT) {
+            if (status == OK) {
+                return;
+            } else if (status == CONFLICT) {
                 throw new NotCancellableException();
             }
-            handleGeneralError(response, status);
+            throw handleGeneralError(response, status);
         } else {
             throw new NotCancellableException();
         }
@@ -114,16 +108,15 @@ public class ClientHelper {
                 .request()
                 .accept(APPLICATION_XML_TYPE)
                 .get();
-        int statusCode = response.getStatus();
-        if (statusCode == NO_CONTENT.getStatusCode()) {
+        Status status = Status.fromStatusCode(response.getStatus());
+        if (status == NO_CONTENT) {
             return null;
-        } else if (statusCode == OK.getStatusCode()) {
+        } else if (status == OK) {
             return response.readEntity(XMLPortalSignatureJobStatusChangeResponse.class);
-        } else if (statusCode == 429){
+        } else if (response.getStatus() == 429) {
             throw new TooEagerPollingException(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER));
         } else {
-            XMLError error = response.readEntity(XMLError.class);
-            throw new UnexpectedResponseException(error, Status.fromStatusCode(statusCode), OK, NO_CONTENT);
+            throw handleGeneralError(response, status);
         }
     }
 
@@ -132,7 +125,10 @@ public class ClientHelper {
             String url = confirmable.getConfirmationReference().getConfirmationUrl();
             LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
             Response response = postEmptyEntity(url);
-            handleGeneralError(response, Status.fromStatusCode(response.getStatus()));
+            Status status = Status.fromStatusCode(response.getStatus());
+            if (status != OK) {
+                throw handleGeneralError(response, status);
+            }
         } else {
             LOG.info("Does not need to send confirmation for '{}'", confirmable);
         }
@@ -157,13 +153,7 @@ public class ClientHelper {
                         .header(CONTENT_TYPE, multiPart.getMediaType())
                         .accept(APPLICATION_XML_TYPE)
                         .post(Entity.entity(multiPart, multiPart.getMediaType()));
-                Status status = fromStatusCode(response.getStatus());
-                if (status == OK) {
-                    return response.readEntity(responseType);
-                } else {
-                    XMLError error = response.readEntity(XMLError.class);
-                    throw new UnexpectedResponseException(error, status, OK);
-                }
+                return parseResponse(response, responseType);
             } catch (IOException e) {
                 throw new RuntimeIOException(e);
             }
@@ -178,15 +168,25 @@ public class ClientHelper {
                 .post(Entity.entity(null, APPLICATION_XML_TYPE));
     }
 
-    private void handleGeneralError(Response response, Status status) {
-        if (status != OK) {
-            XMLError error;
-            try {
-                error = response.readEntity(XMLError.class);
-            } catch (Exception e) {
-                throw new UnexpectedResponseException(null, e, status, OK);
-            }
-            throw new UnexpectedResponseException(error, status, OK);
+    private <T> T parseResponse(Response response, Class<T> responseType) {
+        Status status = Status.fromStatusCode(response.getStatus());
+        if (status == OK) {
+            return response.readEntity(responseType);
+        } else {
+            throw handleGeneralError(response, status);
         }
+    }
+
+    private SignatureException handleGeneralError(Response response, Status status) {
+        XMLError error;
+        try {
+            error = response.readEntity(XMLError.class);
+        } catch (Exception e) {
+            return new UnexpectedResponseException(null, e, status, OK);
+        }
+        if (BROKER_NOT_AUTHORIZED.sameAs(error.getErrorCode())) {
+            return new BrokerNotAuthorizedException(error);
+        }
+        return new UnexpectedResponseException(error, status, OK);
     }
 }
