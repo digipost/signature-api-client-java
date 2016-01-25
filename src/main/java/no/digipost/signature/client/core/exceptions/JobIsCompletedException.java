@@ -15,10 +15,11 @@
  */
 package no.digipost.signature.client.core.exceptions;
 
-public class NotCancellableException extends SignatureException {
+public class JobIsCompletedException extends SignatureException {
 
-    public NotCancellableException() {
-        super("Unable to cancel job. This is most likely because the job has been completed. Only newly created and partially completed jobs can be cancelled, please verify the job's status.");
+    public JobIsCompletedException() {
+        super("The service refused to process the cancellation. This happens when the job has been completed " +
+                "(i.e. all signers have signed, rejected, etc.) since receiving last update. Please ask the service for status changes to get the latest changes.");
     }
 
 }

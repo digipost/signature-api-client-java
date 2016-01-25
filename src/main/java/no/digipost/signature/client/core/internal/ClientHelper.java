@@ -95,7 +95,7 @@ public class ClientHelper {
             if (status == OK) {
                 return;
             } else if (status == CONFLICT) {
-                throw new NotCancellableException();
+                throw new JobIsCompletedException();
             }
             throw handleGeneralError(response, status);
         } else {
