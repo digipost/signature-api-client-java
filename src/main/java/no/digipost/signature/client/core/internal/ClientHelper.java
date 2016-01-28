@@ -24,6 +24,7 @@ import org.glassfish.jersey.media.multipart.MultiPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -53,6 +54,7 @@ public class ClientHelper {
 
     private final Client httpClient;
     private final WebTarget target;
+    private final ClientExceptionMapper clientExceptionMapper;
 
 
     public ClientHelper(final ClientConfiguration clientConfiguration) {
@@ -61,77 +63,139 @@ public class ClientHelper {
 
         httpClient = SignatureHttpClient.create(clientConfiguration.getKeyStoreConfig());
         target = httpClient.target(clientConfiguration.getSignatureServiceRoot());
+        clientExceptionMapper = new ClientExceptionMapper();
     }
 
     public XMLDirectSignatureJobResponse sendSignatureJobRequest(final XMLDirectSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
-        BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
-        BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
+        final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
+        final BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
-        return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
-                .postAsMultiPart(directSignatureJobsPath, XMLDirectSignatureJobResponse.class);
+        return call(new Producer<XMLDirectSignatureJobResponse>() {
+            @Override
+            XMLDirectSignatureJobResponse call() {
+                return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
+                        .postAsMultiPart(directSignatureJobsPath, XMLDirectSignatureJobResponse.class);
+            }
+        });
     }
 
     public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(final XMLPortalSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
-        BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
-        BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
+        final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
+        final BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
-        return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
-                .postAsMultiPart(portalSignatureJobsPath, XMLPortalSignatureJobResponse.class);
-    }
-
-    public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(String statusUrl) {
-        return parseResponse(httpClient.target(statusUrl).request().get(), XMLDirectSignatureJobStatusResponse.class);
-    }
-
-    public InputStream getSignedDocumentStream(String url) {
-        return parseResponse(httpClient.target(url).request().get(), InputStream.class);
-    }
-
-    public void cancel(Cancellable cancellable) {
-        if (cancellable.getCancellationUrl() != null) {
-            String url = cancellable.getCancellationUrl().getUrl();
-            Response response = postEmptyEntity(url);
-            Status status = Status.fromStatusCode(response.getStatus());
-            if (status == OK) {
-                return;
-            } else if (status == CONFLICT) {
-                throw new JobIsCompletedException();
+        return call(new Producer<XMLPortalSignatureJobResponse>() {
+            @Override
+            XMLPortalSignatureJobResponse call() {
+                return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
+                        .postAsMultiPart(portalSignatureJobsPath, XMLPortalSignatureJobResponse.class);
             }
-            throw handleGeneralError(response, status);
-        } else {
-            throw new NotCancellableException();
-        }
+        });
+    }
+
+    public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(final String statusUrl) {
+        return call(new Producer<XMLDirectSignatureJobStatusResponse>() {
+            @Override
+            XMLDirectSignatureJobStatusResponse call() {
+                return parseResponse(httpClient.target(statusUrl).request().get(), XMLDirectSignatureJobStatusResponse.class);
+            }
+        });
+    }
+
+    public InputStream getSignedDocumentStream(final String url) {
+        return call(new Producer<InputStream>() {
+            @Override
+            InputStream call() {
+                return parseResponse(httpClient.target(url).request().get(), InputStream.class);
+            }
+        });
+    }
+
+    public void cancel(final Cancellable cancellable) {
+        call(new Function() {
+            @Override
+            void call() {
+                if (cancellable.getCancellationUrl() != null) {
+                    String url = cancellable.getCancellationUrl().getUrl();
+                    Response response = postEmptyEntity(url);
+                    Status status = Status.fromStatusCode(response.getStatus());
+                    if (status == OK) {
+                        return;
+                    } else if (status == CONFLICT) {
+                        throw new JobIsCompletedException();
+                    }
+                    throw handleGeneralError(response, status);
+                } else {
+                    throw new NotCancellableException();
+                }
+            }
+        });
     }
 
     public XMLPortalSignatureJobStatusChangeResponse getStatusChange() {
-        Response response = target.path(portalSignatureJobsPath)
-                .request()
-                .accept(APPLICATION_XML_TYPE)
-                .get();
-        Status status = Status.fromStatusCode(response.getStatus());
-        if (status == NO_CONTENT) {
-            return null;
-        } else if (status == OK) {
-            return response.readEntity(XMLPortalSignatureJobStatusChangeResponse.class);
-        } else if (response.getStatus() == 429) {
-            throw new TooEagerPollingException(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER));
-        } else {
-            throw handleGeneralError(response, status);
+        return call(new Producer<XMLPortalSignatureJobStatusChangeResponse>() {
+            @Override
+            XMLPortalSignatureJobStatusChangeResponse call() {
+                Response response = target.path(portalSignatureJobsPath)
+                        .request()
+                        .accept(APPLICATION_XML_TYPE)
+                        .get();
+                Status status = Status.fromStatusCode(response.getStatus());
+                if (status == NO_CONTENT) {
+                    return null;
+                } else if (status == OK) {
+                    return response.readEntity(XMLPortalSignatureJobStatusChangeResponse.class);
+                } else if (response.getStatus() == 429) {
+                    throw new TooEagerPollingException(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER));
+                } else {
+                    throw handleGeneralError(response, status);
+                }
+            }
+        });
+    }
+
+    public void confirm(final Confirmable confirmable) {
+        call(new Function() {
+            @Override
+            void call() {
+                if (confirmable.getConfirmationReference() != null) {
+                    String url = confirmable.getConfirmationReference().getConfirmationUrl();
+                    LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
+                    Response response = postEmptyEntity(url);
+                    Status status = Status.fromStatusCode(response.getStatus());
+                    if (status != OK) {
+                        throw handleGeneralError(response, status);
+                    }
+                } else {
+                    LOG.info("Does not need to send confirmation for '{}'", confirmable);
+                }
+            }
+        });
+    }
+
+    private <T> T call(final Producer<T> producer) {
+        try {
+            return producer.call();
+        } catch (ProcessingException e) {
+            throw clientExceptionMapper.map(e);
         }
     }
 
-    public void confirm(Confirmable confirmable) {
-        if (confirmable.getConfirmationReference() != null) {
-            String url = confirmable.getConfirmationReference().getConfirmationUrl();
-            LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
-            Response response = postEmptyEntity(url);
-            Status status = Status.fromStatusCode(response.getStatus());
-            if (status != OK) {
-                throw handleGeneralError(response, status);
+    private void call(final Function function) {
+        call(new Producer<Void>() {
+            @Override
+            Void call() {
+                function.call();
+                return null;
             }
-        } else {
-            LOG.info("Does not need to send confirmation for '{}'", confirmable);
-        }
+        });
+    }
+
+    private abstract class Producer<T> {
+        abstract T call();
+    }
+
+    private abstract class Function {
+        abstract void call();
     }
 
     private class UsingBodyParts {
