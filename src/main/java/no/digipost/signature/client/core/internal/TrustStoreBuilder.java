@@ -7,6 +7,8 @@ import org.apache.commons.io.IOUtils;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -17,24 +19,15 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
 
 public class TrustStoreBuilder {
-
-    public static final String BUNDLED_CERTIFICATE_PATH = "/certificates/prod";
-    public static final String BUNDLED_TEST_CERTIFICATE_PATH = "/certificates/test";
 
     public static KeyStore build(ClientConfiguration config) {
         try {
             KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
             trustStore.load(null, null);
-
-            List<String> certificateFolders = new ArrayList<>();
-            certificateFolders.add(BUNDLED_CERTIFICATE_PATH);
-            certificateFolders.add(BUNDLED_TEST_CERTIFICATE_PATH);
-
-            for (String certificateFolder : certificateFolders) {
+            
+            for (String certificateFolder : config.getCertificateFolderPaths()) {
                 loadCertificatesInto(certificateFolder, trustStore);
             }
 
@@ -45,7 +38,14 @@ public class TrustStoreBuilder {
     }
 
     private static void loadCertificatesInto(String certificateFolder, final KeyStore trustStore) throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
-        new ClassPathFileLoader().forAllFilesInFolder(certificateFolder, new ForFile() {
+        ResourceLoader certificateLoader;
+        if (certificateFolder.indexOf("classpath:") == 0) {
+            certificateLoader = new ClassPathFileLoader(certificateFolder);
+        } else {
+            certificateLoader = new FileLoader(certificateFolder);
+        }
+
+        certificateLoader.forEachFile(new ForFile() {
             @Override
             void call(String fileName, InputStream contents) {
                 try {
@@ -65,16 +65,55 @@ public class TrustStoreBuilder {
         context.init(null, tmf.getTrustManagers(), null);
     }
 
-    private static class ClassPathFileLoader {
+    private static class ClassPathFileLoader implements ResourceLoader {
 
-        public void forAllFilesInFolder(String path, ForFile forEachFile) throws IOException {
+        public static final String CLASSPATH_PATH_PREFIX = "classpath:";
+
+        private final String path;
+
+        public ClassPathFileLoader(String certificateFolder) {
+            this.path = certificateFolder.substring(CLASSPATH_PATH_PREFIX.length());
+        }
+
+        public void forEachFile(ForFile forEachFile) throws IOException {
             URL resourceUrl = TrustStoreBuilder.class.getResource(path);
+            if (resourceUrl == null) {
+                throw new ConfigurationException("Unable to read classpath resource '" + this.path + "'. Make sure it's the correct path.");
+            }
 
             for (String fileName : IOUtils.toString(resourceUrl, Charsets.UTF_8).split("\n")) {
                 InputStream contents = TrustStoreBuilder.class.getResourceAsStream(path + "/" + fileName);
                 forEachFile.call(fileName, contents);
             }
         }
+    }
+
+    private static class FileLoader implements ResourceLoader {
+        private final File path;
+
+        public FileLoader(String certificateFolder) {
+            this.path = new File(certificateFolder);
+        }
+
+        public void forEachFile(ForFile forEachFile) throws IOException {
+            if (!this.path.isDirectory()) {
+                throw new ConfigurationException("Certificate path '" + this.path + "' is not a directory. " +
+                        "It should point to a directory containing certificates.");
+            }
+            File[] files = this.path.listFiles();
+            if (files == null) {
+                throw new ConfigurationException("Unable to read certificates from '" + path + "'. Make sure it's the correct path.");
+            }
+
+            for (File file : files) {
+                InputStream contents = new FileInputStream(file);
+                forEachFile.call(file.getName(), contents);
+            }
+        }
+    }
+
+    private interface ResourceLoader {
+        void forEachFile(ForFile forEachFile) throws IOException;
     }
 
     private abstract static class ForFile {
