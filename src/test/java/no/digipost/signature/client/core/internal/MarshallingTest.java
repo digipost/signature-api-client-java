@@ -50,7 +50,7 @@ public class MarshallingTest {
         marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
         marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));
 
-        XMLPortalSignatureJobRequest portalJob = new XMLPortalSignatureJobRequest("123abc", new XMLSigners().withSigners(signer), sender, null);
+        XMLPortalSignatureJobRequest portalJob = new XMLPortalSignatureJobRequest("123abc", new XMLSigners().withSigners(signer), sender, null, null);
         marshaller.marshal(portalJob, new StreamResult(new ByteArrayOutputStream()));
         marshaller.marshal(portalJob.withActivationTime(new Date()), new StreamResult(new ByteArrayOutputStream()));
     }
