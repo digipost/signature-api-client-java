@@ -178,6 +178,8 @@
                             <exclude>**/*.xjb</exclude>
                             <exclude>**/*.txt</exclude>
                             <exclude>**/*.jce</exclude>
+                            <exclude>**/*.cer</exclude>
+                            <exclude>**/*.pem</exclude>
                             <exclude>.editorconfig</exclude>
                             <exclude>src/test/resources/**</exclude>
                         </excludes>
