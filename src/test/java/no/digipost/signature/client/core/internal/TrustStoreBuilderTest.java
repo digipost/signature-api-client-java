@@ -21,7 +21,6 @@ import no.digipost.signature.client.core.Sender;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.net.URI;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 
@@ -35,7 +34,7 @@ public class TrustStoreBuilderTest {
 
     @Before
     public void setUp() {
-        configBuilder = ClientConfiguration.builder(URI.create("https://dummy.endpoint.no"), TestKonfigurasjon.CLIENT_KEYSTORE, new Sender("984661185"));
+        configBuilder = ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE, new Sender("984661185"));
     }
 
     @Test
