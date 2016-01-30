@@ -17,8 +17,6 @@ package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
-import org.apache.commons.io.Charsets;
-import org.apache.commons.io.IOUtils;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -42,7 +40,7 @@ public class TrustStoreBuilder {
             KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
             trustStore.load(null, null);
             
-            for (String certificateFolder : config.getCertificateFolderPaths()) {
+            for (String certificateFolder : config.getCertificatePaths()) {
                 loadCertificatesInto(certificateFolder, trustStore);
             }
 
@@ -84,21 +82,17 @@ public class TrustStoreBuilder {
 
         public static final String CLASSPATH_PATH_PREFIX = "classpath:";
 
-        private final String path;
+        private final String certificatePath;
 
         public ClassPathFileLoader(String certificateFolder) {
-            this.path = certificateFolder.substring(CLASSPATH_PATH_PREFIX.length());
+            this.certificatePath = certificateFolder.substring(CLASSPATH_PATH_PREFIX.length());
         }
 
         public void forEachFile(ForFile forEachFile) throws IOException {
-            URL resourceUrl = TrustStoreBuilder.class.getResource(path);
-            if (resourceUrl == null) {
-                throw new ConfigurationException("Unable to read classpath resource '" + this.path + "'. Make sure it's the correct path.");
-            }
+            URL contentsUrl = TrustStoreBuilder.class.getResource(certificatePath);
 
-            for (String fileName : IOUtils.toString(resourceUrl, Charsets.UTF_8).split("\n")) {
-                InputStream contents = TrustStoreBuilder.class.getResourceAsStream(path + "/" + fileName);
-                forEachFile.call(fileName, contents);
+            try (InputStream inputStream = contentsUrl.openStream()){
+                forEachFile.call(new File(contentsUrl.getFile()).getName(), inputStream);
             }
         }
     }
@@ -121,8 +115,9 @@ public class TrustStoreBuilder {
             }
 
             for (File file : files) {
-                InputStream contents = new FileInputStream(file);
-                forEachFile.call(file.getName(), contents);
+                try (InputStream contents = new FileInputStream(file)) {
+                    forEachFile.call(file.getName(), contents);
+                }
             }
         }
     }

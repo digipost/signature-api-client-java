@@ -26,7 +26,7 @@ import java.security.KeyStoreException;
 
 import static junit.framework.TestCase.assertEquals;
 import static no.digipost.signature.client.ClientConfiguration.Certificates.PRODUCTION;
-import static no.digipost.signature.client.ClientConfiguration.Certificates.TEST_AND_PRODUCTION;
+import static no.digipost.signature.client.ClientConfiguration.Certificates.TEST;
 
 public class TrustStoreBuilderTest {
 
@@ -57,7 +57,7 @@ public class TrustStoreBuilderTest {
 
     @Test
     public void loads_test_and_production_certificates() throws KeyStoreException {
-        ClientConfiguration config = configBuilder.trustStore(TEST_AND_PRODUCTION).build();
+        ClientConfiguration config = configBuilder.trustStore(PRODUCTION, TEST).build();
         KeyStore keyStore = TrustStoreBuilder.build(config);
 
         assertEquals(9, keyStore.size());
