@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -31,7 +32,7 @@ public class ClientConfiguration {
     private URI signatureServiceRoot;
     private KeyStoreConfig keyStoreConfig;
     private Sender sender;
-    private List<String> certificateFolderPaths = Certificates.PRODUCTION.certificateFolderPaths;
+    private List<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
 
     private static final Logger log = LoggerFactory.getLogger(ClientConfiguration.class);
 
@@ -53,8 +54,8 @@ public class ClientConfiguration {
         return sender;
     }
 
-    public List<String> getCertificateFolderPaths() {
-        return certificateFolderPaths;
+    public List<String> getCertificatePaths() {
+        return certificatePaths;
     }
 
     public static Builder builder(URI uri, KeyStoreConfig keystore, Sender sender) {
@@ -69,12 +70,16 @@ public class ClientConfiguration {
             this.target = new ClientConfiguration(signatureServiceRoot, keyStoreConfig, sender);
         }
 
-        public Builder trustStore(Certificates certificates) {
-            if (certificates == Certificates.TEST_AND_PRODUCTION) {
+        public Builder trustStore(Certificates... certificates) {
+            if (asList(certificates).contains(Certificates.TEST)) {
                 log.warn("Using test certificates in trust store. This should never be done for production environments.");
             }
 
-            this.target.certificateFolderPaths = certificates.certificateFolderPaths;
+            List<String> certificatePaths = new ArrayList<>();
+            for (Certificates certificate : certificates) {
+                certificatePaths.addAll(certificate.certificatePaths);
+            }
+            this.target.certificatePaths = certificatePaths;
             return this;
         }
 
@@ -84,7 +89,7 @@ public class ClientConfiguration {
          * @see java.security.cert.CertificateFactory#generateCertificate(InputStream)
          */
         public Builder trustStore(String... certificatePath) {
-            this.target.certificateFolderPaths = asList(certificatePath);
+            this.target.certificatePaths = asList(certificatePath);
             return this;
         }
 
@@ -96,13 +101,25 @@ public class ClientConfiguration {
 
 
     public enum Certificates {
-        TEST_AND_PRODUCTION("classpath:/no/digipost/signature/client/certificates/prod", "classpath:/no/digipost/signature/client/certificates/test"),
-        PRODUCTION("classpath:/no/digipost/signature/client/certificates/prod");
 
-        private final List<String> certificateFolderPaths;
+        TEST(asList(
+                "classpath:certificates/test/Buypass_Class_3_Test4_CA_3.cer",
+                "classpath:certificates/test/Buypass_Class_3_Test4_Root_CA.cer",
+                "classpath:certificates/test/commfides_test_ca.cer",
+                "classpath:certificates/test/commfides_test_root_ca.cer",
+                "classpath:certificates/test/digipost_test_root_ca.pem"
+        )),
+        PRODUCTION(asList(
+               "classpath:certificates/prod/BPClass3CA3.cer",
+               "classpath:certificates/prod/BPClass3RootCA.cer",
+               "classpath:certificates/prod/commfides_ca.cer",
+               "classpath:certificates/prod/commfides_root_ca.cer"
+        ));
 
-        Certificates(String... certificateFolderPaths) {
-            this.certificateFolderPaths = asList(certificateFolderPaths);
+        private final List<String> certificatePaths;
+
+        Certificates(List<String> certificatePaths) {
+            this.certificatePaths = certificatePaths;
         }
     }
 }
