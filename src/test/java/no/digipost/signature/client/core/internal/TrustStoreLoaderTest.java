@@ -28,7 +28,7 @@ import static junit.framework.TestCase.assertEquals;
 import static no.digipost.signature.client.ClientConfiguration.Certificates.PRODUCTION;
 import static no.digipost.signature.client.ClientConfiguration.Certificates.TEST;
 
-public class TrustStoreBuilderTest {
+public class TrustStoreLoaderTest {
 
     private ClientConfiguration.Builder configBuilder;
 
@@ -39,7 +39,7 @@ public class TrustStoreBuilderTest {
 
     @Test
     public void loads_productions_certificates_by_default() throws KeyStoreException {
-        KeyStore keyStore = TrustStoreBuilder.build(configBuilder.build());
+        KeyStore keyStore = TrustStoreLoader.build(configBuilder.build());
 
         assertEquals(4, keyStore.size());
         assertEquals("Trust store should contain bp root ca", true, keyStore.containsAlias("bpclass3rootca.cer"));
@@ -48,7 +48,7 @@ public class TrustStoreBuilderTest {
     @Test
     public void loads_productions_certificates() throws KeyStoreException {
         ClientConfiguration config = configBuilder.trustStore(PRODUCTION).build();
-        KeyStore keyStore = TrustStoreBuilder.build(config);
+        KeyStore keyStore = TrustStoreLoader.build(config);
 
         assertEquals(4, keyStore.size());
         assertEquals("Trust store should contain bp root ca", true, keyStore.containsAlias("bpclass3rootca.cer"));
@@ -58,7 +58,7 @@ public class TrustStoreBuilderTest {
     @Test
     public void loads_test_and_production_certificates() throws KeyStoreException {
         ClientConfiguration config = configBuilder.trustStore(PRODUCTION, TEST).build();
-        KeyStore keyStore = TrustStoreBuilder.build(config);
+        KeyStore keyStore = TrustStoreLoader.build(config);
 
         assertEquals(9, keyStore.size());
         assertEquals("Trust store should contain buypass root ca", true, keyStore.containsAlias("bpclass3rootca.cer"));
@@ -68,7 +68,7 @@ public class TrustStoreBuilderTest {
     @Test
     public void loads_certificates_from_file_location() throws KeyStoreException {
         ClientConfiguration config = configBuilder.trustStore("./src/test/files/certificateTest").build();
-        KeyStore keyStore = TrustStoreBuilder.build(config);
+        KeyStore keyStore = TrustStoreLoader.build(config);
 
         assertEquals(1, keyStore.size());
     }

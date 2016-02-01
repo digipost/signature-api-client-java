@@ -33,7 +33,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-public class TrustStoreBuilder {
+public class TrustStoreLoader {
 
     public static KeyStore build(ClientConfiguration config) {
         try {
@@ -89,7 +89,7 @@ public class TrustStoreBuilder {
         }
 
         public void forEachFile(ForFile forEachFile) throws IOException {
-            URL contentsUrl = TrustStoreBuilder.class.getResource(certificatePath);
+            URL contentsUrl = TrustStoreLoader.class.getResource(certificatePath);
 
             try (InputStream inputStream = contentsUrl.openStream()){
                 forEachFile.call(new File(contentsUrl.getFile()).getName(), inputStream);
