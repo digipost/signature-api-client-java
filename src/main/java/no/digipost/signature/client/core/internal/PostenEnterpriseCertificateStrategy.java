@@ -28,12 +28,12 @@ class PostenEnterpriseCertificateStrategy implements TrustStrategy {
     /**
      * Used by some obscure cases to embed Norwegian "organisasjonsnummer" in certificates.
      */
-    private static final String CN_PATTERN = "CN=" + POSTEN_ORGANIZATION_NUMBER;
+    private static final String COMMON_NAME_POSTEN = "CN=" + POSTEN_ORGANIZATION_NUMBER;
 
     /**
      * Most common way to embed Norwegian "organisasjonsnummer" in certificates.
      */
-    private static final String SERIALNUMBER_PATTERN = "SERIALNUMBER=" + POSTEN_ORGANIZATION_NUMBER;
+    private static final String SERIALNUMBER_POSTEN = "SERIALNUMBER=" + POSTEN_ORGANIZATION_NUMBER;
 
 
     @Override
@@ -52,7 +52,7 @@ class PostenEnterpriseCertificateStrategy implements TrustStrategy {
     public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         String subjectDN = chain[0].getSubjectDN().getName();
 
-        if (isPostenEnterpriseCertiticate(subjectDN)) {
+        if (!isPostenEnterpriseCertiticate(subjectDN)) {
             throw new SecurityException("Could not find correct organization number in server certificate. Make sure the server URI is correct.\n" +
                     "Actual certificate: " + subjectDN + ".\n " +
                     "This could indicate a misconfiguration of the client or server, or potentially a man-in-the-middle attack.");
@@ -63,7 +63,8 @@ class PostenEnterpriseCertificateStrategy implements TrustStrategy {
 
     private boolean isPostenEnterpriseCertiticate(String subjectDN) {
         String lowerCaseSubjectDN = subjectDN.toLowerCase();
-        return !lowerCaseSubjectDN.contains(SERIALNUMBER_PATTERN.toLowerCase()) && !lowerCaseSubjectDN.contains(CN_PATTERN);
+        return lowerCaseSubjectDN.contains(SERIALNUMBER_POSTEN.toLowerCase()) ||
+                lowerCaseSubjectDN.contains(COMMON_NAME_POSTEN.toLowerCase());
     }
 
 }
