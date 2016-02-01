@@ -111,9 +111,9 @@ public class ClientHelper {
     }
 
     public void cancel(final Cancellable cancellable) {
-        call(new Function() {
+        call(new Runnable() {
             @Override
-            void call() {
+            public void run() {
                 if (cancellable.getCancellationUrl() != null) {
                     String url = cancellable.getCancellationUrl().getUrl();
                     Response response = postEmptyEntity(url);
@@ -154,9 +154,9 @@ public class ClientHelper {
     }
 
     public void confirm(final Confirmable confirmable) {
-        call(new Function() {
+        call(new Runnable() {
             @Override
-            void call() {
+            public void run() {
                 if (confirmable.getConfirmationReference() != null) {
                     String url = confirmable.getConfirmationReference().getConfirmationUrl();
                     LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
@@ -180,11 +180,11 @@ public class ClientHelper {
         }
     }
 
-    private void call(final Function function) {
+    private void call(final Runnable function) {
         call(new Producer<Void>() {
             @Override
             Void call() {
-                function.call();
+                function.run();
                 return null;
             }
         });
@@ -192,10 +192,6 @@ public class ClientHelper {
 
     private abstract class Producer<T> {
         abstract T call();
-    }
-
-    private abstract class Function {
-        abstract void call();
     }
 
     private class UsingBodyParts {
