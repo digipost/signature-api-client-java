@@ -15,8 +15,8 @@
  */
 package no.digipost.signature.client.core.internal;
 
+import no.digipost.signature.client.ClientConfiguration;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.ssl.SSLContexts;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -32,10 +32,6 @@ import java.security.UnrecoverableKeyException;
 
 public class SignatureHttpClient {
 
-    // TODO (EHH): Initialisere denne "automatisk" fra crt-fil istedenfor å ha en keystore liggende i repoet (den inneholder bare public del, men kjedelig med et dummy passord her likevel)
-    public static final KeyStoreConfig CLIENT_TRUSTSTORE =
-            KeyStoreConfig.fromKeyStore(SignatureHttpClient.class.getResourceAsStream("/truststore.jce"), "root", "Qwer1234", null);
-
     /**
      * Socket timeout is used for both requests and, if any,
      * underlying layered sockets (typically for
@@ -47,7 +43,7 @@ public class SignatureHttpClient {
      */
     public static final int CONNECT_TIMEOUT_MS = 10_000;
 
-    public static Client create(KeyStoreConfig keyStoreConfig) {
+    public static Client create(ClientConfiguration keyStoreConfig) {
         try {
             SSLContext sslcontext = createSSLContext(keyStoreConfig);
 
@@ -61,10 +57,10 @@ public class SignatureHttpClient {
         }
     }
 
-    private static SSLContext createSSLContext(final KeyStoreConfig keyStoreConfig) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+    private static SSLContext createSSLContext(final ClientConfiguration config) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         return SSLContexts.custom()
-                .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray())
-                .loadTrustMaterial(CLIENT_TRUSTSTORE.keyStore, new TrustSelfSignedStrategy())
+                .loadKeyMaterial(config.getKeyStoreConfig().keyStore, config.getKeyStoreConfig().keystorePassword.toCharArray())
+                .loadTrustMaterial(TrustStoreBuilder.build(config), new PostenEnterpriseCertificateStrategy())
                 .build();
     }
 

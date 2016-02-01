@@ -61,7 +61,7 @@ public class ClientHelper {
         portalSignatureJobsPath = format("/%s/portal/signature-jobs", clientConfiguration.getSender().getOrganizationNumber());
         directSignatureJobsPath = format("/%s/direct/signature-jobs", clientConfiguration.getSender().getOrganizationNumber());
 
-        httpClient = SignatureHttpClient.create(clientConfiguration.getKeyStoreConfig());
+        httpClient = SignatureHttpClient.create(clientConfiguration);
         target = httpClient.target(clientConfiguration.getSignatureServiceRoot());
         clientExceptionMapper = new ClientExceptionMapper();
     }
@@ -244,6 +244,10 @@ public class ClientHelper {
         } catch (Exception e) {
             return new UnexpectedResponseException(null, e, status, OK);
         }
+        if (error == null) {
+            return new UnexpectedResponseException(null, status, OK);
+        }
+
         if (BROKER_NOT_AUTHORIZED.sameAs(error.getErrorCode())) {
             return new BrokerNotAuthorizedException(error);
         }
