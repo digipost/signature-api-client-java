@@ -56,12 +56,12 @@ public class TrustStoreLoaderTest {
     }
 
     @Test
-    public void loads_test_and_production_certificates() throws KeyStoreException {
-        ClientConfiguration config = configBuilder.trustStore(PRODUCTION, TEST).build();
+    public void loads_test_certificates() throws KeyStoreException {
+        ClientConfiguration config = configBuilder.trustStore(TEST).build();
         KeyStore keyStore = TrustStoreLoader.build(config);
 
-        assertEquals(9, keyStore.size());
-        assertEquals("Trust store should contain buypass root ca", true, keyStore.containsAlias("bpclass3rootca.cer"));
+        assertEquals(5, keyStore.size());
+        assertEquals("Trust store should not buypass root ca", false, keyStore.containsAlias("bpclass3rootca.cer"));
         assertEquals("Trust store should contain buypass test root ca", true, keyStore.containsAlias("buypass_class_3_test4_root_ca.cer"));
     }
 

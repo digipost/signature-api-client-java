@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static no.digipost.signature.client.ClientConfiguration.Certificates.TEST;
 
 public class ClientConfiguration {
 
@@ -85,16 +85,12 @@ public class ClientConfiguration {
             return this;
         }
 
-        public Builder trustStore(Certificates... certificates) {
-            if (asList(certificates).contains(Certificates.TEST)) {
+        public Builder trustStore(Certificates certificates) {
+            if (certificates.equals(TEST)) {
                 log.warn("Using test certificates in trust store. This should never be done for production environments.");
             }
 
-            List<String> certificatePaths = new ArrayList<>();
-            for (Certificates certificate : certificates) {
-                certificatePaths.addAll(certificate.certificatePaths);
-            }
-            this.target.certificatePaths = certificatePaths;
+            this.target.certificatePaths = certificates.certificatePaths;
             return this;
         }
 
