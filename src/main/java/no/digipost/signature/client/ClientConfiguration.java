@@ -29,15 +29,14 @@ import static java.util.Arrays.asList;
 
 public class ClientConfiguration {
 
-    private URI signatureServiceRoot;
     private KeyStoreConfig keyStoreConfig;
     private Sender sender;
+    private URI signatureServiceRoot = ServiceUri.PRODUCTION.uri;
     private List<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
 
     private static final Logger log = LoggerFactory.getLogger(ClientConfiguration.class);
 
-    private ClientConfiguration(URI signatureServiceRoot, KeyStoreConfig keyStoreConfig, Sender sender) {
-        this.signatureServiceRoot = signatureServiceRoot;
+    private ClientConfiguration(KeyStoreConfig keyStoreConfig, Sender sender) {
         this.keyStoreConfig = keyStoreConfig;
         this.sender = sender;
     }
@@ -58,16 +57,32 @@ public class ClientConfiguration {
         return certificatePaths;
     }
 
-    public static Builder builder(URI uri, KeyStoreConfig keystore, Sender sender) {
-        return new Builder(uri, keystore, sender);
+    public static Builder builder(KeyStoreConfig keystore, Sender sender) {
+        return new Builder(keystore, sender);
     }
 
     public static class Builder {
 
         private final ClientConfiguration target;
 
-        private Builder(URI signatureServiceRoot, KeyStoreConfig keyStoreConfig, Sender sender) {
-            this.target = new ClientConfiguration(signatureServiceRoot, keyStoreConfig, sender);
+        private Builder(KeyStoreConfig keyStoreConfig, Sender sender) {
+            this.target = new ClientConfiguration(keyStoreConfig, sender);
+        }
+
+        /**
+         * Set the service URI to one of the predefined environments.
+         */
+        public Builder serviceUri(ServiceUri environment) {
+            this.target.signatureServiceRoot = environment.uri;
+            return this;
+        }
+
+        /**
+         * Override the service endpoint URI to a custom environment.
+         */
+        public Builder serviceUri(URI uri) {
+            this.target.signatureServiceRoot = uri;
+            return this;
         }
 
         public Builder trustStore(Certificates... certificates) {
@@ -122,4 +137,17 @@ public class ClientConfiguration {
             this.certificatePaths = certificatePaths;
         }
     }
+
+    public enum ServiceUri {
+        PRODUCTION(URI.create("https://api.signering.posten.no/api")),
+        DIFI_QA(URI.create("https://api.difiqa.signering.posten.no/api")),
+        DIFI_TEST(URI.create("https://api.difitest.signering.posten.no/api"));
+
+        private final URI uri;
+
+        ServiceUri(URI uri) {
+            this.uri = uri;
+        }
+    }
+
 }
