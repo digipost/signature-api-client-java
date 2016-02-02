@@ -59,7 +59,7 @@ public class SignatureHttpClient {
 
     private static SSLContext createSSLContext(final ClientConfiguration config) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         return SSLContexts.custom()
-                .loadKeyMaterial(config.getKeyStoreConfig().keyStore, config.getKeyStoreConfig().keystorePassword.toCharArray())
+                .loadKeyMaterial(config.getKeyStoreConfig().keyStore, config.getKeyStoreConfig().privatekeyPassword.toCharArray())
                 .loadTrustMaterial(TrustStoreLoader.build(config), new PostenEnterpriseCertificateStrategy())
                 .build();
     }
