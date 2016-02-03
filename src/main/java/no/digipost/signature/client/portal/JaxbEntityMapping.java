@@ -33,6 +33,7 @@ final class JaxbEntityMapping {
                 .withReference(job.getReference())
                 .withSigners(xmlSigners)
                 .withActivationTime(job.getActivationTime())
+                .withExpirationTime(job.getExpirationTime())
                 .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()));
     }
 

@@ -29,6 +29,7 @@ public class PortalJob {
     private List<Signer> signers;
     private Document document;
     private Date activationTime;
+    private Date expirationTime;
 
 
     private PortalJob(List<Signer> signers, Document document) {
@@ -50,6 +51,10 @@ public class PortalJob {
 
     public Date getActivationTime() {
         return activationTime;
+    }
+
+    public Date getExpirationTime() {
+        return expirationTime;
     }
 
 
@@ -81,6 +86,11 @@ public class PortalJob {
 
         public Builder withActivationTime(Date activationTime) {
             target.activationTime = activationTime;
+            return this;
+        }
+
+        public Builder withExpirationTime(Date expirationTime) {
+            target.expirationTime = expirationTime;
             return this;
         }
 
