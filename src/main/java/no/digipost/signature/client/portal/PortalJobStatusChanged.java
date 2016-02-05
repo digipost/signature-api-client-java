@@ -83,6 +83,10 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
         return this.status == status;
     }
 
+    public boolean isPAdESAvailable() {
+        return pAdESReference != null;
+    }
+
     public PAdESReference getpAdESUrl() {
         return pAdESReference;
     }

@@ -26,4 +26,13 @@ public class Signer {
     public String getPersonalIdentificationNumber() {
         return personalIdentificationNumber;
     }
+
+    @Override
+    public String toString() {
+        return mask(personalIdentificationNumber);
+    }
+
+    static String mask(String personalIdentificationNumber) {
+        return personalIdentificationNumber.substring(0, 6) + "*****";
+    }
 }

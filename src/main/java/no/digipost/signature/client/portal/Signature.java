@@ -30,6 +30,10 @@ public class Signature {
         this.xAdESReference = xAdESReference;
     }
 
+    public boolean is(SignatureStatus status) {
+        return this.status == status;
+    }
+
     public Signer getSigner() {
         return signer;
     }
@@ -40,5 +44,10 @@ public class Signature {
 
     public XAdESReference getxAdESUrl() {
         return xAdESReference;
+    }
+
+    @Override
+    public String toString() {
+        return "Signature from " + signer + " with status '" + status + "'" + (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
     }
 }
