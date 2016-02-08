@@ -17,18 +17,19 @@ package no.digipost.signature.client.portal;
 
 import no.digipost.signature.api.xml.XMLPortalSignatureJobRequest;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
+import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signature.client.ClientConfiguration;
+import no.digipost.signature.client.asice.CreateASiCE;
 import no.digipost.signature.client.asice.DocumentBundle;
+import no.digipost.signature.client.asice.manifest.CreatePortalManifest;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.ClientHelper;
-import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 
 import java.io.InputStream;
 
-import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
 import static no.digipost.signature.client.portal.PortalJobStatusChanged.NO_UPDATED_STATUS;
@@ -36,17 +37,17 @@ import static no.digipost.signature.client.portal.PortalJobStatusChanged.NO_UPDA
 public class PortalClient {
 
     private final ClientHelper client;
-    private final ClientConfiguration clientConfiguration;
+    private final CreateASiCE<PortalJob> aSiCECreator;
 
     public PortalClient(ClientConfiguration clientConfiguration) {
-        this.clientConfiguration = clientConfiguration;
         this.client = new ClientHelper(clientConfiguration);
+        this.aSiCECreator = new CreateASiCE<>(new CreatePortalManifest(), clientConfiguration);
     }
 
 
     public PortalJobResponse create(PortalJob job) {
-        DocumentBundle documentBundle = createASiCE(job.getDocument(), job.getSigners(), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig());
-        XMLPortalSignatureJobRequest signatureJobRequest = toJaxb(job, clientConfiguration.getSender());
+        DocumentBundle documentBundle = aSiCECreator.createASiCE(job);
+        XMLPortalSignatureJobRequest signatureJobRequest = toJaxb(job);
 
         XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse = client.sendPortalSignatureJobRequest(signatureJobRequest, documentBundle);
         return fromJaxb(xmlPortalSignatureJobResponse);

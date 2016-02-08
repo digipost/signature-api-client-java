@@ -15,31 +15,40 @@
  */
 package no.digipost.signature.client.asice;
 
+import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.archive.Archive;
 import no.digipost.signature.client.asice.archive.CreateZip;
-import no.digipost.signature.client.asice.manifest.CreateManifest;
 import no.digipost.signature.client.asice.manifest.Manifest;
+import no.digipost.signature.client.asice.manifest.ManifestCreator;
 import no.digipost.signature.client.asice.signature.CreateSignature;
 import no.digipost.signature.client.asice.signature.Signature;
-import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.Signer;
+import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.internal.KeyStoreConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CreateASiCE {
+public class CreateASiCE<JOB extends SignatureJob> {
 
-    private static final CreateZip createZip = new CreateZip();
-    private static final CreateManifest createManifest = new CreateManifest();
-    private static final CreateSignature createSignature = new CreateSignature();
+    private final CreateZip createZip = new CreateZip();
+    private final CreateSignature createSignature = new CreateSignature();
 
-    public static DocumentBundle createASiCE(final Document document, List<Signer> signers, Sender sender, final KeyStoreConfig keyStoreConfig) {
-        Manifest manifest = createManifest.createManifest(document, signers, sender);
+    private final ManifestCreator<JOB> manifestCreator;
+    private final Sender sender;
+    private final KeyStoreConfig keyStoreConfig;
+
+    public CreateASiCE(ManifestCreator<JOB> manifestCreator, ClientConfiguration clientConfiguration) {
+        this.manifestCreator = manifestCreator;
+        this.sender = clientConfiguration.getSender();
+        this.keyStoreConfig = clientConfiguration.getKeyStoreConfig();
+    }
+
+    public DocumentBundle createASiCE(JOB job) {
+        Manifest manifest = manifestCreator.createManifest(job, sender);
 
         List<ASiCEAttachable> files = new ArrayList<>();
-        files.add(document);
+        files.add(job.getDocument());
         files.add(manifest);
 
         Signature signature = createSignature.createSignature(files, keyStoreConfig);

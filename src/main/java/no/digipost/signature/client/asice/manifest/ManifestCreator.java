@@ -15,10 +15,8 @@
  */
 package no.digipost.signature.client.asice.manifest;
 
-import no.digipost.signature.api.xml.*;
-import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.Signer;
+import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.XmlValidationException;
 import no.digipost.signature.client.core.internal.Marshalling;
@@ -27,33 +25,18 @@ import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.transform.stream.StreamResult;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 
-public class CreateManifest {
+public abstract class ManifestCreator<JOB extends SignatureJob> {
 
     private static final Jaxb2Marshaller marshaller = Marshalling.instance();
 
-    public Manifest createManifest(Document document, List<Signer> signers, Sender sender) {
-        XMLSigners xmlSigners = new XMLSigners();
-        for (Signer signer : signers) {
-            xmlSigners.getSigners().add(new XMLSigner().withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber()));
-        }
-
-        XMLManifest manifest = new XMLManifest()
-                .withSigners(xmlSigners)
-                .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()))
-                .withDocument(new XMLDocument()
-                        .withTitle(document.getSubject())
-                        .withDescription(document.getMessage())
-                        .withHref(document.getFileName())
-                        .withMime(document.getMimeType())
-                );
+    public Manifest createManifest(JOB job, Sender sender) {
+        Object xmlManifest = buildXmlManifest(job, sender);
 
         try (ByteArrayOutputStream manifestStream = new ByteArrayOutputStream()) {
-            marshaller.marshal(manifest, new StreamResult(manifestStream));
+            marshaller.marshal(xmlManifest, new StreamResult(manifestStream));
             return new Manifest(manifestStream.toByteArray());
         } catch (MarshallingFailureException e) {
             if (e.getMostSpecificCause() instanceof SAXParseException) {
@@ -64,4 +47,8 @@ public class CreateManifest {
             throw new RuntimeIOException(e);
         }
     }
+
+    abstract Object buildXmlManifest(JOB job, Sender sender);
+
+
 }

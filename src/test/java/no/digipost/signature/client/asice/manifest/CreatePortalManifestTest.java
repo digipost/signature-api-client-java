@@ -18,21 +18,28 @@ package no.digipost.signature.client.asice.manifest;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.Signer;
+import no.digipost.signature.client.portal.PortalJob;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Date;
 
 import static org.junit.Assert.fail;
 
-public class CreateManifestTest {
+public class CreatePortalManifestTest {
 
     @Test
     public void accept_valid_manifest() {
-        CreateManifest createManifest = new CreateManifest();
+        CreatePortalManifest createManifest = new CreatePortalManifest();
 
         Document document = Document.builder("Subject", "Message", "file.txt", "hello".getBytes()).build();
+
+        PortalJob job = PortalJob.builder(document, Collections.singletonList(new Signer("12345678910")))
+                .withActivationTime(new Date())
+                .withExpirationTime(new Date())
+                .build();
         try {
-            createManifest.createManifest(document, Collections.singletonList(new Signer("12345678910")), new Sender("123456789"));
+            createManifest.createManifest(job, new Sender("123456789"));
         } catch (Exception e) {
             fail("Expected no exception, got: " + e.getMessage());
         }

@@ -16,11 +16,12 @@
 package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.Signer;
 
 import java.util.UUID;
 
-public class DirectJob {
+public class DirectJob implements SignatureJob {
 
     private String reference;
     private Signer signer;
@@ -45,6 +46,7 @@ public class DirectJob {
         return signer;
     }
 
+    @Override
     public Document getDocument() {
         return document;
     }

@@ -16,6 +16,7 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.Signer;
 
 import java.util.*;
@@ -23,7 +24,7 @@ import java.util.*;
 import static java.util.Collections.unmodifiableList;
 
 
-public class PortalJob {
+public class PortalJob implements SignatureJob {
 
     private String reference;
     private List<Signer> signers;
@@ -45,6 +46,7 @@ public class PortalJob {
         return signers;
     }
 
+    @Override
     public Document getDocument() {
         return document;
     }

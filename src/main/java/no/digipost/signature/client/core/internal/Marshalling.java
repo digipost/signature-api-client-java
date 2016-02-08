@@ -28,9 +28,11 @@ public class Marshalling {
     private static final class Jaxb2MarshallerHolder {
         private static Jaxb2Marshaller instance; static {
             instance = new Jaxb2Marshaller();
-            instance.setClassesToBeBound(XMLManifest.class, XMLDirectSignatureJobRequest.class, XMLDirectSignatureJobResponse.class, XMLDirectSignatureJobStatusResponse.class,
-                    XMLPortalSignatureJobRequest.class, XMLPortalSignatureJobResponse.class, QualifyingProperties.class, XAdESSignatures.class, XMLPortalSignatureJobStatusChangeResponse.class,
-                    XMLError.class);
+            instance.setClassesToBeBound(
+                    XMLDirectSignatureJobManifest.class, XMLDirectSignatureJobRequest.class, XMLDirectSignatureJobResponse.class, XMLDirectSignatureJobStatusResponse.class,
+                    XMLPortalSignatureJobManifest.class, XMLPortalSignatureJobRequest.class, XMLPortalSignatureJobResponse.class, XMLPortalSignatureJobStatusChangeResponse.class,
+                    XMLError.class,
+                    QualifyingProperties.class, XAdESSignatures.class);
             instance.setSchemas(Schemas.allSchemaResources());
             try {
                 instance.afterPropertiesSet();

@@ -15,10 +15,17 @@
  */
 package no.digipost.signature.client.asice;
 
+import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.TestKonfigurasjon;
+import no.digipost.signature.client.asice.manifest.CreateDirectManifest;
+import no.digipost.signature.client.asice.manifest.CreatePortalManifest;
+import no.digipost.signature.client.asice.manifest.ManifestCreator;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.Signer;
+import no.digipost.signature.client.direct.DirectJob;
+import no.digipost.signature.client.portal.PortalJob;
 import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -27,24 +34,42 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collections;
-
-import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
+import java.util.Date;
 
 public class CreateASiCETest {
 
+    public static final Document DOCUMENT = Document.builder("Subject", "Message", "file.txt", "hello".getBytes())
+            .fileType(Document.FileType.TXT)
+            .build();
+
+    public static final ClientConfiguration CLIENT_CONFIGURATION = ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE, new Sender("123456789")).build();
+
     @Test
     @Ignore("Writes files to disk. Can be useful for debugging")
-    public void create_asice_and_write_to_disk() throws IOException {
+    public void create_direct_asice_and_write_to_disk() throws IOException {
+        DirectJob job = DirectJob.builder(new Signer("12345678910"), DOCUMENT, "https://completion.org", "https://cancellation.org", "https://error.org").build();
 
-        Document document = Document.builder("Subject", "Message", "file.txt", "hello".getBytes())
-                .fileType(Document.FileType.TXT)
+        create_document_bundle_and_write_to_disk(new CreateDirectManifest(), job);
+    }
+
+    @Test
+    @Ignore("Writes files to disk. Can be useful for debugging")
+    public void create_portal_asice_and_write_to_disk() throws IOException {
+        PortalJob job = PortalJob.builder(DOCUMENT, new Signer("12345678910"))
+                .withActivationTime(new Date())
+                .withExpirationTime(new Date())
                 .build();
-        DocumentBundle aSiCE = createASiCE(document, Collections.singletonList(new Signer("12345678910")), new Sender("123456789"), TestKonfigurasjon.CLIENT_KEYSTORE);
 
-        File tempFile = File.createTempFile("test", ".zip");
+        create_document_bundle_and_write_to_disk(new CreatePortalManifest(), job);
+    }
+
+    private <JOB extends SignatureJob> void create_document_bundle_and_write_to_disk(ManifestCreator<JOB> manifestCreator, JOB job) throws IOException {
+        CreateASiCE<JOB> aSiCECreator = new CreateASiCE<>(manifestCreator, CLIENT_CONFIGURATION);
+        DocumentBundle aSiCE = aSiCECreator.createASiCE(job);
+
+        File tempFile = File.createTempFile("asice", ".zip");
         IOUtils.copy(new ByteArrayInputStream(aSiCE.getBytes()), new FileOutputStream(tempFile));
-        System.out.println("Skrev zip-fil til " + tempFile.getAbsolutePath());
+        System.out.println("Wrote document bundle to " + tempFile.getAbsolutePath());
     }
 
 }

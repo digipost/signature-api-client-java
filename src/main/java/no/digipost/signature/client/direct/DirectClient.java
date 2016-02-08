@@ -15,36 +15,36 @@
  */
 package no.digipost.signature.client.direct;
 
+import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
+import no.digipost.signature.api.xml.XMLDirectSignatureJobResponse;
+import no.digipost.signature.api.xml.XMLDirectSignatureJobStatusResponse;
 import no.digipost.signature.client.ClientConfiguration;
+import no.digipost.signature.client.asice.CreateASiCE;
 import no.digipost.signature.client.asice.DocumentBundle;
+import no.digipost.signature.client.asice.manifest.CreateDirectManifest;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
-import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
-import no.digipost.signature.api.xml.XMLDirectSignatureJobResponse;
-import no.digipost.signature.api.xml.XMLDirectSignatureJobStatusResponse;
 
 import java.io.InputStream;
 
-import static java.util.Collections.singletonList;
-import static no.digipost.signature.client.asice.CreateASiCE.createASiCE;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.toJaxb;
 
 public class DirectClient {
 
-    private final ClientConfiguration clientConfiguration;
     private final ClientHelper client;
+    private final CreateASiCE<DirectJob> aSiCECreator;
 
     public DirectClient(ClientConfiguration clientConfiguration) {
-        this.clientConfiguration = clientConfiguration;
         this.client = new ClientHelper(clientConfiguration);
+        this.aSiCECreator = new CreateASiCE<>(new CreateDirectManifest(), clientConfiguration);
     }
 
     public DirectJobResponse create(DirectJob signatureJob) {
-        DocumentBundle documentBundle = createASiCE(signatureJob.getDocument(), singletonList(signatureJob.getSigner()), clientConfiguration.getSender(), clientConfiguration.getKeyStoreConfig());
-        XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(signatureJob, clientConfiguration.getSender());
+        DocumentBundle documentBundle = aSiCECreator.createASiCE(signatureJob);
+        XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(signatureJob);
 
         XMLDirectSignatureJobResponse xmlSignatureJobResponse = client.sendSignatureJobRequest(signatureJobRequest, documentBundle);
         return fromJaxb(xmlSignatureJobResponse);

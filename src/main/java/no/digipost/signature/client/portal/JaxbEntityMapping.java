@@ -23,18 +23,9 @@ import java.util.List;
 
 final class JaxbEntityMapping {
 
-    static XMLPortalSignatureJobRequest toJaxb(PortalJob job, Sender sender) {
-        XMLSigners xmlSigners = new XMLSigners();
-        for (Signer signer : job.getSigners()) {
-            xmlSigners.getSigners().add(new XMLSigner().withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber()));
-        }
-
+    static XMLPortalSignatureJobRequest toJaxb(PortalJob job) {
         return new XMLPortalSignatureJobRequest()
-                .withReference(job.getReference())
-                .withSigners(xmlSigners)
-                .withActivationTime(job.getActivationTime())
-                .withExpirationTime(job.getExpirationTime())
-                .withSender(new XMLSender().withOrganization(sender.getOrganizationNumber()));
+                .withReference(job.getReference());
     }
 
     static PortalJobResponse fromJaxb(XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse) {

@@ -21,7 +21,6 @@ import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.xml.transform.stream.StreamResult;
-
 import java.io.ByteArrayOutputStream;
 import java.util.Date;
 
@@ -36,7 +35,7 @@ public class MarshallingTest {
 
     @Test
     public void valid_objects_can_be_marshalled() {
-        XMLSender sender = new XMLSender().withOrganization("123456789");
+        XMLSender sender = new XMLSender().withOrganizationNumber("123456789");
         XMLSigner signer = new XMLSigner().withPersonalIdentificationNumber("12345678910");
         XMLDocument document = new XMLDocument("Subject", "Message", "document.pdf", "application/pdf");
         XMLExitUrls exitUrls = new XMLExitUrls()
@@ -44,27 +43,26 @@ public class MarshallingTest {
                 .withCancellationUrl("http://localhost/canceled")
                 .withErrorUrl("http://localhost/failed");
 
-        XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", signer, sender, exitUrls);
-        XMLManifest manifest = new XMLManifest(new XMLSigners().withSigners(signer), sender, document);
+        XMLDirectSignatureJobRequest directJob = new XMLDirectSignatureJobRequest("123abc", exitUrls);
+        XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(signer, sender, document);
 
-        marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
-        marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));
+        marshaller.marshal(directJob, new StreamResult(new ByteArrayOutputStream()));
+        marshaller.marshal(directManifest, new StreamResult(new ByteArrayOutputStream()));
 
-        XMLPortalSignatureJobRequest portalJob = new XMLPortalSignatureJobRequest("123abc", new XMLSigners().withSigners(signer), sender, null, null);
+        XMLPortalSignatureJobRequest portalJob = new XMLPortalSignatureJobRequest("123abc");
+        XMLPortalSignatureJobManifest portalManifest = new XMLPortalSignatureJobManifest(new XMLSigners().withSigners(signer), sender, document, new XMLAvailability().withActivationTime(new Date()));
         marshaller.marshal(portalJob, new StreamResult(new ByteArrayOutputStream()));
-        marshaller.marshal(portalJob.withActivationTime(new Date()), new StreamResult(new ByteArrayOutputStream()));
+        marshaller.marshal(portalManifest, new StreamResult(new ByteArrayOutputStream()));
     }
 
     @Test
     public void invalid_signature_job_request_causes_exceptions() {
-        XMLSender sender = new XMLSender().withOrganization("123456789");
-        XMLSigner signer = new XMLSigner().withPersonalIdentificationNumber("12345678910");
         XMLExitUrls exitUrls = new XMLExitUrls()
                 .withCompletionUrl(null)
                 .withCancellationUrl("http://localhost/canceled")
                 .withErrorUrl("http://localhost/failed");
 
-        XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", signer, sender, exitUrls);
+        XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", exitUrls);
 
         try {
             marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
@@ -75,14 +73,17 @@ public class MarshallingTest {
     }
 
     @Test
-    public void invalid_manifest_causes_exceptions() {
-        XMLSender sender = new XMLSender().withOrganization("123456789");
+    public void invalid_manifests_causes_exceptions() {
+        XMLSender sender = new XMLSender().withOrganizationNumber("123456789");
         XMLSigner signer = new XMLSigner().withPersonalIdentificationNumber("12345678910");
         XMLDocument document = new XMLDocument("Subject", "Message", null, "application/pdf");
-        XMLManifest manifest = new XMLManifest(new XMLSigners().withSigners(signer), sender, document);
+
+        XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(signer, sender, document);
+        XMLPortalSignatureJobManifest portalManifest = new XMLPortalSignatureJobManifest(new XMLSigners().withSigners(signer), sender, document, null);
 
         try {
-            marshaller.marshal(manifest, new StreamResult(new ByteArrayOutputStream()));
+            marshaller.marshal(directManifest, new StreamResult(new ByteArrayOutputStream()));
+            marshaller.marshal(portalManifest, new StreamResult(new ByteArrayOutputStream()));
             fail("Should have failed with XSD-validation error due to href-attribute on document element being empty.");
         } catch (MarshallingFailureException e) {
             assertThat(e.getMessage(), allOf(containsString("href"), containsString("must appear")));
