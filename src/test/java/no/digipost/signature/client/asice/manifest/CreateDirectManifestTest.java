@@ -29,7 +29,10 @@ public class CreateDirectManifestTest {
     public void accept_valid_manifest() {
         CreateDirectManifest createManifest = new CreateDirectManifest();
 
-        Document document = Document.builder("Subject", "Message", "file.txt", "hello".getBytes()).build();
+        Document document = Document.builder("Subject", "file.txt", "hello".getBytes())
+                .message("Message")
+                .fileType(Document.FileType.TXT)
+                .build();
 
         DirectJob job = DirectJob.builder(new Signer("12345678910"), document, "http://localhost/signed", "http://localhost/canceled", "http://localhost/failed").build();
         try {

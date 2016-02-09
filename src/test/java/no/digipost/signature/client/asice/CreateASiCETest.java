@@ -38,7 +38,8 @@ import java.util.Date;
 
 public class CreateASiCETest {
 
-    public static final Document DOCUMENT = Document.builder("Subject", "Message", "file.txt", "hello".getBytes())
+    public static final Document DOCUMENT = Document.builder("Subject", "file.txt", "hello".getBytes())
+            .message("Message")
             .fileType(Document.FileType.TXT)
             .build();
 

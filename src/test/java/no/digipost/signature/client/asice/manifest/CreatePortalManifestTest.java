@@ -32,7 +32,10 @@ public class CreatePortalManifestTest {
     public void accept_valid_manifest() {
         CreatePortalManifest createManifest = new CreatePortalManifest();
 
-        Document document = Document.builder("Subject", "Message", "file.txt", "hello".getBytes()).build();
+        Document document = Document.builder("Subject", "file.txt", "hello".getBytes())
+                .message("Message")
+                .fileType(Document.FileType.TXT)
+                .build();
 
         PortalJob job = PortalJob.builder(document, Collections.singletonList(new Signer("12345678910")))
                 .withActivationTime(new Date())
