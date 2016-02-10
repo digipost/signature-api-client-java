@@ -16,8 +16,10 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
+import no.digipost.signature.client.core.exceptions.SignatureException;
 
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 import javax.ws.rs.ProcessingException;
 
 class ClientExceptionMapper {
@@ -30,6 +32,15 @@ class ClientExceptionMapper {
                         "Java 7 needs to be explicitly configured to support TLS 1.2. See 'JSSE tuning parameters' at https://blogs.oracle.com/java-platform-group/entry/diagnosing_tls_ssl_and_https.", e);
             }
         }
+
+        if (e.getCause() instanceof SSLHandshakeException) {
+            return new SignatureException("Unable to perform SSL handshake with remote server. Possible causes (could be others, see underlying error): \n" +
+                    "* Erroneous configuration of the trust store\n" +
+                    "* Intermediate network devices interfering with traffic (i.e. proxies)\n" +
+                    "* An attacker impersonating the server (man in the middle)\n" +
+                    "* Wrong TLS version. For Java 7, see 'JSSE tuning parameters' at https://blogs.oracle.com/java-platform-group/entry/diagnosing_tls_ssl_and_https for information about enabling the latest TLS versions", e);
+        }
+
         return e;
     }
 
