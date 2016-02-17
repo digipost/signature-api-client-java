@@ -30,6 +30,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -121,9 +122,10 @@ public class ClientHelper {
                     if (status == OK) {
                         return;
                     } else if (status == CONFLICT) {
-                        throw new JobIsCompletedException();
+                        XMLError error = extractError(response);
+                        throw new JobCannotBeCancelledException(status, error.getErrorCode(), error.getErrorMessage());
                     }
-                    throw handleGeneralError(response, status);
+                    throw exceptionForGeneralError(response);
                 } else {
                     throw new NotCancellableException();
                 }
@@ -147,7 +149,7 @@ public class ClientHelper {
                 } else if (response.getStatus() == 429) {
                     throw new TooEagerPollingException(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER));
                 } else {
-                    throw handleGeneralError(response, status);
+                    throw exceptionForGeneralError(response);
                 }
             }
         });
@@ -163,7 +165,7 @@ public class ClientHelper {
                     Response response = postEmptyEntity(url);
                     Status status = Status.fromStatusCode(response.getStatus());
                     if (status != OK) {
-                        throw handleGeneralError(response, status);
+                        throw exceptionForGeneralError(response);
                     }
                 } else {
                     LOG.info("Does not need to send confirmation for '{}'", confirmable);
@@ -233,24 +235,28 @@ public class ClientHelper {
         if (status == OK) {
             return response.readEntity(responseType);
         } else {
-            throw handleGeneralError(response, status);
+            throw exceptionForGeneralError(response);
         }
     }
 
-    private SignatureException handleGeneralError(Response response, Status status) {
+    private SignatureException exceptionForGeneralError(Response response) {
+        XMLError error = extractError(response);
+        if (BROKER_NOT_AUTHORIZED.sameAs(error.getErrorCode())) {
+            return new BrokerNotAuthorizedException(error);
+        }
+        return new UnexpectedResponseException(error, Status.fromStatusCode(response.getStatus()), OK);
+    }
+
+    private static XMLError extractError(Response response) {
         XMLError error;
         try {
             error = response.readEntity(XMLError.class);
         } catch (Exception e) {
-            return new UnexpectedResponseException(null, e, status, OK);
+            throw new UnexpectedResponseException(null, e, Status.fromStatusCode(response.getStatus()), OK);
         }
         if (error == null) {
-            return new UnexpectedResponseException(null, status, OK);
+            throw new UnexpectedResponseException(null, Status.fromStatusCode(response.getStatus()), OK);
         }
-
-        if (BROKER_NOT_AUTHORIZED.sameAs(error.getErrorCode())) {
-            return new BrokerNotAuthorizedException(error);
-        }
-        return new UnexpectedResponseException(error, status, OK);
+        return error;
     }
 }
