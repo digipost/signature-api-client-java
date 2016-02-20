@@ -15,7 +15,7 @@ Dette klientbiblioteket og APIene er pr. i dag "work in progress", og det vil fo
 
 ### Maven-avhengighet
 
-Klientbiblioteket er releaset til [Maven Central](https://repo1.maven.org/maven2/no/digipost/signature/signature-api-client-java/). For å avhenge av biblioteket, legg til følgende i `pom.xml`:
+Klientbiblioteket er releaset til [![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.digipost.signature/signature-api-client-java/badge.svg)](https://maven-badges.herokuapp.com/maven-central/no.digipost.signature/signature-api-client-java). For å avhenge av biblioteket, legg til følgende i `pom.xml`:
 
 ```xml
 <dependency>
