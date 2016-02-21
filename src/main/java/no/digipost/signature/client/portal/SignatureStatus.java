@@ -22,7 +22,8 @@ public enum SignatureStatus {
     WAITING,
     REJECTED,
     CANCELLED,
-    SIGNED;
+    SIGNED,
+    EXPIRED;
 
     public static SignatureStatus fromXmlType(XMLSignatureStatus xmlSignatureStatus) {
         switch (xmlSignatureStatus) {
@@ -34,6 +35,8 @@ public enum SignatureStatus {
                 return REJECTED;
             case CANCELLED:
                 return CANCELLED;
+            case EXPIRED:
+                return EXPIRED;
             default:
                 throw new IllegalArgumentException("Unexpected status: " + xmlSignatureStatus);
         }
