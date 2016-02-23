@@ -17,7 +17,8 @@ package no.digipost.signature.client.core.internal;
 
 public enum ErrorCodes {
 
-    BROKER_NOT_AUTHORIZED;
+    BROKER_NOT_AUTHORIZED,
+    SIGNING_CEREMONY_NOT_COMPLETED;
 
     public boolean sameAs(String other) {
         return this.name().equals(other);

@@ -43,6 +43,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static javax.ws.rs.core.Response.Status.*;
 import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_AUTHORIZED;
+import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
 
 public class ClientHelper {
 
@@ -97,7 +98,22 @@ public class ClientHelper {
         return call(new Producer<XMLDirectSignatureJobStatusResponse>() {
             @Override
             XMLDirectSignatureJobStatusResponse call() {
-                return parseResponse(httpClient.target(statusUrl).request().get(), XMLDirectSignatureJobStatusResponse.class);
+                Response response = httpClient.target(statusUrl)
+                        .request()
+                        .accept(APPLICATION_XML_TYPE)
+                        .get();
+                Status status = Status.fromStatusCode(response.getStatus());
+                if (status == OK) {
+                    return response.readEntity(XMLDirectSignatureJobStatusResponse.class);
+                } else if (status == NOT_FOUND) {
+                    XMLError error = extractError(response);
+                    if (SIGNING_CEREMONY_NOT_COMPLETED.sameAs(error.getErrorCode())) {
+                        throw new CantQueryStatusException(status, error.getErrorMessage());
+                    }
+                    throw new UnexpectedResponseException(error, Status.fromStatusCode(response.getStatus()), OK);
+                } else {
+                    throw exceptionForGeneralError(response);
+                }
             }
         });
     }

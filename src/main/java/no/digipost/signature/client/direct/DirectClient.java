@@ -70,7 +70,7 @@ public class DirectClient {
     /**
      * Confirms that the status retrieved from {@link #getStatus(StatusReference)} is received.
      * If the confirmed {@link DirectJobStatus} is a terminal status
-     * (e.g. {@link DirectJobStatus#SIGNED signed} or {@link DirectJobStatus#CANCELLED cancelled}),
+     * (e.g. {@link DirectJobStatus#SIGNED signed} or {@link DirectJobStatus#REJECTED rejected}),
      * the Signature service may make the job's associated resources unavailable through the API when
      * receiving the confirmation. Calling this method for a response with no {@link ConfirmationReference}
      * has no effect.

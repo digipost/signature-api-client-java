@@ -20,29 +20,21 @@ import no.digipost.signature.api.xml.XMLDirectSignatureJobStatus;
 public enum DirectJobStatus {
 
     /**
-     * The signature job is created, and the receiver is currently doing the
-     * signing ceremony.
-     */
-    CREATED,
-
-    /**
      * The document(s) of the job has been signed by the receiver.
      */
     SIGNED,
 
     /**
-     * The signature job has been cancelled.
+     * The signature job has been rejected by the receiver.
      */
-    CANCELLED;
+    REJECTED;
 
     public static DirectJobStatus fromXmlType(XMLDirectSignatureJobStatus xmlJobStatus) {
         switch (xmlJobStatus) {
-            case CREATED:
-                return CREATED;
             case SIGNED:
                 return SIGNED;
-            case CANCELLED:
-                return CANCELLED;
+            case REJECTED:
+                return REJECTED;
             default:
                 throw new IllegalArgumentException("Unexpected status: " + xmlJobStatus);
         }
