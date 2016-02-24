@@ -27,14 +27,14 @@ public class DirectJob implements SignatureJob {
     private Signer signer;
     private Document document;
     private String completionUrl;
-    private String cancellationUrl;
+    private String rejectionUrl;
     private String errorUrl;
 
-    private DirectJob(Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
+    private DirectJob(Signer signer, Document document, String completionUrl, String rejectionUrl, String errorUrl) {
         this.signer = signer;
         this.document = document;
         this.completionUrl = completionUrl;
-        this.cancellationUrl = cancellationUrl;
+        this.rejectionUrl = rejectionUrl;
         this.errorUrl = errorUrl;
     }
 
@@ -55,16 +55,16 @@ public class DirectJob implements SignatureJob {
         return completionUrl;
     }
 
-    public String getCancellationUrl() {
-        return cancellationUrl;
+    public String getRejectionUrl() {
+        return rejectionUrl;
     }
 
     public String getErrorUrl() {
         return errorUrl;
     }
 
-    public static Builder builder(Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
-        return new Builder(signer, document, completionUrl, cancellationUrl, errorUrl);
+    public static Builder builder(Signer signer, Document document, String completionUrl, String rejectionUrl, String errorUrl) {
+        return new Builder(signer, document, completionUrl, rejectionUrl, errorUrl);
     }
 
     public static class Builder {
@@ -72,8 +72,8 @@ public class DirectJob implements SignatureJob {
         private final DirectJob target;
         private boolean built = false;
 
-        public Builder(Signer signer, Document document, String completionUrl, String cancellationUrl, String errorUrl) {
-            target = new DirectJob(signer, document, completionUrl, cancellationUrl, errorUrl);
+        public Builder(Signer signer, Document document, String completionUrl, String rejectionUrl, String errorUrl) {
+            target = new DirectJob(signer, document, completionUrl, rejectionUrl, errorUrl);
         }
 
         public Builder withReference(UUID uuid) {

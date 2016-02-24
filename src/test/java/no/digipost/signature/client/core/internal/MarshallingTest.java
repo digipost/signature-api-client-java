@@ -40,7 +40,7 @@ public class MarshallingTest {
         XMLDocument document = new XMLDocument("Subject", "Message", "document.pdf", "application/pdf");
         XMLExitUrls exitUrls = new XMLExitUrls()
                 .withCompletionUrl("http://localhost/signed")
-                .withCancellationUrl("http://localhost/canceled")
+                .withRejectionUrl("http://localhost/rejected")
                 .withErrorUrl("http://localhost/failed");
 
         XMLDirectSignatureJobRequest directJob = new XMLDirectSignatureJobRequest("123abc", exitUrls);
@@ -59,7 +59,7 @@ public class MarshallingTest {
     public void invalid_signature_job_request_causes_exceptions() {
         XMLExitUrls exitUrls = new XMLExitUrls()
                 .withCompletionUrl(null)
-                .withCancellationUrl("http://localhost/canceled")
+                .withRejectionUrl("http://localhost/rejected")
                 .withErrorUrl("http://localhost/failed");
 
         XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", exitUrls);

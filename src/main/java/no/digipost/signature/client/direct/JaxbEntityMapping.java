@@ -30,7 +30,7 @@ final class JaxbEntityMapping {
                 .withReference(signatureJob.getReference())
                 .withExitUrls(new XMLExitUrls()
                         .withCompletionUrl(signatureJob.getCompletionUrl())
-                        .withCancellationUrl(signatureJob.getCancellationUrl())
+                        .withRejectionUrl(signatureJob.getRejectionUrl())
                         .withErrorUrl(signatureJob.getErrorUrl())
                 );
     }
