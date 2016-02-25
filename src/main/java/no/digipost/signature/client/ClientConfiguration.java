@@ -29,6 +29,20 @@ import static no.digipost.signature.client.ClientConfiguration.Certificates.TEST
 
 public class ClientConfiguration {
 
+    /**
+     * Socket timeout is used for both requests and, if any,
+     * underlying layered sockets (typically for
+     * secure sockets). The default value is {@value #DEFAULT_SOCKET_TIMEOUT_MS} ms.
+     */
+    public static final int DEFAULT_SOCKET_TIMEOUT_MS = 10_000;
+
+    /**
+     * The default connect timeout for requests: {@value #DEFAULT_CONNECT_TIMEOUT_MS} ms.
+     */
+    public static final int DEFAULT_CONNECT_TIMEOUT_MS = 10_000;
+
+    private int socketTimeoutMs = DEFAULT_SOCKET_TIMEOUT_MS;
+    private int connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS;
     private KeyStoreConfig keyStoreConfig;
     private Sender sender;
     private URI signatureServiceRoot = ServiceUri.PRODUCTION.uri;
@@ -57,6 +71,14 @@ public class ClientConfiguration {
         return certificatePaths;
     }
 
+    public int getSocketTimeoutMillis() {
+        return socketTimeoutMs;
+    }
+
+    public int getConnectTimeoutMillis() {
+        return connectTimeoutMs;
+    }
+
     public static Builder builder(KeyStoreConfig keystore, Sender sender) {
         return new Builder(keystore, sender);
     }
@@ -82,6 +104,24 @@ public class ClientConfiguration {
          */
         public Builder serviceUri(URI uri) {
             this.target.signatureServiceRoot = uri;
+            return this;
+        }
+
+        /**
+         * Override the
+         * {@link ClientConfiguration#DEFAULT_SOCKET_TIMEOUT_MS default socket timeout value}.
+         */
+        public Builder socketTimeoutMillis(int millis) {
+            this.target.socketTimeoutMs = millis;
+            return this;
+        }
+
+        /**
+         * Override the
+         * {@link ClientConfiguration#DEFAULT_CONNECT_TIMEOUT_MS default connect timeout value}.
+         */
+        public Builder connectTimeoutMillis(int millis) {
+            this.target.connectTimeoutMs = millis;
             return this;
         }
 

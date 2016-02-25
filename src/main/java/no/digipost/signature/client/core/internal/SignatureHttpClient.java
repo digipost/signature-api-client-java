@@ -25,6 +25,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
+
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -32,45 +33,35 @@ import java.security.UnrecoverableKeyException;
 
 public class SignatureHttpClient {
 
-    /**
-     * Socket timeout is used for both requests and, if any,
-     * underlying layered sockets (typically for
-     * secure sockets): {@value #SOCKET_TIMEOUT_MS} ms.
-     */
-    public static final int SOCKET_TIMEOUT_MS = 10_000;
-    /**
-     * The connect timeout for requests: {@value #CONNECT_TIMEOUT_MS} ms.
-     */
-    public static final int CONNECT_TIMEOUT_MS = 10_000;
 
-    public static Client create(ClientConfiguration keyStoreConfig) {
+    public static Client create(ClientConfiguration config) {
         try {
-            SSLContext sslcontext = createSSLContext(keyStoreConfig);
+            SSLContext sslcontext = createSSLContext(config);
 
             return JerseyClientBuilder.newBuilder()
-                    .withConfig(createClientConfig())
+                    .withConfig(createClientConfig(config))
                     .sslContext(sslcontext)
                     .hostnameVerifier(NoopHostnameVerifier.INSTANCE)
                     .build();
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException | UnrecoverableKeyException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getClass().getSimpleName() + ": " + e.getMessage(), e);
         }
     }
 
-    private static SSLContext createSSLContext(final ClientConfiguration config) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+    private static SSLContext createSSLContext(ClientConfiguration config) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         return SSLContexts.custom()
                 .loadKeyMaterial(config.getKeyStoreConfig().keyStore, config.getKeyStoreConfig().privatekeyPassword.toCharArray())
                 .loadTrustMaterial(TrustStoreLoader.build(config), new PostenEnterpriseCertificateStrategy())
                 .build();
     }
 
-    private static ClientConfig createClientConfig() {
-        ClientConfig config = new ClientConfig();
-        config.property(ClientProperties.CONNECT_TIMEOUT, CONNECT_TIMEOUT_MS);
-        config.property(ClientProperties.READ_TIMEOUT, SOCKET_TIMEOUT_MS);
-        config.register(MultiPartFeature.class);
-        config.register(JaxbMessageReaderWriterProvider.class);
-        return config;
+    private static ClientConfig createClientConfig(ClientConfiguration config) {
+        ClientConfig jerseyConfig = new ClientConfig();
+        jerseyConfig.property(ClientProperties.CONNECT_TIMEOUT, config.getConnectTimeoutMillis());
+        jerseyConfig.property(ClientProperties.READ_TIMEOUT, config.getSocketTimeoutMillis());
+        jerseyConfig.register(MultiPartFeature.class);
+        jerseyConfig.register(JaxbMessageReaderWriterProvider.class);
+        return jerseyConfig;
     }
 
 }
