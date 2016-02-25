@@ -54,7 +54,8 @@ class PostenEnterpriseCertificateStrategy implements TrustStrategy {
 
         if (!isPostenEnterpriseCertiticate(subjectDN)) {
             throw new SecurityException("Could not find correct organization number in server certificate. Make sure the server URI is correct.\n" +
-                    "Actual certificate: " + subjectDN + ".\n " +
+                    "Actual certificate: " + subjectDN + ".\n" +
+                    "Expected certificate issued to organization number " + POSTEN_ORGANIZATION_NUMBER + "\n" +
                     "This could indicate a misconfiguration of the client or server, or potentially a man-in-the-middle attack.");
         }
 
