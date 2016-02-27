@@ -16,6 +16,7 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
+import no.digipost.signature.client.core.exceptions.KeyException;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.ssl.PrivateKeyDetails;
 import org.apache.http.ssl.PrivateKeyStrategy;
@@ -56,8 +57,14 @@ public class SignatureHttpClient {
                     .sslContext(sslcontext)
                     .hostnameVerifier(NoopHostnameVerifier.INSTANCE)
                     .build();
-        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException | UnrecoverableKeyException e) {
-            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException e) {
+            if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
+                throw new KeyException("Unable to load key from keystore. Possible causes:\n" +
+                        "* Wrong password for private key (the password for the keystore and the private key may not be the same)\n" +
+                        "* Multiple private keys in the keystore with different passwords (private keys in the same key store must have the same password)", e);
+            } else {
+                throw new KeyException("Unable to load key from keystore", e);
+            }
         }
     }
 
