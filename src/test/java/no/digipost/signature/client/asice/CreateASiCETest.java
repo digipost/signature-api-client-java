@@ -36,6 +36,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 
+import static java.util.concurrent.TimeUnit.DAYS;
+
 public class CreateASiCETest {
 
     public static final Document DOCUMENT = Document.builder("Subject", "file.txt", "hello".getBytes())
@@ -58,7 +60,7 @@ public class CreateASiCETest {
     public void create_portal_asice_and_write_to_disk() throws IOException {
         PortalJob job = PortalJob.builder(DOCUMENT, new Signer("12345678910"))
                 .withActivationTime(new Date())
-                .withExpirationTime(new Date())
+                .availableFor(30, DAYS)
                 .build();
 
         create_document_bundle_and_write_to_disk(new CreatePortalManifest(), job);

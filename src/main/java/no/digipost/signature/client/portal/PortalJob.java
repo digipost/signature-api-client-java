@@ -19,7 +19,9 @@ import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.Signer;
 
+import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.unmodifiableList;
 
@@ -30,7 +32,7 @@ public class PortalJob implements SignatureJob {
     private List<Signer> signers;
     private Document document;
     private Date activationTime;
-    private Date expirationTime;
+    private BigInteger availableSeconds;
 
 
     private PortalJob(List<Signer> signers, Document document) {
@@ -55,8 +57,8 @@ public class PortalJob implements SignatureJob {
         return activationTime;
     }
 
-    public Date getExpirationTime() {
-        return expirationTime;
+    public BigInteger getAvailableSeconds() {
+        return availableSeconds;
     }
 
 
@@ -91,8 +93,8 @@ public class PortalJob implements SignatureJob {
             return this;
         }
 
-        public Builder withExpirationTime(Date expirationTime) {
-            target.expirationTime = expirationTime;
+        public Builder availableFor(long duration, TimeUnit unit) {
+            target.availableSeconds = BigInteger.valueOf(unit.toSeconds(duration));
             return this;
         }
 
