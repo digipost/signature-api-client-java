@@ -15,21 +15,18 @@
  */
 package no.digipost.signature.client.direct;
 
-import javax.ws.rs.core.UriBuilder;
+import org.junit.Test;
 
-public class StatusReference {
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
-    public static final String STATUS_QUERY_TOKEN_PARAM_NAME = "status_query_token";
+public class StatusReferenceTest {
 
-    private final String statusUrl;
-    private final String statusQueryToken;
-
-    public StatusReference(String statusUrl, String statusQueryToken) {
-        this.statusUrl = statusUrl;
-        this.statusQueryToken = statusQueryToken;
-    }
-
-    public String getStatusUrl() {
-        return UriBuilder.fromUri(statusUrl).queryParam(STATUS_QUERY_TOKEN_PARAM_NAME, statusQueryToken).build().toString();
+    @Test
+    public void buildsCorrectUrlWithToken() {
+        String statusUrl = "https://statusqueryservice/status/?job=1337";
+        String token = "abcdefgh";
+        StatusReference statusReference = new StatusReference(statusUrl, token);
+        assertThat(statusReference.getStatusUrl(), is(statusUrl + "&" + StatusReference.STATUS_QUERY_TOKEN_PARAM_NAME + "=" + token));
     }
 }
