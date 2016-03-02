@@ -16,7 +16,10 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
+import no.digipost.signature.client.core.exceptions.KeyException;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.ssl.PrivateKeyDetails;
+import org.apache.http.ssl.PrivateKeyStrategy;
 import org.apache.http.ssl.SSLContexts;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -25,11 +28,12 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
-
+import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+import java.util.Map;
 
 public class SignatureHttpClient {
 
@@ -43,14 +47,25 @@ public class SignatureHttpClient {
                     .sslContext(sslcontext)
                     .hostnameVerifier(NoopHostnameVerifier.INSTANCE)
                     .build();
-        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException | UnrecoverableKeyException e) {
-            throw new RuntimeException(e.getClass().getSimpleName() + ": " + e.getMessage(), e);
+        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException e) {
+            if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
+                throw new KeyException("Unable to load key from keystore. Possible causes:\n" +
+                        "* Wrong password for private key (the password for the keystore and the private key may not be the same)\n" +
+                        "* Multiple private keys in the keystore with different passwords (private keys in the same key store must have the same password)", e);
+            } else {
+                throw new KeyException("Unable to load key from keystore", e);
+            }
         }
     }
 
-    private static SSLContext createSSLContext(ClientConfiguration config) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+    private static SSLContext createSSLContext(final ClientConfiguration config) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         return SSLContexts.custom()
-                .loadKeyMaterial(config.getKeyStoreConfig().keyStore, config.getKeyStoreConfig().privatekeyPassword.toCharArray())
+                .loadKeyMaterial(config.getKeyStoreConfig().keyStore, config.getKeyStoreConfig().privatekeyPassword.toCharArray(), new PrivateKeyStrategy() {
+                    @Override
+                    public String chooseAlias(Map<String, PrivateKeyDetails> aliases, Socket socket) {
+                        return config.getKeyStoreConfig().alias;
+                    }
+                })
                 .loadTrustMaterial(TrustStoreLoader.build(config), new PostenEnterpriseCertificateStrategy())
                 .build();
     }

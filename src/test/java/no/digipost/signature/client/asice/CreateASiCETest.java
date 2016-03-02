@@ -25,6 +25,7 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.Signer;
 import no.digipost.signature.client.direct.DirectJob;
+import no.digipost.signature.client.direct.ExitUrls;
 import no.digipost.signature.client.portal.PortalJob;
 import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
@@ -50,7 +51,7 @@ public class CreateASiCETest {
     @Test
     @Ignore("Writes files to disk. Can be useful for debugging")
     public void create_direct_asice_and_write_to_disk() throws IOException {
-        DirectJob job = DirectJob.builder(new Signer("12345678910"), DOCUMENT, "https://completion.org", "https://cancellation.org", "https://error.org").build();
+        DirectJob job = DirectJob.builder(new Signer("12345678910"), DOCUMENT, ExitUrls.of("https://completion.org", "https://cancellation.org", "https://error.org")).build();
 
         create_document_bundle_and_write_to_disk(new CreateDirectManifest(), job);
     }
