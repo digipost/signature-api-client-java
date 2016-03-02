@@ -21,7 +21,7 @@ import no.digipost.signature.client.core.Signer;
 
 import java.util.UUID;
 
-public class DirectJob implements SignatureJob {
+public class DirectJob implements SignatureJob, WithExitUrls {
 
     private String reference;
     private Signer signer;
@@ -51,18 +51,30 @@ public class DirectJob implements SignatureJob {
         return document;
     }
 
+    @Override
     public String getCompletionUrl() {
         return completionUrl;
     }
 
+    @Override
     public String getRejectionUrl() {
         return rejectionUrl;
     }
 
+    @Override
     public String getErrorUrl() {
         return errorUrl;
     }
 
+    public static Builder builder(Signer signer, Document document, WithExitUrls hasExitUrls) {
+        return new Builder(signer, document, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
+    }
+
+    /**
+     * @deprecated Prefer the {@link #builder(Signer, Document, WithExitUrls) builder(Signer, Document, }{@link ExitUrls#of(String, String, String)})
+     *             method.
+     */
+    @Deprecated
     public static Builder builder(Signer signer, Document document, String completionUrl, String rejectionUrl, String errorUrl) {
         return new Builder(signer, document, completionUrl, rejectionUrl, errorUrl);
     }
