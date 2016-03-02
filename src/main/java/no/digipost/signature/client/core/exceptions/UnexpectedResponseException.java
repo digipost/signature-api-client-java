@@ -31,6 +31,7 @@ public class UnexpectedResponseException extends SignatureException {
     public UnexpectedResponseException(XMLError error, Throwable cause, Status actual, Status ... expected) {
         super("Expected " + prettyprintExpectedStatuses(expected) +
               ", but got " + actual.getStatusCode() + " " + actual.getReasonPhrase() +
+              (error != null ? " [" + error + "]" : "") +
               (cause != null ? " - " + cause.getClass().getSimpleName() + ": '" + cause.getMessage() + "'.": ""),
               cause);
         this.error = error;
