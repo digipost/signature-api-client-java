@@ -17,7 +17,6 @@ package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.TestKonfigurasjon;
-import no.digipost.signature.client.core.Sender;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,7 +33,7 @@ public class TrustStoreLoaderTest {
 
     @Before
     public void setUp() {
-        configBuilder = ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE, new Sender("984661185"));
+        configBuilder = ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE);
     }
 
     @Test

@@ -15,9 +15,13 @@
  */
 package no.digipost.signature.client.direct;
 
+import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.Signer;
+import no.motif.Singular;
+import no.motif.single.Optional;
 
 import java.util.UUID;
 
@@ -29,6 +33,7 @@ public class DirectJob implements SignatureJob {
     private String completionUrl;
     private String rejectionUrl;
     private String errorUrl;
+    private Optional<Sender> sender = Singular.none();
 
     private DirectJob(Signer signer, Document document, String completionUrl, String rejectionUrl, String errorUrl) {
         this.signer = signer;
@@ -49,6 +54,11 @@ public class DirectJob implements SignatureJob {
     @Override
     public Document getDocument() {
         return document;
+    }
+
+    @Override
+    public Optional<Sender> getSender() {
+        return sender;
     }
 
     public String getCompletionUrl() {
@@ -82,6 +92,16 @@ public class DirectJob implements SignatureJob {
 
         public Builder withReference(String reference) {
             target.reference = reference;
+            return this;
+        }
+
+        /**
+         * Set the sender for this specific signature job.
+         * <p>
+         * You may use {@link ClientConfiguration.Builder#sender(Sender)} to specify a global sender used for all signature jobs
+         */
+        public Builder withSender(Sender sender) {
+            target.sender = Singular.optional(sender);
             return this;
         }
 

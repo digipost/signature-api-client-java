@@ -43,7 +43,7 @@ public class CreateASiCETest {
             .fileType(Document.FileType.TXT)
             .build();
 
-    public static final ClientConfiguration CLIENT_CONFIGURATION = ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE, new Sender("123456789")).build();
+    public static final ClientConfiguration CLIENT_CONFIGURATION = ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE).sender(new Sender("123456789")).build();
 
     @Test
     @Ignore("Writes files to disk. Can be useful for debugging")
