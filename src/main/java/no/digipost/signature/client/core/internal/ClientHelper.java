@@ -107,15 +107,18 @@ public class ClientHelper {
                 Status status = Status.fromStatusCode(response.getStatus());
                 if (status == OK) {
                     return response.readEntity(XMLDirectSignatureJobStatusResponse.class);
+                } else if (status == FORBIDDEN) {
+                    XMLError error = extractError(response);
+                    if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
+                        throw new InvalidStatusQueryTokenException(statusUrl, error.getErrorMessage());
+                    }
                 } else if (status == NOT_FOUND) {
                     XMLError error = extractError(response);
                     if (SIGNING_CEREMONY_NOT_COMPLETED.sameAs(error.getErrorCode())) {
                         throw new CantQueryStatusException(status, error.getErrorMessage());
                     }
-                    throw new UnexpectedResponseException(error, Status.fromStatusCode(response.getStatus()), OK);
-                } else {
-                    throw exceptionForGeneralError(response);
                 }
+                throw exceptionForGeneralError(response);
             }
         });
     }
