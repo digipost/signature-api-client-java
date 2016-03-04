@@ -42,7 +42,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                 )
                 .withAvailability(new XMLAvailability()
                         .withActivationTime(job.getActivationTime())
-                        .withExpirationTime(job.getExpirationTime())
+                        .withAvailableSeconds(job.getAvailableSeconds())
                 );
     }
 }

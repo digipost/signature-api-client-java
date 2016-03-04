@@ -24,6 +24,7 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.Date;
 
+import static java.util.concurrent.TimeUnit.DAYS;
 import static org.junit.Assert.fail;
 
 public class CreatePortalManifestTest {
@@ -39,7 +40,7 @@ public class CreatePortalManifestTest {
 
         PortalJob job = PortalJob.builder(document, Collections.singletonList(new Signer("12345678910")))
                 .withActivationTime(new Date())
-                .withExpirationTime(new Date())
+                .availableFor(30, DAYS)
                 .build();
         try {
             createManifest.createManifest(job, new Sender("123456789"));

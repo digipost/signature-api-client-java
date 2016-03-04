@@ -24,6 +24,7 @@ import no.motif.Singular;
 import no.motif.single.Optional;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.unmodifiableList;
 
@@ -34,7 +35,7 @@ public class PortalJob implements SignatureJob {
     private List<Signer> signers;
     private Document document;
     private Date activationTime;
-    private Date expirationTime;
+    private Long availableSeconds;
     private Optional<Sender> sender = Singular.none();
 
     private PortalJob(List<Signer> signers, Document document) {
@@ -64,8 +65,8 @@ public class PortalJob implements SignatureJob {
         return activationTime;
     }
 
-    public Date getExpirationTime() {
-        return expirationTime;
+    public Long getAvailableSeconds() {
+        return availableSeconds;
     }
 
 
@@ -100,8 +101,8 @@ public class PortalJob implements SignatureJob {
             return this;
         }
 
-        public Builder withExpirationTime(Date expirationTime) {
-            target.expirationTime = expirationTime;
+        public Builder availableFor(long duration, TimeUnit unit) {
+            target.availableSeconds = unit.toSeconds(duration);
             return this;
         }
 
