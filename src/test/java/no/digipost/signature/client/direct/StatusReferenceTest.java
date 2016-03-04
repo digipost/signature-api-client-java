@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.internal;
+package no.digipost.signature.client.direct;
 
-public enum ErrorCodes {
+import org.junit.Test;
 
-    BROKER_NOT_AUTHORIZED,
-    SIGNING_CEREMONY_NOT_COMPLETED,
-    INVALID_STATUS_QUERY_TOKEN;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
-    public boolean sameAs(String other) {
-        return this.name().equals(other);
+public class StatusReferenceTest {
+
+    @Test
+    public void buildsCorrectUrlWithToken() {
+        String statusUrl = "https://statusqueryservice/status/?job=1337";
+        String token = "abcdefgh";
+        StatusReference statusReference = new StatusReference(statusUrl, token);
+        assertThat(statusReference.getStatusUrl(), is(statusUrl + "&" + StatusReference.STATUS_QUERY_TOKEN_PARAM_NAME + "=" + token));
     }
 }

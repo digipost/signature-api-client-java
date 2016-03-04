@@ -28,6 +28,8 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -105,15 +107,18 @@ public class ClientHelper {
                 Status status = Status.fromStatusCode(response.getStatus());
                 if (status == OK) {
                     return response.readEntity(XMLDirectSignatureJobStatusResponse.class);
+                } else if (status == FORBIDDEN) {
+                    XMLError error = extractError(response);
+                    if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
+                        throw new InvalidStatusQueryTokenException(statusUrl, error.getErrorMessage());
+                    }
                 } else if (status == NOT_FOUND) {
                     XMLError error = extractError(response);
                     if (SIGNING_CEREMONY_NOT_COMPLETED.sameAs(error.getErrorCode())) {
                         throw new CantQueryStatusException(status, error.getErrorMessage());
                     }
-                    throw new UnexpectedResponseException(error, Status.fromStatusCode(response.getStatus()), OK);
-                } else {
-                    throw exceptionForGeneralError(response);
                 }
+                throw exceptionForGeneralError(response);
             }
         });
     }
@@ -264,11 +269,17 @@ public class ClientHelper {
     }
 
     private static XMLError extractError(Response response) {
-        XMLError error;
-        try {
-            error = response.readEntity(XMLError.class);
-        } catch (Exception e) {
-            throw new UnexpectedResponseException(null, e, Status.fromStatusCode(response.getStatus()), OK);
+        XMLError error = null;
+        String responseContentType = response.getHeaderString(HttpHeaders.CONTENT_TYPE);
+        if (MediaType.valueOf(responseContentType).equals(APPLICATION_XML_TYPE)) {
+            try {
+                error = response.readEntity(XMLError.class);
+            } catch (Exception e) {
+                throw new UnexpectedResponseException(null, e, Status.fromStatusCode(response.getStatus()), OK);
+            }
+        } else {
+            throw new UnexpectedResponseException(HttpHeaders.CONTENT_TYPE + " " + responseContentType + ": " + response.readEntity(String.class),
+                    Status.fromStatusCode(response.getStatus()), OK);
         }
         if (error == null) {
             throw new UnexpectedResponseException(null, Status.fromStatusCode(response.getStatus()), OK);
