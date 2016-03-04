@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client.core.internal;
 
-import no.motif.single.Optional;
+import no.digipost.signature.client.core.Sender;
 
-public interface SignatureJob {
+import static java.lang.String.format;
 
-    Document getDocument();
+enum Target {
+    PORTAL("/%s/portal/signature-jobs"),
+    DIRECT("/%s/direct/signature-jobs");
 
-    Optional<Sender> getSender();
+    private final String path;
 
+    Target(String path) {
+        this.path = path;
+    }
+
+    String path(Sender sender) {
+        return format(this.path, sender.getOrganizationNumber());
+    }
 }

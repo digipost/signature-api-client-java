@@ -42,11 +42,11 @@ public class DirectClient {
         this.aSiCECreator = new CreateASiCE<>(new CreateDirectManifest(), clientConfiguration);
     }
 
-    public DirectJobResponse create(DirectJob signatureJob) {
-        DocumentBundle documentBundle = aSiCECreator.createASiCE(signatureJob);
-        XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(signatureJob);
+    public DirectJobResponse create(DirectJob job) {
+        DocumentBundle documentBundle = aSiCECreator.createASiCE(job);
+        XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(job);
 
-        XMLDirectSignatureJobResponse xmlSignatureJobResponse = client.sendSignatureJobRequest(signatureJobRequest, documentBundle);
+        XMLDirectSignatureJobResponse xmlSignatureJobResponse = client.sendSignatureJobRequest(signatureJobRequest, documentBundle, job.getSender());
         return fromJaxb(xmlSignatureJobResponse);
     }
 

@@ -15,9 +15,13 @@
  */
 package no.digipost.signature.client.portal;
 
+import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.Signer;
+import no.motif.Singular;
+import no.motif.single.Optional;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +36,7 @@ public class PortalJob implements SignatureJob {
     private Document document;
     private Date activationTime;
     private Long availableSeconds;
-
+    private Optional<Sender> sender = Singular.none();
 
     private PortalJob(List<Signer> signers, Document document) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
@@ -50,6 +54,11 @@ public class PortalJob implements SignatureJob {
     @Override
     public Document getDocument() {
         return document;
+    }
+
+    @Override
+    public Optional<Sender> getSender() {
+        return sender;
     }
 
     public Date getActivationTime() {
@@ -94,6 +103,16 @@ public class PortalJob implements SignatureJob {
 
         public Builder availableFor(long duration, TimeUnit unit) {
             target.availableSeconds = unit.toSeconds(duration);
+            return this;
+        }
+
+        /**
+         * Set the sender for this specific signature job.
+         * <p>
+         * You may use {@link ClientConfiguration.Builder#sender(Sender)} to specify a global sender used for all signature jobs
+         */
+        public Builder withSender(Sender sender) {
+            target.sender = Singular.optional(sender);
             return this;
         }
 

@@ -18,7 +18,9 @@ package no.digipost.signature.client.core.internal;
 import no.digipost.signature.api.xml.*;
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
+import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.exceptions.*;
+import no.motif.single.Optional;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.slf4j.Logger;
@@ -32,45 +34,43 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import static java.lang.String.format;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static javax.ws.rs.core.Response.Status.*;
+import static no.digipost.signature.client.core.exceptions.SenderNotSpecifiedException.SENDER_NOT_SPECIFIED;
 import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_AUTHORIZED;
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
+import static no.digipost.signature.client.core.internal.Target.DIRECT;
+import static no.digipost.signature.client.core.internal.Target.PORTAL;
 
 public class ClientHelper {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientHelper.class);
 
-    private final String directSignatureJobsPath;
-    private final String portalSignatureJobsPath;
-
     public static final String NEXT_PERMITTED_POLL_TIME_HEADER = "X-Next-permitted-poll-time";
 
     private final Client httpClient;
     private final WebTarget target;
+    private final Optional<Sender> globalSender;
     private final ClientExceptionMapper clientExceptionMapper;
 
-
     public ClientHelper(final ClientConfiguration clientConfiguration) {
-        portalSignatureJobsPath = format("/%s/portal/signature-jobs", clientConfiguration.getSender().getOrganizationNumber());
-        directSignatureJobsPath = format("/%s/direct/signature-jobs", clientConfiguration.getSender().getOrganizationNumber());
-
         httpClient = SignatureHttpClient.create(clientConfiguration);
         target = httpClient.target(clientConfiguration.getSignatureServiceRoot());
+        globalSender = clientConfiguration.getSender();
         clientExceptionMapper = new ClientExceptionMapper();
     }
 
-    public XMLDirectSignatureJobResponse sendSignatureJobRequest(final XMLDirectSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
+    public XMLDirectSignatureJobResponse sendSignatureJobRequest(XMLDirectSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
+        final Sender actualSender = sender.or(globalSender).orElseThrow(SENDER_NOT_SPECIFIED);
+
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         final BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
@@ -78,12 +78,14 @@ public class ClientHelper {
             @Override
             XMLDirectSignatureJobResponse call() {
                 return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
-                        .postAsMultiPart(directSignatureJobsPath, XMLDirectSignatureJobResponse.class);
+                        .postAsMultiPart(DIRECT.path(actualSender), XMLDirectSignatureJobResponse.class);
             }
         });
     }
 
-    public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(final XMLPortalSignatureJobRequest signatureJobRequest, final DocumentBundle documentBundle) {
+    public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(XMLPortalSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
+        final Sender actualSender = sender.or(globalSender).orElseThrow(SENDER_NOT_SPECIFIED);
+
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         final BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
@@ -91,7 +93,7 @@ public class ClientHelper {
             @Override
             XMLPortalSignatureJobResponse call() {
                 return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
-                        .postAsMultiPart(portalSignatureJobsPath, XMLPortalSignatureJobResponse.class);
+                        .postAsMultiPart(PORTAL.path(actualSender), XMLPortalSignatureJobResponse.class);
             }
         });
     }
@@ -155,10 +157,14 @@ public class ClientHelper {
     }
 
     public XMLPortalSignatureJobStatusChangeResponse getStatusChange() {
+        return getStatusChange(globalSender.orElseThrow(SENDER_NOT_SPECIFIED));
+    }
+
+    public XMLPortalSignatureJobStatusChangeResponse getStatusChange(final Sender sender) {
         return call(new Producer<XMLPortalSignatureJobStatusChangeResponse>() {
             @Override
             XMLPortalSignatureJobStatusChangeResponse call() {
-                Response response = target.path(portalSignatureJobsPath)
+                Response response = target.path(PORTAL.path(sender))
                         .request()
                         .accept(APPLICATION_XML_TYPE)
                         .get();

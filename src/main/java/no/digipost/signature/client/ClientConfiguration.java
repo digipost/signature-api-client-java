@@ -17,6 +17,10 @@ package no.digipost.signature.client;
 
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.internal.KeyStoreConfig;
+import no.digipost.signature.client.direct.DirectJob;
+import no.digipost.signature.client.portal.PortalJob;
+import no.motif.Singular;
+import no.motif.single.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,15 +48,14 @@ public class ClientConfiguration {
     private int socketTimeoutMs = DEFAULT_SOCKET_TIMEOUT_MS;
     private int connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS;
     private KeyStoreConfig keyStoreConfig;
-    private Sender sender;
+    private Optional<Sender> sender;
     private URI signatureServiceRoot = ServiceUri.PRODUCTION.uri;
     private List<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
 
     private static final Logger log = LoggerFactory.getLogger(ClientConfiguration.class);
 
-    private ClientConfiguration(KeyStoreConfig keyStoreConfig, Sender sender) {
+    private ClientConfiguration(KeyStoreConfig keyStoreConfig) {
         this.keyStoreConfig = keyStoreConfig;
-        this.sender = sender;
     }
 
     public URI getSignatureServiceRoot() {
@@ -63,7 +66,7 @@ public class ClientConfiguration {
         return keyStoreConfig;
     }
 
-    public Sender getSender() {
+    public Optional<Sender> getSender() {
         return sender;
     }
 
@@ -79,16 +82,16 @@ public class ClientConfiguration {
         return connectTimeoutMs;
     }
 
-    public static Builder builder(KeyStoreConfig keystore, Sender sender) {
-        return new Builder(keystore, sender);
+    public static Builder builder(KeyStoreConfig keystore) {
+        return new Builder(keystore);
     }
 
     public static class Builder {
 
         private final ClientConfiguration target;
 
-        private Builder(KeyStoreConfig keyStoreConfig, Sender sender) {
-            this.target = new ClientConfiguration(keyStoreConfig, sender);
+        private Builder(KeyStoreConfig keyStoreConfig) {
+            this.target = new ClientConfiguration(keyStoreConfig);
         }
 
         /**
@@ -131,6 +134,18 @@ public class ClientConfiguration {
             }
 
             this.target.certificatePaths = certificates.certificatePaths;
+            return this;
+        }
+
+        /**
+         * Set the sender used globally for every signature job.
+         * <p>
+         * Use {@link PortalJob.Builder#withSender(Sender)} or {@link DirectJob.Builder#withSender(Sender)}
+         * if you need to specify different senders per signature job (typically when acting as a broker on
+         * behalf of multiple other organizations)
+         */
+        public Builder sender(Sender sender) {
+            this.target.sender = Singular.optional(sender);
             return this;
         }
 
