@@ -24,17 +24,17 @@ public class UnexpectedResponseException extends SignatureException {
     private final XMLError error;
     private final Status actualStatus;
 
-    public UnexpectedResponseException(XMLError error, Status actual, Status ... expected) {
-        this(error, null, actual, expected);
+    public UnexpectedResponseException(Object errorEntity, Status actual, Status ... expected) {
+        this(errorEntity, null, actual, expected);
     }
 
-    public UnexpectedResponseException(XMLError error, Throwable cause, Status actual, Status ... expected) {
+    public UnexpectedResponseException(Object errorEntity, Throwable cause, Status actual, Status ... expected) {
         super("Expected " + prettyprintExpectedStatuses(expected) +
               ", but got " + actual.getStatusCode() + " " + actual.getReasonPhrase() +
-              (error != null ? " [" + error + "]" : "") +
+              (errorEntity != null ? " [" + errorEntity + "]" : "") +
               (cause != null ? " - " + cause.getClass().getSimpleName() + ": '" + cause.getMessage() + "'.": ""),
               cause);
-        this.error = error;
+        this.error = errorEntity instanceof XMLError ? (XMLError) errorEntity : null;
         this.actualStatus = actual;
     }
 

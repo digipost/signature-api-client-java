@@ -15,15 +15,23 @@
  */
 package no.digipost.signature.client.direct;
 
+import javax.ws.rs.core.UriBuilder;
+
+import java.util.Objects;
+
 public class StatusReference {
 
-    private final String statusUrl;
+    public static final String STATUS_QUERY_TOKEN_PARAM_NAME = "status_query_token";
 
-    public StatusReference(String statusUrl) {
+    private final String statusUrl;
+    private final String statusQueryToken;
+
+    public StatusReference(String statusUrl, String statusQueryToken) {
         this.statusUrl = statusUrl;
+        this.statusQueryToken = Objects.requireNonNull(statusQueryToken, STATUS_QUERY_TOKEN_PARAM_NAME);
     }
 
     public String getStatusUrl() {
-        return statusUrl;
+        return UriBuilder.fromUri(statusUrl).queryParam(STATUS_QUERY_TOKEN_PARAM_NAME, statusQueryToken).build().toString();
     }
 }

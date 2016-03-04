@@ -21,22 +21,31 @@ public enum DirectJobStatus {
 
     /**
      * The document(s) of the job has been signed by the receiver.
+     *
+     * @see XMLDirectSignatureJobStatus#SIGNED
      */
     SIGNED,
 
     /**
      * The signature job has been rejected by the receiver.
+     *
+     * @see XMLDirectSignatureJobStatus#REJECTED
      */
-    REJECTED;
+    REJECTED,
+
+    /**
+     * An error occured during the signing ceremony.
+     *
+     * @see XMLDirectSignatureJobStatus#FAILED
+     */
+    FAILED;
 
     public static DirectJobStatus fromXmlType(XMLDirectSignatureJobStatus xmlJobStatus) {
         switch (xmlJobStatus) {
-            case SIGNED:
-                return SIGNED;
-            case REJECTED:
-                return REJECTED;
-            default:
-                throw new IllegalArgumentException("Unexpected status: " + xmlJobStatus);
+            case SIGNED:   return SIGNED;
+            case REJECTED: return REJECTED;
+            case FAILED:   return FAILED;
+            default:       throw new IllegalArgumentException("Unexpected status: " + xmlJobStatus);
         }
     }
 
