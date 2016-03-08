@@ -76,18 +76,21 @@ public class DirectJob implements SignatureJob, WithExitUrls {
         return errorUrl;
     }
 
+    /**
+     * Create a new DirectJob.
+     *
+     * @param signer      The {@link Signer} of the document.
+     * @param document    The {@link Document} that should be signed.
+     * @param hasExitUrls specifies the urls the user will be redirected back to upon completing/rejecting/failing
+     *                    the signing ceremony. See {@link ExitUrls#of(String, String, String)}, and alternatively
+     *                    {@link ExitUrls#singleExitUrl(String)}.
+     *
+     * @return a builder to further customize the job
+     */
     public static Builder builder(Signer signer, Document document, WithExitUrls hasExitUrls) {
         return new Builder(signer, document, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
     }
 
-    /**
-     * @deprecated Prefer the {@link #builder(Signer, Document, WithExitUrls) builder(Signer, Document, }{@link ExitUrls#of(String, String, String)})
-     *             method.
-     */
-    @Deprecated
-    public static Builder builder(Signer signer, Document document, String completionUrl, String rejectionUrl, String errorUrl) {
-        return new Builder(signer, document, completionUrl, rejectionUrl, errorUrl);
-    }
 
     public static class Builder {
 
