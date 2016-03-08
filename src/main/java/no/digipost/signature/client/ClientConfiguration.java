@@ -16,7 +16,7 @@
 package no.digipost.signature.client;
 
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.internal.KeyStoreConfig;
+import no.digipost.signature.client.core.internal.security.KeyStoreConfig;
 import no.digipost.signature.client.direct.DirectJob;
 import no.digipost.signature.client.portal.PortalJob;
 import no.motif.Singular;

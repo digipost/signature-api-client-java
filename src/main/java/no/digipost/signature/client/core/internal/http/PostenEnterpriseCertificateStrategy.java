@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.internal;
+package no.digipost.signature.client.core.internal.http;
 
 import no.digipost.signature.client.core.exceptions.SecurityException;
 import org.apache.http.conn.ssl.TrustStrategy;

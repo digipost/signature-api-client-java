@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.internal;
+package no.digipost.signature.client.core.internal.xml;
 
 import no.digipost.signature.api.xml.*;
 import org.junit.Test;
@@ -21,6 +21,7 @@ import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.xml.transform.stream.StreamResult;
+
 import java.io.ByteArrayOutputStream;
 import java.util.Date;
 

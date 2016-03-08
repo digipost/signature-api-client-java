@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client;
+package no.digipost.signature.client.core.internal.http;
 
-import no.digipost.signature.client.core.internal.security.KeyStoreConfig;
+import javax.ws.rs.client.WebTarget;
 
+public interface SignatureHttpClient {
 
-public class TestKonfigurasjon {
+    WebTarget signatureServiceRoot();
 
-    public static final KeyStoreConfig CLIENT_KEYSTORE = KeyStoreConfig.fromKeyStore(
-            TestKonfigurasjon.class.getResourceAsStream("/selfsigned-keystore.jce"),
-            "avsender",
-            "password1234",
-            "password1234"
-    );
-
+    WebTarget target(String url);
 
 }

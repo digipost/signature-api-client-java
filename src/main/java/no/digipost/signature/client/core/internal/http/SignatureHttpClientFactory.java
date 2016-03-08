@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.internal;
+package no.digipost.signature.client.core.internal.http;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.exceptions.KeyException;
+import no.digipost.signature.client.core.internal.security.TrustStoreLoader;
+import no.digipost.signature.client.core.internal.xml.JaxbMessageReaderWriterProvider;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.ssl.PrivateKeyDetails;
 import org.apache.http.ssl.PrivateKeyStrategy;
@@ -28,8 +30,10 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.WebTarget;
 
 import java.net.Socket;
+import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -38,19 +42,20 @@ import java.util.Map;
 
 import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
 
-public class SignatureHttpClient {
+public class SignatureHttpClientFactory {
 
 
-    public static Client create(ClientConfiguration config) {
+    public static SignatureHttpClient create(ClientConfiguration config) {
         try {
             SSLContext sslcontext = createSSLContext(config);
 
-            return JerseyClientBuilder.newBuilder()
+            Client jerseyClient = JerseyClientBuilder.newBuilder()
                     .withConfig(createClientConfig(config))
                     .sslContext(sslcontext)
                     .hostnameVerifier(NoopHostnameVerifier.INSTANCE)
                     .register(new AddRequestHeaderFilter(USER_AGENT, config.getUserAgent()))
                     .build();
+            return new DefaultClient(jerseyClient, config.getSignatureServiceRoot());
         } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException e) {
             if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
                 throw new KeyException("Unable to load key from keystore. Possible causes:\n" +
@@ -81,6 +86,28 @@ public class SignatureHttpClient {
         jerseyConfig.register(MultiPartFeature.class);
         jerseyConfig.register(JaxbMessageReaderWriterProvider.class);
         return jerseyConfig;
+    }
+
+    private static final class DefaultClient implements SignatureHttpClient {
+
+        private final Client jerseyClient;
+        private final WebTarget signatureServiceRoot;
+
+        DefaultClient(Client jerseyClient, URI root) {
+            this.jerseyClient = jerseyClient;
+            this.signatureServiceRoot = jerseyClient.target(root);
+        }
+
+        @Override
+        public WebTarget target(String uri) {
+            return jerseyClient.target(uri);
+        }
+
+        @Override
+        public WebTarget signatureServiceRoot() {
+            return signatureServiceRoot;
+        }
+
     }
 
 }

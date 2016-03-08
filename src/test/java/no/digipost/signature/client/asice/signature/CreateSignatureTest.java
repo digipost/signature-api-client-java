@@ -17,8 +17,8 @@ package no.digipost.signature.client.asice.signature;
 
 import no.digipost.signature.client.TestKonfigurasjon;
 import no.digipost.signature.client.asice.ASiCEAttachable;
-import no.digipost.signature.client.core.internal.KeyStoreConfig;
-import no.digipost.signature.client.core.internal.Marshalling;
+import no.digipost.signature.client.core.internal.security.KeyStoreConfig;
+import no.digipost.signature.client.core.internal.xml.Marshalling;
 import no.digipost.signature.api.xml.thirdparty.asice.XAdESSignatures;
 import no.digipost.signature.api.xml.thirdparty.xades.*;
 import no.digipost.signature.api.xml.thirdparty.xmldsig.Reference;

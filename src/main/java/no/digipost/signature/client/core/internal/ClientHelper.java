@@ -20,25 +20,26 @@ import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.exceptions.*;
+import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
+import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
 import no.motif.single.Optional;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
@@ -56,14 +57,12 @@ public class ClientHelper {
 
     public static final String NEXT_PERMITTED_POLL_TIME_HEADER = "X-Next-permitted-poll-time";
 
-    private final Client httpClient;
-    private final WebTarget target;
+    private final SignatureHttpClient httpClient;
     private final Optional<Sender> globalSender;
     private final ClientExceptionMapper clientExceptionMapper;
 
     public ClientHelper(final ClientConfiguration clientConfiguration) {
-        httpClient = SignatureHttpClient.create(clientConfiguration);
-        target = httpClient.target(clientConfiguration.getSignatureServiceRoot());
+        httpClient = SignatureHttpClientFactory.create(clientConfiguration);
         globalSender = clientConfiguration.getSender();
         clientExceptionMapper = new ClientExceptionMapper();
     }
@@ -74,9 +73,9 @@ public class ClientHelper {
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         final BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
-        return call(new Producer<XMLDirectSignatureJobResponse>() {
+        return call(new Callable<XMLDirectSignatureJobResponse>() {
             @Override
-            XMLDirectSignatureJobResponse call() {
+            public XMLDirectSignatureJobResponse call() {
                 return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
                         .postAsMultiPart(DIRECT.path(actualSender), XMLDirectSignatureJobResponse.class);
             }
@@ -89,9 +88,9 @@ public class ClientHelper {
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         final BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
 
-        return call(new Producer<XMLPortalSignatureJobResponse>() {
+        return call(new Callable<XMLPortalSignatureJobResponse>() {
             @Override
-            XMLPortalSignatureJobResponse call() {
+            public XMLPortalSignatureJobResponse call() {
                 return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
                         .postAsMultiPart(PORTAL.path(actualSender), XMLPortalSignatureJobResponse.class);
             }
@@ -99,9 +98,9 @@ public class ClientHelper {
     }
 
     public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(final String statusUrl) {
-        return call(new Producer<XMLDirectSignatureJobStatusResponse>() {
+        return call(new Callable<XMLDirectSignatureJobStatusResponse>() {
             @Override
-            XMLDirectSignatureJobStatusResponse call() {
+            public XMLDirectSignatureJobStatusResponse call() {
                 Response response = httpClient.target(statusUrl)
                         .request()
                         .accept(APPLICATION_XML_TYPE)
@@ -125,11 +124,11 @@ public class ClientHelper {
         });
     }
 
-    public InputStream getSignedDocumentStream(final String url) {
-        return call(new Producer<InputStream>() {
+    public InputStream getSignedDocumentStream(final String uri) {
+        return call(new Callable<InputStream>() {
             @Override
-            InputStream call() {
-                return parseResponse(httpClient.target(url).request().accept(APPLICATION_XML_TYPE, APPLICATION_OCTET_STREAM_TYPE).get(), InputStream.class);
+            public InputStream call() {
+                return parseResponse(httpClient.target(uri).request().accept(APPLICATION_XML_TYPE, APPLICATION_OCTET_STREAM_TYPE).get(), InputStream.class);
             }
         });
     }
@@ -161,10 +160,10 @@ public class ClientHelper {
     }
 
     public XMLPortalSignatureJobStatusChangeResponse getStatusChange(final Sender sender) {
-        return call(new Producer<XMLPortalSignatureJobStatusChangeResponse>() {
+        return call(new Callable<XMLPortalSignatureJobStatusChangeResponse>() {
             @Override
-            XMLPortalSignatureJobStatusChangeResponse call() {
-                Response response = target.path(PORTAL.path(sender))
+            public XMLPortalSignatureJobStatusChangeResponse call() {
+                Response response = httpClient.signatureServiceRoot().path(PORTAL.path(sender))
                         .request()
                         .accept(APPLICATION_XML_TYPE)
                         .get();
@@ -201,26 +200,12 @@ public class ClientHelper {
         });
     }
 
-    private <T> T call(final Producer<T> producer) {
-        try {
-            return producer.call();
-        } catch (ProcessingException e) {
-            throw clientExceptionMapper.map(e);
-        }
+    private <T> T call(final Callable<T> producer) {
+        return clientExceptionMapper.doWithMappedClientException(producer);
     }
 
-    private void call(final Runnable function) {
-        call(new Producer<Void>() {
-            @Override
-            Void call() {
-                function.run();
-                return null;
-            }
-        });
-    }
-
-    private abstract class Producer<T> {
-        abstract T call();
+    private void call(final Runnable action) {
+        clientExceptionMapper.doWithMappedClientException(action);
     }
 
     private class UsingBodyParts {
@@ -237,7 +222,7 @@ public class ClientHelper {
                     multiPart.bodyPart(bodyPart);
                 }
 
-                Response response = target.path(path)
+                Response response = httpClient.signatureServiceRoot().path(path)
                         .request()
                         .header(CONTENT_TYPE, multiPart.getMediaType())
                         .accept(APPLICATION_XML_TYPE)
@@ -249,8 +234,8 @@ public class ClientHelper {
         }
     }
 
-    private Response postEmptyEntity(String url) {
-        return httpClient.target(url)
+    private Response postEmptyEntity(String uri) {
+        return httpClient.target(uri)
                 .request()
                 .accept(APPLICATION_XML_TYPE)
                 .header("Content-Length", 0)
