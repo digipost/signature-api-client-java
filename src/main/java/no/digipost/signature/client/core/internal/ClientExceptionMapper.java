@@ -52,15 +52,19 @@ class ClientExceptionMapper {
         if (e.getCause() instanceof SSLException) {
             String sslExceptionMessage = e.getCause().getMessage();
             if (sslExceptionMessage != null && sslExceptionMessage.contains("protocol_version")) {
-                return new ConfigurationException("Invalid TLS protocol version. This will typically happen if you're running on an older Java version, which doesn't support TLS 1.2. " +
-                        "Java 7 needs to be explicitly configured to support TLS 1.2. See 'JSSE tuning parameters' at https://blogs.oracle.com/java-platform-group/entry/diagnosing_tls_ssl_and_https.", e);
+                return new ConfigurationException(
+                        "Invalid TLS protocol version. This will typically happen if you're running on an older Java version, which doesn't support TLS 1.2. " +
+                        "Java 7 needs to be explicitly configured to support TLS 1.2. See 'JSSE tuning parameters' at " +
+                        "https://blogs.oracle.com/java-platform-group/entry/diagnosing_tls_ssl_and_https.", e);
             }
         }
 
         if (e.getCause() instanceof SSLHandshakeException) {
-            return new SignatureException("Unable to perform SSL handshake with remote server. Possible causes (could be others, see underlying error): \n" +
+            return new SignatureException(
+                    "Unable to perform SSL handshake with remote server. Some possible causes (could be others, see underlying error): \n" +
+                    "* A certification with the wrong KeyUsage was used. Verify that the certificate's KeyUsage is compliant with the requirements for 2-way TLS. (E.g. KeyUsage should not be 'nonRepudiation')" +
                     "* Erroneous configuration of the trust store\n" +
-                    "* Intermediate network devices interfering with traffic (i.e. proxies)\n" +
+                    "* Intermediate network devices interfering with traffic (e.g. proxies)\n" +
                     "* An attacker impersonating the server (man in the middle)\n" +
                     "* Wrong TLS version. For Java 7, see 'JSSE tuning parameters' at https://blogs.oracle.com/java-platform-group/entry/diagnosing_tls_ssl_and_https for information about enabling the latest TLS versions", e);
         }
