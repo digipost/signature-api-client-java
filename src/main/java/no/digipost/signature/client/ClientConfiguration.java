@@ -24,14 +24,28 @@ import no.motif.single.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.HttpHeaders;
+
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static no.digipost.signature.client.ClientConfiguration.Certificates.TEST;
+import static no.digipost.signature.client.ClientMetadata.VERSION;
+import static no.motif.Singular.none;
+import static no.motif.Singular.optional;
+import static no.motif.Strings.*;
 
 public class ClientConfiguration {
+
+    private static final String JAVA_DESCRIPTION = System.getProperty("java.vendor", "unknown Java") + ", " + System.getProperty("java.version", "unknown version");
+
+    /**
+     * The {@link HttpHeaders#USER_AGENT User-Agent} header which will be included in all requests. You may include a custom part
+     * using {@link Builder#includeInUserAgent(String)}.
+     */
+    public static final String MANDATORY_USER_AGENT = "Posten signering Java API Client/" + VERSION + " (" + JAVA_DESCRIPTION + ")";
 
     /**
      * Socket timeout is used for both requests and, if any,
@@ -51,6 +65,7 @@ public class ClientConfiguration {
     private Optional<Sender> sender;
     private URI signatureServiceRoot = ServiceUri.PRODUCTION.uri;
     private List<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
+    private Optional<String> customUserAgentPart = none();
 
     private static final Logger log = LoggerFactory.getLogger(ClientConfiguration.class);
 
@@ -80,6 +95,10 @@ public class ClientConfiguration {
 
     public int getConnectTimeoutMillis() {
         return connectTimeoutMs;
+    }
+
+    public String getUserAgent() {
+        return customUserAgentPart.map(inBetween("(", ")")).map(prepend(MANDATORY_USER_AGENT + " ")).orElse(MANDATORY_USER_AGENT);
     }
 
     public static Builder builder(KeyStoreConfig keystore) {
@@ -156,6 +175,17 @@ public class ClientConfiguration {
          */
         public Builder trustStore(String... certificatePath) {
             this.target.certificatePaths = asList(certificatePath);
+            return this;
+        }
+
+        /**
+         * Customize the {@link HttpHeaders#USER_AGENT User-Agent} header value to include the
+         * given string.
+         *
+         * @param userAgentCustomPart The custom part to include in the User-Agent HTTP header.
+         */
+        public Builder includeInUserAgent(String userAgentCustomPart) {
+            this.target.customUserAgentPart = optional(nonblank, userAgentCustomPart);
             return this;
         }
 

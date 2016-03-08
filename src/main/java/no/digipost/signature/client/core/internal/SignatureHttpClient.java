@@ -28,12 +28,15 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
+
 import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.util.Map;
+
+import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
 
 public class SignatureHttpClient {
 
@@ -46,6 +49,7 @@ public class SignatureHttpClient {
                     .withConfig(createClientConfig(config))
                     .sslContext(sslcontext)
                     .hostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                    .register(new AddRequestHeaderFilter(USER_AGENT, config.getUserAgent()))
                     .build();
         } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException e) {
             if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
