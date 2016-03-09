@@ -142,7 +142,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         jaxrsConfig.register(MultiPartFeature.class);
         jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
         jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, generateUserAgentString()));
-        for (LoggingFilter loggingFilter : loggingFilter) jaxrsConfig.register(loggingFilter);
+        for (LoggingFilter loggingFilter : this.loggingFilter) jaxrsConfig.register(loggingFilter);
         return jaxrsConfig.getConfiguration();
     }
 
