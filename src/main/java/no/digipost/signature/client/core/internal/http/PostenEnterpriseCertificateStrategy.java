@@ -21,7 +21,7 @@ import org.apache.http.conn.ssl.TrustStrategy;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-class PostenEnterpriseCertificateStrategy implements TrustStrategy {
+public class PostenEnterpriseCertificateStrategy implements TrustStrategy {
 
     private static final String POSTEN_ORGANIZATION_NUMBER = "984661185";
 

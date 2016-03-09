@@ -15,7 +15,7 @@
  */
 package no.digipost.signature.client.core.internal.security;
 
-import no.digipost.signature.client.ClientConfiguration;
+import no.digipost.signature.client.Certificates;
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
 
 import javax.net.ssl.SSLContext;
@@ -36,12 +36,12 @@ import java.security.cert.X509Certificate;
 
 public class TrustStoreLoader {
 
-    public static KeyStore build(ClientConfiguration config) {
+    public static KeyStore build(ProvidesCertificateResourcePaths hasCertificatePaths) {
         try {
             KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
             trustStore.load(null, null);
 
-            for (String certificateFolder : config.getCertificatePaths()) {
+            for (String certificateFolder : hasCertificatePaths.getCertificatePaths()) {
                 loadCertificatesInto(certificateFolder, trustStore);
             }
 
@@ -91,7 +91,7 @@ public class TrustStoreLoader {
 
         @Override
         public void forEachFile(ForFile forEachFile) throws IOException {
-            URL contentsUrl = ClientConfiguration.Certificates.class.getResource(certificatePath);
+            URL contentsUrl = Certificates.class.getResource(certificatePath);
 
             try (InputStream inputStream = contentsUrl.openStream()){
                 forEachFile.call(new File(contentsUrl.getFile()).getName(), inputStream);

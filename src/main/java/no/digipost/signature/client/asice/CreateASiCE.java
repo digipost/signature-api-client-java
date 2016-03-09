@@ -43,7 +43,7 @@ public class CreateASiCE<JOB extends SignatureJob> {
 
     public CreateASiCE(ManifestCreator<JOB> manifestCreator, ClientConfiguration clientConfiguration) {
         this.manifestCreator = manifestCreator;
-        this.globalSender = clientConfiguration.getSender();
+        this.globalSender = clientConfiguration.getGlobalSender();
         this.keyStoreConfig = clientConfiguration.getKeyStoreConfig();
     }
 

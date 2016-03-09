@@ -16,28 +16,55 @@
 package no.digipost.signature.client;
 
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.exceptions.KeyException;
+import no.digipost.signature.client.core.internal.http.AddRequestHeaderFilter;
+import no.digipost.signature.client.core.internal.http.PostenEnterpriseCertificateStrategy;
+import no.digipost.signature.client.core.internal.http.ProvidesHttpIntegrationConfiguration;
 import no.digipost.signature.client.core.internal.security.KeyStoreConfig;
+import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
+import no.digipost.signature.client.core.internal.security.TrustStoreLoader;
+import no.digipost.signature.client.core.internal.xml.JaxbMessageReaderWriterProvider;
 import no.digipost.signature.client.direct.DirectJob;
 import no.digipost.signature.client.portal.PortalJob;
 import no.motif.Singular;
+import no.motif.f.Do;
 import no.motif.single.Optional;
+import org.apache.http.ssl.PrivateKeyDetails;
+import org.apache.http.ssl.PrivateKeyStrategy;
+import org.apache.http.ssl.SSLContexts;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.filter.LoggingFilter;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.ws.rs.core.Configurable;
+import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.HttpHeaders;
 
 import java.io.InputStream;
+import java.net.Socket;
 import java.net.URI;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
-import static no.digipost.signature.client.ClientConfiguration.Certificates.TEST;
+import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
+import static no.digipost.signature.client.Certificates.TEST;
 import static no.digipost.signature.client.ClientMetadata.VERSION;
-import static no.motif.Singular.none;
-import static no.motif.Singular.optional;
+import static no.motif.Singular.*;
 import static no.motif.Strings.*;
 
-public class ClientConfiguration {
+public final class ClientConfiguration implements ProvidesCertificateResourcePaths, ProvidesHttpIntegrationConfiguration {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ClientConfiguration.class);
+
 
     private static final String JAVA_DESCRIPTION = System.getProperty("java.vendor", "unknown Java") + ", " + System.getProperty("java.version", "unknown version");
 
@@ -46,6 +73,12 @@ public class ClientConfiguration {
      * using {@link Builder#includeInUserAgent(String)}.
      */
     public static final String MANDATORY_USER_AGENT = "Posten signering Java API Client/" + VERSION + " (" + JAVA_DESCRIPTION + ")";
+
+    /**
+     * {@value #HTTP_REQUEST_RESPONSE_LOGGER_NAME} is the name of the logger which will log the HTTP requests and responses,
+     * if enabled with {@link ClientConfiguration.Builder#enableRequestAndResponseLogging()}.
+     */
+    public static final String HTTP_REQUEST_RESPONSE_LOGGER_NAME = "no.digipost.signature.client.http.requestresponse";
 
     /**
      * Socket timeout is used for both requests and, if any,
@@ -59,48 +92,93 @@ public class ClientConfiguration {
      */
     public static final int DEFAULT_CONNECT_TIMEOUT_MS = 10_000;
 
+
+
+
+    private final Configurable<? extends Configuration> jaxrsConfig = new ClientConfig();
+    private final KeyStoreConfig keyStoreConfig;
+
     private int socketTimeoutMs = DEFAULT_SOCKET_TIMEOUT_MS;
     private int connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS;
-    private KeyStoreConfig keyStoreConfig;
-    private Optional<Sender> sender;
-    private URI signatureServiceRoot = ServiceUri.PRODUCTION.uri;
-    private List<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
     private Optional<String> customUserAgentPart = none();
+    private Optional<LoggingFilter> loggingFilter = none();
+    private List<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
+    private Optional<Sender> sender = none();
+    private URI signatureServiceRoot = ServiceUri.PRODUCTION.uri;
 
-    private static final Logger log = LoggerFactory.getLogger(ClientConfiguration.class);
 
     private ClientConfiguration(KeyStoreConfig keyStoreConfig) {
         this.keyStoreConfig = keyStoreConfig;
-    }
-
-    public URI getSignatureServiceRoot() {
-        return signatureServiceRoot;
     }
 
     public KeyStoreConfig getKeyStoreConfig() {
         return keyStoreConfig;
     }
 
-    public Optional<Sender> getSender() {
+    public Optional<Sender> getGlobalSender() {
         return sender;
     }
 
+    @Override
+    public URI getServiceRoot() {
+        return signatureServiceRoot;
+    }
+
+    @Override
     public List<String> getCertificatePaths() {
         return certificatePaths;
     }
 
-    public int getSocketTimeoutMillis() {
-        return socketTimeoutMs;
+
+    /**
+     * Get the JAX-RS {@link Configuration} based on the current state of this {@link ClientConfiguration}.
+     *
+     * @return the JAX-RS {@link Configuration}
+     */
+    @Override
+    public Configuration getJaxrsConfiguration() {
+        jaxrsConfig.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutMs);
+        jaxrsConfig.property(ClientProperties.READ_TIMEOUT, socketTimeoutMs);
+        jaxrsConfig.register(MultiPartFeature.class);
+        jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
+        jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, generateUserAgentString()));
+        for (LoggingFilter loggingFilter : loggingFilter) jaxrsConfig.register(loggingFilter);
+        return jaxrsConfig.getConfiguration();
     }
 
-    public int getConnectTimeoutMillis() {
-        return connectTimeoutMs;
+    @Override
+    public SSLContext getSSLContext() {
+        try {
+        return SSLContexts.custom()
+                .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), new PrivateKeyStrategy() {
+                    @Override
+                    public String chooseAlias(Map<String, PrivateKeyDetails> aliases, Socket socket) {
+                        return keyStoreConfig.alias;
+                    }
+                })
+                .loadTrustMaterial(TrustStoreLoader.build(this), new PostenEnterpriseCertificateStrategy())
+                .build();
+        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException e) {
+            if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
+                throw new KeyException(
+                        "Unable to load key from keystore, because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'. Possible causes:\n" +
+                        "* Wrong password for private key (the password for the keystore and the private key may not be the same)\n" +
+                        "* Multiple private keys in the keystore with different passwords (private keys in the same key store must have the same password)", e);
+            } else {
+                throw new KeyException("Unable to create the SSLContext, because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
+            }
+        }
     }
 
-    public String getUserAgent() {
+    String generateUserAgentString() {
         return customUserAgentPart.map(inBetween("(", ")")).map(prepend(MANDATORY_USER_AGENT + " ")).orElse(MANDATORY_USER_AGENT);
     }
 
+
+
+    /**
+     * Build a new {@link ClientConfiguration}.
+     */
     public static Builder builder(KeyStoreConfig keystore) {
         return new Builder(keystore);
     }
@@ -148,8 +226,8 @@ public class ClientConfiguration {
         }
 
         public Builder trustStore(Certificates certificates) {
-            if (certificates.equals(TEST)) {
-                log.warn("Using test certificates in trust store. This should never be done for production environments.");
+            if (certificates == TEST) {
+                LOG.warn("Using test certificates in trust store. This should never be done for production environments.");
             }
 
             this.target.certificatePaths = certificates.certificatePaths;
@@ -189,46 +267,36 @@ public class ClientConfiguration {
             return this;
         }
 
+        /**
+         * Makes the client log the sent requests and received responses to the logger named
+         * {@link ClientConfiguration#HTTP_REQUEST_RESPONSE_LOGGER_NAME}.
+         */
+        public Builder enableRequestAndResponseLogging() {
+            this.target.loggingFilter = the(new LoggingFilter(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), true)).asOptional();
+            return this;
+        }
+
+        /**
+         * This methods allows for custom configuration of JAX-RS (i.e. Jersey) if anything is
+         * needed that is not already supported by the {@link ClientConfiguration.Builder}.
+         * This method should not be used to configure anything that is already directly supported by the
+         * {@code ClientConfiguration.Builder} API.
+         * <p>
+         * If you still need to use this method, consider requesting first-class support for your requirement
+         * on the library's <a href="https://github.com/digipost/signature-api-client-java/issues">web site on GitHub</a>.
+         *
+         * @param customizer The operations to do on the JAX-RS {@link Configurable}, e.g.
+         *                   {@link Configurable#register(Object) registering components}.
+         */
+        public Builder customizeJaxRs(Do<? super Configurable<? extends Configuration>> customizer) {
+            customizer.with(target.jaxrsConfig);
+            return this;
+        }
+
         public ClientConfiguration build() {
             return target;
         }
 
-    }
-
-
-    public enum Certificates {
-
-        TEST(asList(
-                "classpath:certificates/test/Buypass_Class_3_Test4_CA_3.cer",
-                "classpath:certificates/test/Buypass_Class_3_Test4_Root_CA.cer",
-                "classpath:certificates/test/commfides_test_ca.cer",
-                "classpath:certificates/test/commfides_test_root_ca.cer",
-                "classpath:certificates/test/digipost_test_root_ca.pem"
-        )),
-        PRODUCTION(asList(
-               "classpath:certificates/prod/BPClass3CA3.cer",
-               "classpath:certificates/prod/BPClass3RootCA.cer",
-               "classpath:certificates/prod/commfides_ca.cer",
-               "classpath:certificates/prod/commfides_root_ca.cer"
-        ));
-
-        private final List<String> certificatePaths;
-
-        Certificates(List<String> certificatePaths) {
-            this.certificatePaths = certificatePaths;
-        }
-    }
-
-    public enum ServiceUri {
-        PRODUCTION(URI.create("https://api.signering.posten.no/api")),
-        DIFI_QA(URI.create("https://api.difiqa.signering.posten.no/api")),
-        DIFI_TEST(URI.create("https://api.difitest.signering.posten.no/api"));
-
-        private final URI uri;
-
-        ServiceUri(URI uri) {
-            this.uri = uri;
-        }
     }
 
 }

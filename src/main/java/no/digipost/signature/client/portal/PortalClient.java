@@ -28,6 +28,7 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.ClientHelper;
+import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
 
 import java.io.InputStream;
 
@@ -40,9 +41,9 @@ public class PortalClient {
     private final ClientHelper client;
     private final CreateASiCE<PortalJob> aSiCECreator;
 
-    public PortalClient(ClientConfiguration clientConfiguration) {
-        this.client = new ClientHelper(clientConfiguration);
-        this.aSiCECreator = new CreateASiCE<>(new CreatePortalManifest(), clientConfiguration);
+    public PortalClient(ClientConfiguration config) {
+        this.client = new ClientHelper(SignatureHttpClientFactory.create(config), config.getGlobalSender());
+        this.aSiCECreator = new CreateASiCE<>(new CreatePortalManifest(), config);
     }
 
 

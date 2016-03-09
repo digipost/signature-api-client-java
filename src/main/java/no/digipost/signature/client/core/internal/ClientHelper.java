@@ -16,12 +16,10 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.api.xml.*;
-import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.exceptions.*;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
-import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
 import no.motif.single.Optional;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
@@ -61,9 +59,9 @@ public class ClientHelper {
     private final Optional<Sender> globalSender;
     private final ClientExceptionMapper clientExceptionMapper;
 
-    public ClientHelper(final ClientConfiguration clientConfiguration) {
-        httpClient = SignatureHttpClientFactory.create(clientConfiguration);
-        globalSender = clientConfiguration.getSender();
+    public ClientHelper(SignatureHttpClient httpClient, Optional<Sender> globalSender) {
+        this.httpClient = httpClient;
+        this.globalSender = globalSender;
         clientExceptionMapper = new ClientExceptionMapper();
     }
 
@@ -200,11 +198,11 @@ public class ClientHelper {
         });
     }
 
-    private <T> T call(final Callable<T> producer) {
+    private <T> T call(Callable<T> producer) {
         return clientExceptionMapper.doWithMappedClientException(producer);
     }
 
-    private void call(final Runnable action) {
+    private void call(Runnable action) {
         clientExceptionMapper.doWithMappedClientException(action);
     }
 

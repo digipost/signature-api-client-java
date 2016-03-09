@@ -25,7 +25,7 @@ import static javax.ws.rs.Priorities.HEADER_DECORATOR;
 
 
 @Priority(HEADER_DECORATOR)
-class AddRequestHeaderFilter implements ClientRequestFilter {
+public class AddRequestHeaderFilter implements ClientRequestFilter {
 
     private final String headerName;
     private final String value;

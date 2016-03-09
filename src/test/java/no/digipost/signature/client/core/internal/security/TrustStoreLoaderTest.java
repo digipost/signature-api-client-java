@@ -24,8 +24,8 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 
 import static junit.framework.TestCase.assertEquals;
-import static no.digipost.signature.client.ClientConfiguration.Certificates.PRODUCTION;
-import static no.digipost.signature.client.ClientConfiguration.Certificates.TEST;
+import static no.digipost.signature.client.Certificates.PRODUCTION;
+import static no.digipost.signature.client.Certificates.TEST;
 
 public class TrustStoreLoaderTest {
 

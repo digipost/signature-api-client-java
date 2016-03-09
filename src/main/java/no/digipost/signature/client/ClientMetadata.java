@@ -33,7 +33,12 @@ public final class ClientMetadata {
             version = scanner.next();
         } catch (IOException e) {
             Logger log = LoggerFactory.getLogger(ClientMetadata.class);
-            log.warn("Unable to resolve library version from classpath resource 'version', because " + e.getMessage(), e);
+            log.warn("Unable to resolve library version from classpath resource 'version', because {}: '{}'", e.getClass().getSimpleName(), e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            } else {
+                log.info("Enable debug-logging for logger '{}' to see full stacktrace for above warning" + log.getName());
+            }
         } finally {
             VERSION = version;
         }

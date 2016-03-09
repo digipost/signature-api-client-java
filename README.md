@@ -1,17 +1,18 @@
 # Posten Signering – Java Klientbibliotek
 
-Dette repoet inneholder klientbibliotek implementert i Java som kan benyttes for å integrere mot Posten Signering. 
+Dette repoet inneholder klientbibliotek implementert i Java som kan benyttes for å integrere mot Posten Signering.
 
 Nærmere dokumentasjon av APIet og detaljer rundt bruk kan finnes i repoet [Signature-API-Specification](https://github.com/digipost/signature-api-specification)
 
-### Endringshyppighet på klientbibliotek og API
+## Endringshyppighet på klientbibliotek og API
 Dette klientbiblioteket og APIene er pr. i dag "work in progress", og det vil forekomme endringer utover våren 2016. Sørg for å avklare med din kontakt i Posten/Difi før du baserer deg på noen av disse bibliotekene og APIene. På grunn av dette, så finnes det pr. i dag heller ingen releasede versjoner av klientene.
+
 
 ---
 
-# Hvordan komme i gang med klientbiblioteket
 
-*Mer informasjon vil komme senere, inntil da kan du se på dokumentasjonen i klassene `DirectClient` og `PortalClient`.*
+## Bruke biblioteket
+
 
 ### Maven-avhengighet
 
@@ -25,7 +26,7 @@ Klientbiblioteket er releaset til [![Maven Central](https://maven-badges.herokua
 </dependency>
 ```
 
-### Hvordan få ting til å bygge og kjøre tester
+### Bygge og kjøre tester
 
 Legg inn filen `src/test/java/no/digipost/signering/client/TestKonfigurasjon.java` og fyll med følgende innhold:
 
@@ -45,3 +46,22 @@ public class TestKonfigurasjon {
 
 }
 ```
+
+
+### Java-API
+
+*Mer informasjon vil komme senere, inntil da kan du se på dokumentasjonen i klassene `DirectClient` og `PortalClient`.*
+
+
+---
+
+
+## Feilsøking
+
+Her er noen tips for hvordan man kan gå frem for å undersøke oppførselen til bibliteket i eventuelle feilsøkingssituasjoner.
+
+### Logge request og respons
+
+Klientbiblioteket kan konfigureres til å logge HTTP-requester og -responser ved å kalle `enableRequestAndResponseLogging()` når man bygger opp klientens konfigurasjon. Man kan da konfigurere loggeren  `no.digipost.signature.client.http.requestresponse` for å tilpasse loggingen.
+
+Logging av requests og respons skjer per dags dato med en `java.util.logging`-logger via Jersey 2 sitt [LoggingFilter](https://jersey.java.net/apidocs/latest/jersey/org/glassfish/jersey/filter/LoggingFilter.html). Klientbiblioteket benytter ellers SLF4J til logging, og dersom man ønsker å konfigurere request- og respons-logging på samme måte som man konfigurerer logging ellers via SLF4J, må man installere [jul-to-slf4j bridge](http://www.slf4j.org/legacy.html#jul-to-slf4j). Som nevnt på siden er det en ytelsesutfordring forbundet med denne mekanismen, og dersom man bruker Logback som logger-implementasjon, anbefales det å i tillegg konfigurere [LevelChangePropagator](http://logback.qos.ch/manual/configuration.html#LevelChangePropagator).
