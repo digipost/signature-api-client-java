@@ -52,6 +52,7 @@ public class TestKonfigurasjon {
 
 *Mer informasjon vil komme senere, inntil da kan du se på dokumentasjonen i klassene `DirectClient` og `PortalClient`.*
 
+Javadoc: [javadoc.io/doc/no.digipost.signature/signature-api-client-java](http://www.javadoc.io/doc/no.digipost.signature/signature-api-client-java)
 
 ---
 
