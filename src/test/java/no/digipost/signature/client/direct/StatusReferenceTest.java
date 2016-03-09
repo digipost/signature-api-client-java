@@ -26,7 +26,7 @@ public class StatusReferenceTest {
     public void buildsCorrectUrlWithToken() {
         String statusUrl = "https://statusqueryservice/status/?job=1337";
         String token = "abcdefgh";
-        StatusReference statusReference = new StatusReference(statusUrl, token);
+        StatusReference statusReference = StatusReference.ofUrl(statusUrl).withStatusQueryToken(token);
         assertThat(statusReference.getStatusUrl(), is(statusUrl + "&" + StatusReference.STATUS_QUERY_TOKEN_PARAM_NAME + "=" + token));
     }
 }

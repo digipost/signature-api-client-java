@@ -54,7 +54,7 @@ public class DirectClient {
     /**
      * Get the current status for the given {@link StatusReference}, which references the status for a specific job.
      * When processing of the status is complete (e.g. retrieving {@link #getPAdES(PAdESReference) PAdES} and/or
-     * {@link #getXAdES(XAdESReference) XAdES} documents for a  {@link DirectJobStatus#SIGNED signed} job),
+     * {@link #getXAdES(XAdESReference) XAdES} documents for a {@link DirectJobStatus#SIGNED signed} job),
      * the returned status must be {@link #confirm(DirectJobStatusResponse) confirmed}.
      *
      * @param statusReference the reference to the status of a specific job.

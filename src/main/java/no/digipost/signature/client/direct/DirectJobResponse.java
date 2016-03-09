@@ -34,22 +34,8 @@ public class DirectJobResponse {
         return redirectUrl;
     }
 
-    /**
-     * Get the reference (URL) to {@link DirectClient#getStatus(StatusReference) query the status}
-     * of this job.
-     * <p>
-     * When the signer has completed/aborted/failed the signature ceremony and is redirected to
-     * one of the {@link ExitUrls} provided when the job was created, this token is provided as an added
-     * query parameter ({@link StatusReference#STATUS_QUERY_TOKEN_PARAM_NAME}) for the URL. The token needs to
-     * be consumed by the system handling where the user is redirected to, and consequently provided here to
-     * resolve a valid URL to query for the job's status.
-     *
-     * @param statusQueryToken the token required to be allowed to ask for the job's status.
-     *
-     * @return the {@link StatusReference} for this job
-     */
-    public StatusReference getStatusUrl(String statusQueryToken) {
-        return new StatusReference(statusUrl, statusQueryToken);
+    public String getStatusUrl() {
+        return statusUrl;
     }
 
 }
