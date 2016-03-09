@@ -26,7 +26,6 @@ import no.digipost.signature.client.core.internal.security.TrustStoreLoader;
 import no.digipost.signature.client.core.internal.xml.JaxbMessageReaderWriterProvider;
 import no.digipost.signature.client.direct.DirectJob;
 import no.digipost.signature.client.portal.PortalJob;
-import no.motif.Singular;
 import no.motif.f.Do;
 import no.motif.single.Optional;
 import org.apache.http.ssl.PrivateKeyDetails;
@@ -51,12 +50,12 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
-import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
 import static no.digipost.signature.client.Certificates.TEST;
+import static no.digipost.signature.client.Certificates.getCertificatePaths;
 import static no.digipost.signature.client.ClientMetadata.VERSION;
 import static no.motif.Singular.*;
 import static no.motif.Strings.*;
@@ -94,22 +93,26 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
 
 
-
-    private final Configurable<? extends Configuration> jaxrsConfig = new ClientConfig();
+    private final Configurable<? extends Configuration> jaxrsConfig;
     private final KeyStoreConfig keyStoreConfig;
 
-    private int socketTimeoutMs = DEFAULT_SOCKET_TIMEOUT_MS;
-    private int connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS;
-    private Optional<String> customUserAgentPart = none();
-    private Optional<LoggingFilter> loggingFilter = none();
-    private List<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
-    private Optional<Sender> sender = none();
-    private URI signatureServiceRoot = ServiceUri.PRODUCTION.uri;
+    private final Iterable<String> certificatePaths;
+    private final Optional<Sender> sender;
+    private final URI signatureServiceRoot;
 
 
-    private ClientConfiguration(KeyStoreConfig keyStoreConfig) {
+    private ClientConfiguration(
+            KeyStoreConfig keyStoreConfig, Configurable<? extends Configuration> jaxrsConfig,
+            Optional<Sender> sender, URI serviceRoot, Iterable<String> certificatePaths) {
+
         this.keyStoreConfig = keyStoreConfig;
+        this.jaxrsConfig = jaxrsConfig;
+        this.sender = sender;
+        this.signatureServiceRoot = serviceRoot;
+        this.certificatePaths = certificatePaths;
     }
+
+
 
     public KeyStoreConfig getKeyStoreConfig() {
         return keyStoreConfig;
@@ -125,7 +128,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     }
 
     @Override
-    public List<String> getCertificatePaths() {
+    public Iterable<String> getCertificatePaths() {
         return certificatePaths;
     }
 
@@ -137,14 +140,9 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
      */
     @Override
     public Configuration getJaxrsConfiguration() {
-        jaxrsConfig.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutMs);
-        jaxrsConfig.property(ClientProperties.READ_TIMEOUT, socketTimeoutMs);
-        jaxrsConfig.register(MultiPartFeature.class);
-        jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
-        jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, generateUserAgentString()));
-        for (LoggingFilter loggingFilter : this.loggingFilter) jaxrsConfig.register(loggingFilter);
         return jaxrsConfig.getConfiguration();
     }
+
 
     @Override
     public SSLContext getSSLContext() {
@@ -170,10 +168,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         }
     }
 
-    String generateUserAgentString() {
-        return customUserAgentPart.map(inBetween("(", ")")).map(prepend(MANDATORY_USER_AGENT + " ")).orElse(MANDATORY_USER_AGENT);
-    }
-
 
 
     /**
@@ -185,25 +179,35 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
     public static class Builder {
 
-        private final ClientConfiguration target;
+        private final Configurable<? extends Configuration> jaxrsConfig;
+        private final KeyStoreConfig keyStoreConfig;
+
+        private int socketTimeoutMs = DEFAULT_SOCKET_TIMEOUT_MS;
+        private int connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS;
+        private Optional<String> customUserAgentPart = none();
+        private URI serviceRoot = ServiceUri.PRODUCTION.uri;
+        private Optional<Sender> globalSender = none();
+        private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
+        private Optional<LoggingFilter> loggingFilter = none();
+
 
         private Builder(KeyStoreConfig keyStoreConfig) {
-            this.target = new ClientConfiguration(keyStoreConfig);
+            this.keyStoreConfig = keyStoreConfig;
+            this.jaxrsConfig = new ClientConfig();
         }
 
         /**
          * Set the service URI to one of the predefined environments.
          */
         public Builder serviceUri(ServiceUri environment) {
-            this.target.signatureServiceRoot = environment.uri;
-            return this;
+            return serviceUri(environment.uri);
         }
 
         /**
          * Override the service endpoint URI to a custom environment.
          */
         public Builder serviceUri(URI uri) {
-            this.target.signatureServiceRoot = uri;
+            this.serviceRoot = uri;
             return this;
         }
 
@@ -212,7 +216,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * {@link ClientConfiguration#DEFAULT_SOCKET_TIMEOUT_MS default socket timeout value}.
          */
         public Builder socketTimeoutMillis(int millis) {
-            this.target.socketTimeoutMs = millis;
+            this.socketTimeoutMs = millis;
             return this;
         }
 
@@ -221,7 +225,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * {@link ClientConfiguration#DEFAULT_CONNECT_TIMEOUT_MS default connect timeout value}.
          */
         public Builder connectTimeoutMillis(int millis) {
-            this.target.connectTimeoutMs = millis;
+            this.connectTimeoutMs = millis;
             return this;
         }
 
@@ -229,8 +233,26 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             if (certificates == TEST) {
                 LOG.warn("Using test certificates in trust store. This should never be done for production environments.");
             }
+            return trustStore(the(certificates).split(getCertificatePaths));
+        }
 
-            this.target.certificatePaths = certificates.certificatePaths;
+
+        /**
+         * Override the trust store configuration to load DER-encoded certificates from the given folder(s).
+         *
+         * @see java.security.cert.CertificateFactory#generateCertificate(InputStream)
+         */
+        public Builder trustStore(String ... certificatePaths) {
+            return trustStore(asList(certificatePaths));
+        }
+
+        /**
+         * Override the trust store configuration to load DER-encoded certificates from the given folder(s).
+         *
+         * @see java.security.cert.CertificateFactory#generateCertificate(InputStream)
+         */
+        public Builder trustStore(Iterable<String> certificatePaths) {
+            this.certificatePaths = certificatePaths;
             return this;
         }
 
@@ -241,18 +263,8 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * if you need to specify different senders per signature job (typically when acting as a broker on
          * behalf of multiple other organizations)
          */
-        public Builder sender(Sender sender) {
-            this.target.sender = Singular.optional(sender);
-            return this;
-        }
-
-        /**
-         * Override the trust store configuration to load DER-encoded certificates from the given folder(s).
-         *
-         * @see java.security.cert.CertificateFactory#generateCertificate(InputStream)
-         */
-        public Builder trustStore(String... certificatePath) {
-            this.target.certificatePaths = asList(certificatePath);
+        public Builder globalSender(Sender sender) {
+            this.globalSender = optional(sender);
             return this;
         }
 
@@ -263,7 +275,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * @param userAgentCustomPart The custom part to include in the User-Agent HTTP header.
          */
         public Builder includeInUserAgent(String userAgentCustomPart) {
-            this.target.customUserAgentPart = optional(nonblank, userAgentCustomPart);
+            customUserAgentPart = optional(nonblank, userAgentCustomPart);
             return this;
         }
 
@@ -272,7 +284,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * {@link ClientConfiguration#HTTP_REQUEST_RESPONSE_LOGGER_NAME}.
          */
         public Builder enableRequestAndResponseLogging() {
-            this.target.loggingFilter = the(new LoggingFilter(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), true)).asOptional();
+            loggingFilter = the(new LoggingFilter(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), true)).asOptional();
             return this;
         }
 
@@ -289,12 +301,23 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          *                   {@link Configurable#register(Object) registering components}.
          */
         public Builder customizeJaxRs(Do<? super Configurable<? extends Configuration>> customizer) {
-            customizer.with(target.jaxrsConfig);
+            customizer.with(jaxrsConfig);
             return this;
         }
 
         public ClientConfiguration build() {
-            return target;
+            jaxrsConfig.property(ClientProperties.READ_TIMEOUT, socketTimeoutMs);
+            jaxrsConfig.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutMs);
+            jaxrsConfig.register(MultiPartFeature.class);
+            jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
+            jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, createUserAgentString()));
+            for (LoggingFilter loggingFilter : this.loggingFilter) jaxrsConfig.register(loggingFilter);
+            return new ClientConfiguration(keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths);
+        }
+
+        String createUserAgentString() {
+            return customUserAgentPart.map(inBetween("(", ")")).map(prepend(MANDATORY_USER_AGENT + " "))
+                                      .orElse(MANDATORY_USER_AGENT);
         }
 
     }

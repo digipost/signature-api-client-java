@@ -42,6 +42,13 @@ public enum Certificates {
     Certificates(String ... certificatePaths) {
         this.certificatePaths = on(certificatePaths).map(FullCertificateClassPathUri.instance).collect();
     }
+
+    static final Fn<Certificates, List<String>> getCertificatePaths = new Fn<Certificates, List<String>>() {
+        @Override
+        public List<String> $(Certificates certificates) {
+            return certificates.certificatePaths;
+        }
+    };
 }
 
 

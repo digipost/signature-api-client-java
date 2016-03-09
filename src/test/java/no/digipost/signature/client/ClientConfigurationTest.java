@@ -34,12 +34,12 @@ public class ClientConfigurationTest {
 
     @Test
     public void givesDefaultUserAgent() {
-        assertThat(config.build().generateUserAgentString(), both(is(MANDATORY_USER_AGENT)).and(containsString(VERSION)));
+        assertThat(config.createUserAgentString(), both(is(MANDATORY_USER_AGENT)).and(containsString(VERSION)));
     }
 
     @Test
     public void appendsCustomUserAgentAfterDefault() {
-        assertThat(config.includeInUserAgent("My Corporation").build().generateUserAgentString(),
+        assertThat(config.includeInUserAgent("My Corporation").createUserAgentString(),
                 both(startsWith(MANDATORY_USER_AGENT))
                 .and(containsString(VERSION))
                 .and(containsString("My Corporation")));
