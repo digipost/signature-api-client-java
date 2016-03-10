@@ -26,15 +26,15 @@ public class DirectJobStatusResponse implements Confirmable {
     private final long signatureJobId;
     private final DirectJobStatus status;
     private final ConfirmationReference confirmationReference;
-    private final XAdESReference xAdESUrl;
-    private final PAdESReference pAdESUrl;
+    private final XAdESReference xAdESReference;
+    private final PAdESReference pAdESReference;
 
-    public DirectJobStatusResponse(long signatureJobId, DirectJobStatus status, ConfirmationReference confirmationUrl, XAdESReference xAdESUrl, PAdESReference pAdESUrl) {
+    public DirectJobStatusResponse(long signatureJobId, DirectJobStatus status, ConfirmationReference confirmationUrl, XAdESReference xAdESReference, PAdESReference pAdESReference) {
         this.signatureJobId = signatureJobId;
         this.status = status;
         this.confirmationReference = confirmationUrl;
-        this.xAdESUrl = xAdESUrl;
-        this.pAdESUrl = pAdESUrl;
+        this.xAdESReference = xAdESReference;
+        this.pAdESReference = pAdESReference;
     }
 
     public long getSignatureJobId() {
@@ -45,12 +45,20 @@ public class DirectJobStatusResponse implements Confirmable {
         return status;
     }
 
+    public boolean is(DirectJobStatus status) {
+        return this.status == status;
+    }
+
     public XAdESReference getxAdESUrl() {
-        return xAdESUrl;
+        return xAdESReference;
+    }
+
+    public boolean isPAdESAvailable() {
+        return pAdESReference != null;
     }
 
     public PAdESReference getpAdESUrl() {
-        return pAdESUrl;
+        return pAdESReference;
     }
 
     @Override
