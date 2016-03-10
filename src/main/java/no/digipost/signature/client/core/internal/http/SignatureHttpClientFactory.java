@@ -26,7 +26,7 @@ import java.net.URI;
 public class SignatureHttpClientFactory {
 
 
-    public static SignatureHttpClient create(ProvidesHttpIntegrationConfiguration config) {
+    public static SignatureHttpClient create(HttpIntegrationConfiguration config) {
         Client jerseyClient = JerseyClientBuilder.newBuilder()
                 .withConfig(config.getJaxrsConfiguration())
                 .sslContext(config.getSSLContext())

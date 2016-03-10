@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.internal.http;
+package no.digipost.signature.client.asice;
 
-import javax.net.ssl.SSLContext;
-import javax.ws.rs.core.Configuration;
+import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.internal.security.KeyStoreConfig;
+import no.motif.single.Optional;
 
-import java.net.URI;
+public interface ASiCEConfiguration {
 
-public interface ProvidesHttpIntegrationConfiguration {
+    KeyStoreConfig getKeyStoreConfig();
 
-    Configuration getJaxrsConfiguration();
+    Optional<Sender> getGlobalSender();
 
-    SSLContext getSSLContext();
-
-    URI getServiceRoot();
+    Iterable<DocumentBundleProcessor> getDocumentBundleProcessors();
 
 }

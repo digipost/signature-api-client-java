@@ -15,7 +15,6 @@
  */
 package no.digipost.signature.client.asice;
 
-import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.archive.CreateZip;
 import no.digipost.signature.client.asice.manifest.Manifest;
 import no.digipost.signature.client.asice.manifest.ManifestCreator;
@@ -44,7 +43,7 @@ public class CreateASiCE<JOB extends SignatureJob> {
     private final KeyStoreConfig keyStoreConfig;
     private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
 
-    public CreateASiCE(ManifestCreator<JOB> manifestCreator, ClientConfiguration clientConfiguration) {
+    public CreateASiCE(ManifestCreator<JOB> manifestCreator, ASiCEConfiguration clientConfiguration) {
         this.manifestCreator = manifestCreator;
         this.globalSender = clientConfiguration.getGlobalSender();
         this.keyStoreConfig = clientConfiguration.getKeyStoreConfig();

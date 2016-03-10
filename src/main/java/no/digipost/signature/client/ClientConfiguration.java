@@ -15,6 +15,7 @@
  */
 package no.digipost.signature.client;
 
+import no.digipost.signature.client.asice.ASiCEConfiguration;
 import no.digipost.signature.client.asice.DocumentBundleProcessor;
 import no.digipost.signature.client.asice.DumpDocumentBundleToDisk;
 import no.digipost.signature.client.core.Sender;
@@ -22,7 +23,7 @@ import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.KeyException;
 import no.digipost.signature.client.core.internal.http.AddRequestHeaderFilter;
 import no.digipost.signature.client.core.internal.http.PostenEnterpriseCertificateStrategy;
-import no.digipost.signature.client.core.internal.http.ProvidesHttpIntegrationConfiguration;
+import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
 import no.digipost.signature.client.core.internal.security.KeyStoreConfig;
 import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
 import no.digipost.signature.client.core.internal.security.TrustStoreLoader;
@@ -67,7 +68,7 @@ import static no.digipost.signature.client.ClientMetadata.VERSION;
 import static no.motif.Singular.*;
 import static no.motif.Strings.*;
 
-public final class ClientConfiguration implements ProvidesCertificateResourcePaths, ProvidesHttpIntegrationConfiguration {
+public final class ClientConfiguration implements ProvidesCertificateResourcePaths, HttpIntegrationConfiguration, ASiCEConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientConfiguration.class);
 
@@ -124,14 +125,17 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
 
 
+    @Override
     public KeyStoreConfig getKeyStoreConfig() {
         return keyStoreConfig;
     }
 
+    @Override
     public Optional<Sender> getGlobalSender() {
         return sender;
     }
 
+    @Override
     public Iterable<DocumentBundleProcessor> getDocumentBundleProcessors() {
         return documentBundleProcessors;
     }
