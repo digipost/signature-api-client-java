@@ -26,10 +26,6 @@ public class DocumentBundle {
         this.bytes = bytes;
     }
 
-    public byte[] getBytes() {
-        return bytes;
-    }
-
     public InputStream getInputStream() {
         return new ByteArrayInputStream(bytes);
     }

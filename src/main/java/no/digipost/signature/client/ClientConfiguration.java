@@ -15,7 +15,10 @@
  */
 package no.digipost.signature.client;
 
+import no.digipost.signature.client.asice.DocumentBundleProcessor;
+import no.digipost.signature.client.asice.DumpDocumentBundleToDisk;
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.KeyException;
 import no.digipost.signature.client.core.internal.http.AddRequestHeaderFilter;
 import no.digipost.signature.client.core.internal.http.PostenEnterpriseCertificateStrategy;
@@ -46,11 +49,15 @@ import javax.ws.rs.core.HttpHeaders;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.URI;
+import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
@@ -99,17 +106,20 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     private final Iterable<String> certificatePaths;
     private final Optional<Sender> sender;
     private final URI signatureServiceRoot;
+    private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
+
 
 
     private ClientConfiguration(
             KeyStoreConfig keyStoreConfig, Configurable<? extends Configuration> jaxrsConfig,
-            Optional<Sender> sender, URI serviceRoot, Iterable<String> certificatePaths) {
+            Optional<Sender> sender, URI serviceRoot, Iterable<String> certificatePaths, Iterable<DocumentBundleProcessor> documentBundleProcessors) {
 
         this.keyStoreConfig = keyStoreConfig;
         this.jaxrsConfig = jaxrsConfig;
         this.sender = sender;
         this.signatureServiceRoot = serviceRoot;
         this.certificatePaths = certificatePaths;
+        this.documentBundleProcessors = documentBundleProcessors;
     }
 
 
@@ -121,6 +131,11 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     public Optional<Sender> getGlobalSender() {
         return sender;
     }
+
+    public Iterable<DocumentBundleProcessor> getDocumentBundleProcessors() {
+        return documentBundleProcessors;
+    }
+
 
     @Override
     public URI getServiceRoot() {
@@ -189,6 +204,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         private Optional<Sender> globalSender = none();
         private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
         private Optional<LoggingFilter> loggingFilter = none();
+        private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
 
 
         private Builder(KeyStoreConfig keyStoreConfig) {
@@ -284,7 +300,41 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * {@link ClientConfiguration#HTTP_REQUEST_RESPONSE_LOGGER_NAME}.
          */
         public Builder enableRequestAndResponseLogging() {
-            loggingFilter = the(new LoggingFilter(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), true)).asOptional();
+            loggingFilter = the(new LoggingFilter(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), 16 * 1024)).asOptional();
+            return this;
+        }
+
+        /**
+         * Have the library dump the generated document bundle zip files to disk before they are
+         * sent to the service to create signature jobs.
+         * <p>
+         * The files will be given names on the format
+         * <pre>{@code timestamp-[reference_from_job-]asice.zip}</pre>
+         * The <em>reference_from_job</em> part is only included if the job is given such a reference using
+         * {@link DirectJob.Builder#withReference(UUID)} or {@link PortalJob.Builder#withReference(UUID)}.
+         *
+         * @param directory the directory to dump to. This directory must already exist, or
+         *                  creating new signature jobs will fail. Miserably.
+         */
+        public Builder enableDocumentBundleDiskDump(Path directory) {
+            return addDocumentBundleProcessor(new DumpDocumentBundleToDisk(directory));
+        }
+
+
+        /**
+         * Add a {@link DocumentBundleProcessor} which will be passed the generated zipped document bundle
+         * together with the {@link SignatureJob job} it was created for. The processor is not responsible for closing
+         * the stream, as this is handled by the library itself.
+         *
+         * <h2>A note on performance</h2>
+         * The processor is free to do what it want with the passed stream, but bear in mind that the time
+         * used by a processor adds to the processing time to create signature jobs.
+         *
+         * @param processor the {@link DocumentBundleProcessor} which will be passed the generated zipped document bundle
+         *                  together with the {@link SignatureJob job} it was created for.
+         */
+        public Builder addDocumentBundleProcessor(DocumentBundleProcessor processor) {
+            documentBundleProcessors.add(processor);
             return this;
         }
 
@@ -312,7 +362,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
             jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, createUserAgentString()));
             for (LoggingFilter loggingFilter : this.loggingFilter) jaxrsConfig.register(loggingFilter);
-            return new ClientConfiguration(keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths);
+            return new ClientConfiguration(keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths, documentBundleProcessors);
         }
 
         String createUserAgentString() {

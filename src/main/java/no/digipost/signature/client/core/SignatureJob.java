@@ -23,4 +23,6 @@ public interface SignatureJob {
 
     Optional<Sender> getSender();
 
+    String getReference();
+
 }

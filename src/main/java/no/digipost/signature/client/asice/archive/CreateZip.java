@@ -26,16 +26,18 @@ import java.util.zip.ZipOutputStream;
 
 public class CreateZip {
 
-    public Archive zipIt(final List<ASiCEAttachable> files) {
-        try (ByteArrayOutputStream archive = new ByteArrayOutputStream(); ZipOutputStream zipOutputStream = new ZipOutputStream(archive)) {
-            for (ASiCEAttachable file : files) {
-                ZipEntry zipEntry = new ZipEntry(file.getFileName());
-                zipEntry.setSize(file.getBytes().length);
-                zipOutputStream.putNextEntry(zipEntry);
-                zipOutputStream.write(file.getBytes());
-                zipOutputStream.closeEntry();
+    public byte[] zipIt(final List<ASiCEAttachable> files) {
+        try (ByteArrayOutputStream archive = new ByteArrayOutputStream()) {
+            try (ZipOutputStream zipOutputStream = new ZipOutputStream(archive)) {
+                for (ASiCEAttachable file : files) {
+                    ZipEntry zipEntry = new ZipEntry(file.getFileName());
+                    zipEntry.setSize(file.getBytes().length);
+                    zipOutputStream.putNextEntry(zipEntry);
+                    zipOutputStream.write(file.getBytes());
+                    zipOutputStream.closeEntry();
+                }
             }
-            return new Archive(archive.toByteArray());
+            return archive.toByteArray();
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }

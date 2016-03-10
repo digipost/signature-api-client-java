@@ -16,7 +16,6 @@
 package no.digipost.signature.client.asice;
 
 import no.digipost.signature.client.ClientConfiguration;
-import no.digipost.signature.client.TestKonfigurasjon;
 import no.digipost.signature.client.asice.manifest.CreateDirectManifest;
 import no.digipost.signature.client.asice.manifest.CreatePortalManifest;
 import no.digipost.signature.client.asice.manifest.ManifestCreator;
@@ -25,54 +24,90 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.Signer;
 import no.digipost.signature.client.direct.DirectJob;
-import no.digipost.signature.client.direct.ExitUrls;
 import no.digipost.signature.client.portal.PortalJob;
-import org.apache.commons.io.IOUtils;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import static java.nio.file.Files.newDirectoryStream;
 import static java.util.concurrent.TimeUnit.DAYS;
+import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
+import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.referenceFilenamePart;
+import static no.digipost.signature.client.direct.ExitUrls.singleExitUrl;
+import static no.motif.Iterate.on;
+import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.assertThat;
 
 public class CreateASiCETest {
+
+    @BeforeClass
+    public static void initTempFolder() throws URISyntaxException, IOException {
+        dumpFolder = Paths.get(CreateASiCETest.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent()
+                .resolve(CreateASiCETest.class.getSimpleName())
+                .resolve(new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()));
+        Files.createDirectories(dumpFolder);
+    }
+
+    public static Path dumpFolder;
 
     public static final Document DOCUMENT = Document.builder("Subject", "file.txt", "hello".getBytes())
             .message("Message")
             .fileType(Document.FileType.TXT)
             .build();
 
-    public static final ClientConfiguration CLIENT_CONFIGURATION = ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE).globalSender(new Sender("123456789")).build();
+
 
     @Test
-    @Ignore("Writes files to disk. Can be useful for debugging")
     public void create_direct_asice_and_write_to_disk() throws IOException {
-        DirectJob job = DirectJob.builder(new Signer("12345678910"), DOCUMENT, ExitUrls.of("https://completion.org", "https://cancellation.org", "https://error.org")).build();
+        DirectJob job = DirectJob.builder(new Signer("12345678910"), DOCUMENT, singleExitUrl("https://job.well.done.org"))
+                .withReference("direct job")
+                .build();
 
-        create_document_bundle_and_write_to_disk(new CreateDirectManifest(), job);
+        create_document_bundle_and_dump_to_disk(new CreateDirectManifest(), job);
     }
 
     @Test
-    @Ignore("Writes files to disk. Can be useful for debugging")
     public void create_portal_asice_and_write_to_disk() throws IOException {
         PortalJob job = PortalJob.builder(DOCUMENT, new Signer("12345678910"))
+                .withReference("portal job")
                 .withActivationTime(new Date())
                 .availableFor(30, DAYS)
                 .build();
 
-        create_document_bundle_and_write_to_disk(new CreatePortalManifest(), job);
+        create_document_bundle_and_dump_to_disk(new CreatePortalManifest(), job);
     }
 
-    private <JOB extends SignatureJob> void create_document_bundle_and_write_to_disk(ManifestCreator<JOB> manifestCreator, JOB job) throws IOException {
-        CreateASiCE<JOB> aSiCECreator = new CreateASiCE<>(manifestCreator, CLIENT_CONFIGURATION);
-        DocumentBundle aSiCE = aSiCECreator.createASiCE(job);
+    private <JOB extends SignatureJob> void create_document_bundle_and_dump_to_disk(ManifestCreator<JOB> manifestCreator, JOB job) throws IOException {
+        CreateASiCE<JOB> aSiCECreator = new CreateASiCE<>(manifestCreator, ClientConfiguration.builder(CLIENT_KEYSTORE)
+                .globalSender(new Sender("123456789"))
+                .enableDocumentBundleDiskDump(dumpFolder)
+                .build());
+        aSiCECreator.createASiCE(job);
 
-        File tempFile = File.createTempFile("asice", ".zip");
-        IOUtils.copy(aSiCE.getInputStream(), new FileOutputStream(tempFile));
-        System.out.println("Wrote document bundle to " + tempFile.getAbsolutePath());
+        Path asiceFile = on(newDirectoryStream(dumpFolder, "*-" + referenceFilenamePart.$(job.getReference()) + "*.zip"))
+                .eval().head().get();
+
+        List<String> fileNames = new ArrayList<>();
+        try (InputStream asiceStream = Files.newInputStream(asiceFile); ZipInputStream uncompressed = new ZipInputStream(asiceStream)) {
+            for (ZipEntry entry = uncompressed.getNextEntry(); entry != null; entry = uncompressed.getNextEntry()) {
+                fileNames.add(entry.getName());
+            }
+        }
+        assertThat(fileNames, hasItem(job.getDocument().getFileName()));
+        assertThat(fileNames, hasItem("manifest.xml"));
+        assertThat(fileNames, hasItem("META-INF/signatures.xml"));
     }
 
 }

@@ -19,6 +19,7 @@ import no.digipost.signature.client.asice.ASiCEAttachable;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -40,15 +41,16 @@ public class CreateZipTest {
                 file("file2.txt", "test2")
         );
 
-        Archive archive = createZip.zipIt(asicEAttachables);
+        byte[] archive = createZip.zipIt(asicEAttachables);
 
-        ZipInputStream zipInputStream = new ZipInputStream(archive.getInputStream());
+        try (ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(archive))) {
+            verifyZipFile(zipInputStream, "file.txt", "test");
+            verifyZipFile(zipInputStream, "file2.txt", "test2");
+        }
 
-        verifyZipFile(zipInputStream, "file.txt", "test");
-        verifyZipFile(zipInputStream, "file2.txt", "test2");
     }
 
-    private void verifyZipFile(ZipInputStream zipInputStream, String fileName, String contents) throws IOException {
+    private static void verifyZipFile(ZipInputStream zipInputStream, String fileName, String contents) throws IOException {
         ZipEntry firstZipFile = zipInputStream.getNextEntry();
         assertThat(firstZipFile.getName(), containsString(fileName));
         assertArrayEquals(IOUtils.toByteArray(zipInputStream), contents.getBytes());

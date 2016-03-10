@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.asice.archive;
+package no.digipost.signature.client.asice;
 
-import java.io.ByteArrayInputStream;
+import no.digipost.signature.client.core.SignatureJob;
+
+import java.io.IOException;
 import java.io.InputStream;
 
-public class Archive {
-    private byte[] bytes;
+public interface DocumentBundleProcessor {
 
-    public Archive(final byte[] bytes) {
-        this.bytes = bytes;
-    }
+    void process(SignatureJob job, InputStream documentBundleStream) throws IOException;
 
-    public byte[] getBytes() {
-        return bytes;
-    }
-
-    public InputStream getInputStream() {
-        return new ByteArrayInputStream(bytes);
-    }
 }
