@@ -129,7 +129,7 @@ public class ClientHelper {
         return call(new Producer<InputStream>() {
             @Override
             InputStream call() {
-                return parseResponse(httpClient.target(url).request().get(), InputStream.class);
+                return parseResponse(httpClient.target(url).request().accept(APPLICATION_XML_TYPE, APPLICATION_OCTET_STREAM_TYPE).get(), InputStream.class);
             }
         });
     }
