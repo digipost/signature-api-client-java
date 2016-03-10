@@ -18,13 +18,23 @@ package no.digipost.signature.client.core;
 public class Signer {
 
     private String personalIdentificationNumber;
+    private int order;
 
     public Signer(String personalIdentificationNumber) {
+        this(personalIdentificationNumber, 0);
+    }
+
+    public Signer(String personalIdentificationNumber, int order) {
         this.personalIdentificationNumber = personalIdentificationNumber;
+        this.order = order;
     }
 
     public String getPersonalIdentificationNumber() {
         return personalIdentificationNumber;
+    }
+
+    public int getOrder() {
+        return order;
     }
 
     @Override
