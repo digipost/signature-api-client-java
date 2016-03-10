@@ -31,6 +31,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -96,8 +97,10 @@ public class CreateASiCETest {
                 .build());
         aSiCECreator.createASiCE(job);
 
-        Path asiceFile = on(newDirectoryStream(dumpFolder, "*-" + referenceFilenamePart.$(job.getReference()) + "*.zip"))
-                .eval().head().get();
+        Path asiceFile;
+        try (DirectoryStream<Path> dumpedFileStream = newDirectoryStream(dumpFolder, "*-" + referenceFilenamePart.$(job.getReference()) + "*.zip")) {
+            asiceFile = on(dumpedFileStream).eval().head().get();
+        }
 
         List<String> fileNames = new ArrayList<>();
         try (InputStream asiceStream = Files.newInputStream(asiceFile); ZipInputStream uncompressed = new ZipInputStream(asiceStream)) {
