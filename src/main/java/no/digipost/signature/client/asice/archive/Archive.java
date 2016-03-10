@@ -15,6 +15,9 @@
  */
 package no.digipost.signature.client.asice.archive;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
 public class Archive {
     private byte[] bytes;
 
@@ -24,5 +27,9 @@ public class Archive {
 
     public byte[] getBytes() {
         return bytes;
+    }
+
+    public InputStream getInputStream() {
+        return new ByteArrayInputStream(bytes);
     }
 }

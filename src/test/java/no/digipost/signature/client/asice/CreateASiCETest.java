@@ -31,7 +31,6 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -72,7 +71,7 @@ public class CreateASiCETest {
         DocumentBundle aSiCE = aSiCECreator.createASiCE(job);
 
         File tempFile = File.createTempFile("asice", ".zip");
-        IOUtils.copy(new ByteArrayInputStream(aSiCE.getBytes()), new FileOutputStream(tempFile));
+        IOUtils.copy(aSiCE.getInputStream(), new FileOutputStream(tempFile));
         System.out.println("Wrote document bundle to " + tempFile.getAbsolutePath());
     }
 

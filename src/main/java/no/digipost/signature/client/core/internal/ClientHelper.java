@@ -32,7 +32,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -69,7 +68,7 @@ public class ClientHelper {
         final Sender actualSender = sender.or(globalSender).orElseThrow(SENDER_NOT_SPECIFIED);
 
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
-        final BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
+        final BodyPart documentBundleBodyPart = new BodyPart(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM_TYPE);
 
         return call(new Callable<XMLDirectSignatureJobResponse>() {
             @Override
@@ -84,7 +83,7 @@ public class ClientHelper {
         final Sender actualSender = sender.or(globalSender).orElseThrow(SENDER_NOT_SPECIFIED);
 
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
-        final BodyPart documentBundleBodyPart = new BodyPart(new ByteArrayInputStream(documentBundle.getBytes()), APPLICATION_OCTET_STREAM_TYPE);
+        final BodyPart documentBundleBodyPart = new BodyPart(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM_TYPE);
 
         return call(new Callable<XMLPortalSignatureJobResponse>() {
             @Override
