@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.asice.archive;
+package no.digipost.signature.client.asice;
 
-public class Archive {
-    private byte[] bytes;
+import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.security.KeyStoreConfig;
+import no.motif.single.Optional;
 
-    public Archive(final byte[] bytes) {
-        this.bytes = bytes;
-    }
+public interface ASiCEConfiguration {
 
-    public byte[] getBytes() {
-        return bytes;
-    }
+    KeyStoreConfig getKeyStoreConfig();
+
+    Optional<Sender> getGlobalSender();
+
+    Iterable<DocumentBundleProcessor> getDocumentBundleProcessors();
+
 }

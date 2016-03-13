@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client.core.internal.http;
 
-import no.motif.single.Optional;
+import javax.ws.rs.client.WebTarget;
 
-public interface SignatureJob {
+public interface SignatureHttpClient {
 
-    Document getDocument();
+    WebTarget signatureServiceRoot();
 
-    Optional<Sender> getSender();
-
-    String getReference();
+    WebTarget target(String url);
 
 }

@@ -17,7 +17,6 @@ package no.digipost.signature.client.asice.archive;
 
 import no.digipost.signature.client.asice.ASiCEAttachable;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
-import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,26 +26,21 @@ import java.util.zip.ZipOutputStream;
 
 public class CreateZip {
 
-    public Archive zipIt(final List<ASiCEAttachable> files) {
-        ByteArrayOutputStream archive = null;
-        ZipOutputStream zipOutputStream = null;
-        try {
-            archive = new ByteArrayOutputStream();
-            zipOutputStream = new ZipOutputStream(archive);
-            for (ASiCEAttachable file : files) {
-                ZipEntry zipEntry = new ZipEntry(file.getFileName());
-                zipEntry.setSize(file.getBytes().length);
-                zipOutputStream.putNextEntry(zipEntry);
-                zipOutputStream.write(file.getBytes());
-                zipOutputStream.closeEntry();
+    public byte[] zipIt(final List<ASiCEAttachable> files) {
+        try (ByteArrayOutputStream archive = new ByteArrayOutputStream()) {
+            try (ZipOutputStream zipOutputStream = new ZipOutputStream(archive)) {
+                for (ASiCEAttachable file : files) {
+                    ZipEntry zipEntry = new ZipEntry(file.getFileName());
+                    zipEntry.setSize(file.getBytes().length);
+                    zipOutputStream.putNextEntry(zipEntry);
+                    zipOutputStream.write(file.getBytes());
+                    zipOutputStream.closeEntry();
+                }
             }
+            return archive.toByteArray();
         } catch (IOException e) {
             throw new RuntimeIOException(e);
-        } finally {
-            IOUtils.closeQuietly(archive);
-            IOUtils.closeQuietly(zipOutputStream);
         }
 
-        return new Archive(archive.toByteArray());
     }
 }

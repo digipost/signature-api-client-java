@@ -41,15 +41,16 @@ public class CreateZipTest {
                 file("file2.txt", "test2")
         );
 
-        Archive archive = createZip.zipIt(asicEAttachables);
+        byte[] archive = createZip.zipIt(asicEAttachables);
 
-        ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(archive.getBytes()));
+        try (ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(archive))) {
+            verifyZipFile(zipInputStream, "file.txt", "test");
+            verifyZipFile(zipInputStream, "file2.txt", "test2");
+        }
 
-        verifyZipFile(zipInputStream, "file.txt", "test");
-        verifyZipFile(zipInputStream, "file2.txt", "test2");
     }
 
-    private void verifyZipFile(ZipInputStream zipInputStream, String fileName, String contents) throws IOException {
+    private static void verifyZipFile(ZipInputStream zipInputStream, String fileName, String contents) throws IOException {
         ZipEntry firstZipFile = zipInputStream.getNextEntry();
         assertThat(firstZipFile.getName(), containsString(fileName));
         assertArrayEquals(IOUtils.toByteArray(zipInputStream), contents.getBytes());
@@ -57,10 +58,12 @@ public class CreateZipTest {
 
     private ASiCEAttachable file(final String fileName, final String contents) {
         return new ASiCEAttachable() {
+            @Override
             public String getFileName() {
                 return fileName;
             }
 
+            @Override
             public byte[] getBytes() {
                 return contents.getBytes();
             }

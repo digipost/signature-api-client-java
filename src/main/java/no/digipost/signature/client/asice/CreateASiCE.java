@@ -15,8 +15,6 @@
  */
 package no.digipost.signature.client.asice;
 
-import no.digipost.signature.client.ClientConfiguration;
-import no.digipost.signature.client.asice.archive.Archive;
 import no.digipost.signature.client.asice.archive.CreateZip;
 import no.digipost.signature.client.asice.manifest.Manifest;
 import no.digipost.signature.client.asice.manifest.ManifestCreator;
@@ -24,9 +22,12 @@ import no.digipost.signature.client.asice.signature.CreateSignature;
 import no.digipost.signature.client.asice.signature.Signature;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
-import no.digipost.signature.client.core.internal.KeyStoreConfig;
+import no.digipost.signature.client.core.exceptions.RuntimeIOException;
+import no.digipost.signature.client.security.KeyStoreConfig;
 import no.motif.single.Optional;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,11 +41,13 @@ public class CreateASiCE<JOB extends SignatureJob> {
     private final ManifestCreator<JOB> manifestCreator;
     private final Optional<Sender> globalSender;
     private final KeyStoreConfig keyStoreConfig;
+    private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
 
-    public CreateASiCE(ManifestCreator<JOB> manifestCreator, ClientConfiguration clientConfiguration) {
+    public CreateASiCE(ManifestCreator<JOB> manifestCreator, ASiCEConfiguration clientConfiguration) {
         this.manifestCreator = manifestCreator;
-        this.globalSender = clientConfiguration.getSender();
+        this.globalSender = clientConfiguration.getGlobalSender();
         this.keyStoreConfig = clientConfiguration.getKeyStoreConfig();
+        this.documentBundleProcessors = clientConfiguration.getDocumentBundleProcessors();
     }
 
     public DocumentBundle createASiCE(JOB job) {
@@ -61,9 +64,16 @@ public class CreateASiCE<JOB extends SignatureJob> {
         Signature signature = createSignature.createSignature(files, keyStoreConfig);
         files.add(signature);
 
-        Archive archive = createZip.zipIt(files);
+        byte[] zipped = createZip.zipIt(files);
+        for (DocumentBundleProcessor processor : documentBundleProcessors) {
+            try (ByteArrayInputStream zipStream = new ByteArrayInputStream(zipped)) {
+                processor.process(job, zipStream);
+            } catch (IOException e) {
+                throw new RuntimeIOException(e);
+            }
+        }
 
-        return new DocumentBundle(archive.getBytes());
+        return new DocumentBundle(zipped);
     }
 
 }

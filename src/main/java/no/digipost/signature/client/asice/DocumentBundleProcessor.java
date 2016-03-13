@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client.asice;
 
-import no.motif.single.Optional;
+import no.digipost.signature.client.core.SignatureJob;
 
-public interface SignatureJob {
+import java.io.IOException;
+import java.io.InputStream;
 
-    Document getDocument();
+public interface DocumentBundleProcessor {
 
-    Optional<Sender> getSender();
-
-    String getReference();
+    void process(SignatureJob job, InputStream documentBundleStream) throws IOException;
 
 }

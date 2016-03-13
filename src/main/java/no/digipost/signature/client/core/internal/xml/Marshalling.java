@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.internal;
+package no.digipost.signature.client.core.internal.xml;
 
-import no.digipost.signature.client.core.exceptions.ConfigurationException;
+import no.digipost.signature.api.xml.*;
 import no.digipost.signature.api.xml.thirdparty.asice.XAdESSignatures;
 import no.digipost.signature.api.xml.thirdparty.xades.QualifyingProperties;
-import no.digipost.signature.api.xml.*;
+import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
@@ -26,7 +26,7 @@ import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 public class Marshalling {
 
     private static final class Jaxb2MarshallerHolder {
-        private static Jaxb2Marshaller instance; static {
+        private static final Jaxb2Marshaller instance; static {
             instance = new Jaxb2Marshaller();
             instance.setClassesToBeBound(
                     XMLDirectSignatureJobManifest.class, XMLDirectSignatureJobRequest.class, XMLDirectSignatureJobResponse.class, XMLDirectSignatureJobStatusResponse.class,

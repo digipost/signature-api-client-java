@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client.core.internal.http;
 
-import no.motif.single.Optional;
+import javax.net.ssl.SSLContext;
+import javax.ws.rs.core.Configuration;
 
-public interface SignatureJob {
+import java.net.URI;
 
-    Document getDocument();
+public interface HttpIntegrationConfiguration {
 
-    Optional<Sender> getSender();
+    Configuration getJaxrsConfiguration();
 
-    String getReference();
+    SSLContext getSSLContext();
+
+    URI getServiceRoot();
 
 }
