@@ -15,7 +15,7 @@
  */
 package no.digipost.signature.client;
 
-import no.digipost.signature.client.core.internal.security.KeyStoreConfig;
+import no.digipost.signature.client.security.KeyStoreConfig;
 
 
 public class TestKonfigurasjon {

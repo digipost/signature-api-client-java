@@ -16,7 +16,7 @@
 package no.digipost.signature.client.asice;
 
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.internal.security.KeyStoreConfig;
+import no.digipost.signature.client.security.KeyStoreConfig;
 import no.motif.single.Optional;
 
 public interface ASiCEConfiguration {

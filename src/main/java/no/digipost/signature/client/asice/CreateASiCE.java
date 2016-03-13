@@ -23,7 +23,7 @@ import no.digipost.signature.client.asice.signature.Signature;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
-import no.digipost.signature.client.core.internal.security.KeyStoreConfig;
+import no.digipost.signature.client.security.KeyStoreConfig;
 import no.motif.single.Optional;
 
 import java.io.ByteArrayInputStream;
