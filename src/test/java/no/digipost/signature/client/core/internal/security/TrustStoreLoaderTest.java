@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.internal;
+package no.digipost.signature.client.core.internal.security;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.TestKonfigurasjon;
@@ -24,8 +24,8 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 
 import static junit.framework.TestCase.assertEquals;
-import static no.digipost.signature.client.ClientConfiguration.Certificates.PRODUCTION;
-import static no.digipost.signature.client.ClientConfiguration.Certificates.TEST;
+import static no.digipost.signature.client.Certificates.PRODUCTION;
+import static no.digipost.signature.client.Certificates.TEST;
 
 public class TrustStoreLoaderTest {
 

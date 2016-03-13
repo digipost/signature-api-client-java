@@ -43,6 +43,7 @@ public class DirectJob implements SignatureJob, WithExitUrls {
         this.errorUrl = errorUrl;
     }
 
+    @Override
     public String getReference() {
         return reference;
     }

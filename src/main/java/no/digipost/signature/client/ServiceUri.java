@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client;
 
-import no.motif.single.Optional;
+import java.net.URI;
 
-public interface SignatureJob {
+public enum ServiceUri {
+    PRODUCTION(URI.create("https://api.signering.posten.no/api")),
+    DIFI_QA(URI.create("https://api.difiqa.signering.posten.no/api")),
+    DIFI_TEST(URI.create("https://api.difitest.signering.posten.no/api"));
 
-    Document getDocument();
+    final URI uri;
 
-    Optional<Sender> getSender();
-
-    String getReference();
-
+    ServiceUri(URI uri) {
+        this.uri = uri;
+    }
 }

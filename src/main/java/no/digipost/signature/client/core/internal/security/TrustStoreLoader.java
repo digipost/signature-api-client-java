@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.internal;
+package no.digipost.signature.client.core.internal.security;
 
-import no.digipost.signature.client.ClientConfiguration;
+import no.digipost.signature.client.Certificates;
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -35,12 +36,12 @@ import java.security.cert.X509Certificate;
 
 public class TrustStoreLoader {
 
-    public static KeyStore build(ClientConfiguration config) {
+    public static KeyStore build(ProvidesCertificateResourcePaths hasCertificatePaths) {
         try {
             KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
             trustStore.load(null, null);
-            
-            for (String certificateFolder : config.getCertificatePaths()) {
+
+            for (String certificateFolder : hasCertificatePaths.getCertificatePaths()) {
                 loadCertificatesInto(certificateFolder, trustStore);
             }
 
@@ -88,8 +89,9 @@ public class TrustStoreLoader {
             this.certificatePath = certificateFolder.substring(CLASSPATH_PATH_PREFIX.length());
         }
 
+        @Override
         public void forEachFile(ForFile forEachFile) throws IOException {
-            URL contentsUrl = TrustStoreLoader.class.getResource(certificatePath);
+            URL contentsUrl = Certificates.class.getResource(certificatePath);
 
             try (InputStream inputStream = contentsUrl.openStream()){
                 forEachFile.call(new File(contentsUrl.getFile()).getName(), inputStream);
@@ -104,6 +106,7 @@ public class TrustStoreLoader {
             this.path = new File(certificateFolder);
         }
 
+        @Override
         public void forEachFile(ForFile forEachFile) throws IOException {
             if (!this.path.isDirectory()) {
                 throw new ConfigurationException("Certificate path '" + this.path + "' is not a directory. " +

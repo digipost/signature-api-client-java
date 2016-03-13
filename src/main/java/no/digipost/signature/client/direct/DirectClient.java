@@ -26,6 +26,7 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
+import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
 
 import java.io.InputStream;
 
@@ -37,9 +38,9 @@ public class DirectClient {
     private final ClientHelper client;
     private final CreateASiCE<DirectJob> aSiCECreator;
 
-    public DirectClient(ClientConfiguration clientConfiguration) {
-        this.client = new ClientHelper(clientConfiguration);
-        this.aSiCECreator = new CreateASiCE<>(new CreateDirectManifest(), clientConfiguration);
+    public DirectClient(ClientConfiguration config) {
+        this.client = new ClientHelper(SignatureHttpClientFactory.create(config), config.getGlobalSender());
+        this.aSiCECreator = new CreateASiCE<>(new CreateDirectManifest(), config);
     }
 
     public DirectJobResponse create(DirectJob job) {

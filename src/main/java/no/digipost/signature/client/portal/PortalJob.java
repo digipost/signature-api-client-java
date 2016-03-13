@@ -43,6 +43,7 @@ public class PortalJob implements SignatureJob {
         this.document = document;
     }
 
+    @Override
     public String getReference() {
         return reference;
     }

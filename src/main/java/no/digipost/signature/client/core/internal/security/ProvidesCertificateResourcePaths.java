@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client.core.internal.security;
 
-import no.motif.single.Optional;
+public interface ProvidesCertificateResourcePaths {
 
-public interface SignatureJob {
-
-    Document getDocument();
-
-    Optional<Sender> getSender();
-
-    String getReference();
+    Iterable<String> getCertificatePaths();
 
 }
