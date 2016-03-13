@@ -40,7 +40,9 @@ public abstract class ManifestCreator<JOB extends SignatureJob> {
             return new Manifest(manifestStream.toByteArray());
         } catch (MarshallingFailureException e) {
             if (e.getMostSpecificCause() instanceof SAXParseException) {
-                throw new XmlValidationException("Unable to validate generated Manifest XML. Verify that all required inputs are set and non-null", (SAXParseException) e.getMostSpecificCause());
+                throw new XmlValidationException("Unable to validate generated Manifest XML. " +
+                        "This typically happens if one or more values are not in accordance with the XSD. " +
+                        "You may inspect the cause (by calling getCause()) to see which constraint has been violated.", (SAXParseException) e.getMostSpecificCause());
             }
             throw e;
         } catch (IOException e) {
