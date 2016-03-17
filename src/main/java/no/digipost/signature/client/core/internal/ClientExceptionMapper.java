@@ -62,7 +62,7 @@ class ClientExceptionMapper {
         if (e.getCause() instanceof SSLHandshakeException) {
             return new SignatureException(
                     "Unable to perform SSL handshake with remote server. Some possible causes (could be others, see underlying error): \n" +
-                    "* A certificate with the wrong KeyUsage was used. Verify that the certificate's KeyUsage is compliant with the requirements for 2-way TLS. (E.g. KeyUsage should not be 'nonRepudiation')" +
+                    "* A certificate with the wrong KeyUsage was used. The keyUsage should be DigitalSignature\n" +
                     "* Erroneous configuration of the trust store\n" +
                     "* Intermediate network devices interfering with traffic (e.g. proxies)\n" +
                     "* An attacker impersonating the server (man in the middle)\n" +
