@@ -47,6 +47,8 @@ import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_A
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
 import static no.digipost.signature.client.core.internal.Target.DIRECT;
 import static no.digipost.signature.client.core.internal.Target.PORTAL;
+import static no.motif.Singular.optional;
+import static no.motif.Strings.nonblank;
 
 public class ClientHelper {
 
@@ -278,15 +280,17 @@ public class ClientHelper {
 
     private static XMLError extractError(Response response) {
         XMLError error = null;
-        String responseContentType = response.getHeaderString(HttpHeaders.CONTENT_TYPE);
-        if (MediaType.valueOf(responseContentType).equals(APPLICATION_XML_TYPE)) {
+        Optional<String> responseContentType = optional(response.getHeaderString(HttpHeaders.CONTENT_TYPE));
+        if (responseContentType.isSome() && MediaType.valueOf(responseContentType.get()).equals(APPLICATION_XML_TYPE)) {
             try {
                 error = response.readEntity(XMLError.class);
             } catch (Exception e) {
                 throw new UnexpectedResponseException(null, e, Status.fromStatusCode(response.getStatus()), OK);
             }
         } else {
-            throw new UnexpectedResponseException(HttpHeaders.CONTENT_TYPE + " " + responseContentType + ": " + response.readEntity(String.class),
+            throw new UnexpectedResponseException(
+                    HttpHeaders.CONTENT_TYPE + " " + responseContentType.orElse("unknown") + ": " +
+                    optional(nonblank, response.readEntity(String.class)).orElse("<no content in response>"),
                     Status.fromStatusCode(response.getStatus()), OK);
         }
         if (error == null) {
