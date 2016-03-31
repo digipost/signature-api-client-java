@@ -283,9 +283,13 @@ public class ClientHelper {
         Optional<String> responseContentType = optional(response.getHeaderString(HttpHeaders.CONTENT_TYPE));
         if (responseContentType.isSome() && MediaType.valueOf(responseContentType.get()).equals(APPLICATION_XML_TYPE)) {
             try {
+                response.bufferEntity();
                 error = response.readEntity(XMLError.class);
             } catch (Exception e) {
-                throw new UnexpectedResponseException(null, e, Status.fromStatusCode(response.getStatus()), OK);
+                throw new UnexpectedResponseException(
+                        HttpHeaders.CONTENT_TYPE + " " + responseContentType.orElse("unknown") + ": " +
+                        optional(nonblank, response.readEntity(String.class)).orElse("<no content in response>"),
+                        e, Status.fromStatusCode(response.getStatus()), OK);
             }
         } else {
             throw new UnexpectedResponseException(
