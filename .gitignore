@@ -18,3 +18,4 @@ tmp/*
 .jekyll-metadata
 /vendor
 _site/*
+.idea/
