@@ -1,0 +1,72 @@
+# name of the software
+name: Java client library for Posten signature API
+# current version of the software
+
+# url of the download button
+downloadUrl: https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22no.digipost.signature%22%20AND%20a%3A%22signature-api-client-java%22
+# licence of the software
+
+license: MIT License
+licenseUrl: http://opensource.org/licenses/MIT
+
+baseurl: "/signature-api-client-java"
+
+currentVersion: "1.0-beta3"
+versions: ["1.0-beta3"]
+
+collections:
+  v1_0_beta3:   
+    output: true
+    permalink: /v1.0-beta3/      
+
+# list of additional links on the right of the top menu
+headerLinks:
+  - title: Download library
+    url: https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22no.digipost.signature%22%20AND%20a%3A%22signature-api-client-java%22
+  - title: GitHub
+    url: https://github.com/digipost/signature-api-client-java
+  - title: Digipost
+    url: https://www.digipost.no
+
+# list if additional links on the footer
+footerLinks:
+  - title: GitHub
+    url: https://github.com/digipost/signature-api-client-java
+  - title: Issues
+    url: https://github.com/digipost/signature-api-client-java/issues
+
+# header
+header:
+  color1: "#e32d22"
+  color2:
+  trianglify: false
+
+# github buttons
+githubButton:
+  user: digipost
+  repo: signature-api-client-java
+
+# twitter buttons
+twitter:
+  enabled: true
+  via:
+  hash:
+  account: digipost_no
+
+# facebook buttons
+facebook:
+  enabled: false
+  profileUrl:
+
+# google analytics
+analytics:
+  account:
+  domain:
+
+# DON'T MODIFY
+highlight: rouge
+
+gems:
+  - jekyll-redirect-from
+
+exclude: ['README.md', 'Gemfile.lock', 'Gemfile']
