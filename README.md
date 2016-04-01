@@ -26,6 +26,12 @@ Klientbiblioteket er releaset til [![Maven Central](https://maven-badges.herokua
 </dependency>
 ```
 
+### Java-API
+
+Dokumentasjon: [http://digipost.github.io/signature-api-client-java](http://digipost.github.io/signature-api-client-java)
+
+Javadoc: [javadoc.io/doc/no.digipost.signature/signature-api-client-java](http://www.javadoc.io/doc/no.digipost.signature/signature-api-client-java)
+
 ### Bygge og kjøre tester
 
 Legg inn filen `src/test/java/no/digipost/signering/client/TestKonfigurasjon.java` og fyll med følgende innhold:
@@ -46,10 +52,3 @@ public class TestKonfigurasjon {
 
 }
 ```
-
-
-### Java-API
-
-Dokumentasjon: [http://digipost.github.io/signature-api-client-java](http://digipost.github.io/signature-api-client-java)
-
-Javadoc: [javadoc.io/doc/no.digipost.signature/signature-api-client-java](http://www.javadoc.io/doc/no.digipost.signature/signature-api-client-java)
