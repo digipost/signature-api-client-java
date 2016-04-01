@@ -17,3 +17,7 @@ To use the library in your application, add the following dependency to your `po
     <version>1.0-BETA3</version>
 </dependency>
 {% endhighlight %}
+
+#### Javadoc
+
+Javadoc is available here: [javadoc.io/doc/no.digipost.signature/signature-api-client-java](https://www.javadoc.io/doc/no.digipost.signature/signature-api-client-java/1.0-BETA3)
