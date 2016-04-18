@@ -25,9 +25,9 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
 
     @Override
     Object buildXmlManifest(PortalJob job, Sender sender) {
-        XMLSigners xmlSigners = new XMLSigners();
+        XMLPortalSigners xmlSigners = new XMLPortalSigners();
         for (Signer signer : job.getSigners()) {
-            xmlSigners.getSigners().add(new XMLSigner()
+            xmlSigners.getSigners().add(new XMLPortalSigner()
                     .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
                     .withOrder(signer.getOrder()));
         }
