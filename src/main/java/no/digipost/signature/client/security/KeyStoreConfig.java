@@ -62,6 +62,8 @@ public class KeyStoreConfig {
             throw new CertificateException("Only X509 certificates are supported. Got a certificate with type " + certificate.getClass().getSimpleName());
         }
 
+        verifyCorrectAliasCasing(certificate);
+
         return (X509Certificate) certificate;
     }
 
@@ -90,6 +92,17 @@ public class KeyStoreConfig {
             throw new KeyException("Failed to initialize key store. Are you sure the file exists?", e);
         } catch (KeyStoreException | NoSuchAlgorithmException | IOException | java.security.cert.CertificateException e) {
             throw new KeyException("Failed to initialize key store", e);
+        }
+    }
+
+    private void verifyCorrectAliasCasing(Certificate certificate) {
+        try {
+            String aliasFromKeystore = keyStore.getCertificateAlias(certificate);
+            if (!aliasFromKeystore.equals(alias)) {
+                throw new CertificateException("Certificate alias in keystore was not same as provided alias. Probably different casing. In keystore: " + aliasFromKeystore + ", from config: " + alias);
+            }
+        } catch (KeyStoreException e) {
+            throw new CertificateException("Unable to get certificate alias based on certificate. This should never happen, as we just read the certificate from the same keystore.", e);
         }
     }
 
