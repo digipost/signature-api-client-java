@@ -18,15 +18,10 @@ package no.digipost.signature.client.portal;
 public class PortalSigner {
 
     private String personalIdentificationNumber;
-    private int order;
+    private int order = 0;
 
-    public PortalSigner(String personalIdentificationNumber) {
-        this(personalIdentificationNumber, 0);
-    }
-
-    public PortalSigner(String personalIdentificationNumber, int order) {
+    private PortalSigner(String personalIdentificationNumber) {
         this.personalIdentificationNumber = personalIdentificationNumber;
-        this.order = order;
     }
 
     public String getPersonalIdentificationNumber() {
@@ -44,5 +39,30 @@ public class PortalSigner {
 
     static String mask(String personalIdentificationNumber) {
         return personalIdentificationNumber.substring(0, 6) + "*****";
+    }
+
+    public static Builder builder(String personalIdentificationNumber) {
+        return new Builder(personalIdentificationNumber);
+    }
+
+    public static class Builder {
+
+        private final PortalSigner target;
+        private boolean built = false;
+
+        private Builder(String personalIdentificationNumber) {
+            target = new PortalSigner(personalIdentificationNumber);
+        }
+
+        public Builder withOrder(int order) {
+            target.order = order;
+            return this;
+        }
+
+        public PortalSigner build() {
+            if (built) throw new IllegalStateException("Can't build twice");
+            built = true;
+            return target;
+        }
     }
 }

@@ -19,7 +19,7 @@ public class DirectSigner {
 
     private String personalIdentificationNumber;
 
-    public DirectSigner(String personalIdentificationNumber) {
+    private DirectSigner(String personalIdentificationNumber) {
         this.personalIdentificationNumber = personalIdentificationNumber;
     }
 
@@ -34,5 +34,25 @@ public class DirectSigner {
 
     static String mask(String personalIdentificationNumber) {
         return personalIdentificationNumber.substring(0, 6) + "*****";
+    }
+
+    public static Builder builder(String personalIdentificationNumber) {
+        return new Builder(personalIdentificationNumber);
+    }
+
+    public static class Builder {
+
+        private final DirectSigner target;
+        private boolean built = false;
+
+        private Builder(String personalIdentificationNumber) {
+            target = new DirectSigner(personalIdentificationNumber);
+        }
+
+        public DirectSigner build() {
+            if (built) throw new IllegalStateException("Can't build twice");
+            built = true;
+            return target;
+        }
     }
 }

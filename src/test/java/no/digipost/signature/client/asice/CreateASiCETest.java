@@ -73,7 +73,7 @@ public class CreateASiCETest {
 
     @Test
     public void create_direct_asice_and_write_to_disk() throws IOException {
-        DirectJob job = DirectJob.builder(new DirectSigner("12345678910"), DOCUMENT, singleExitUrl("https://job.well.done.org"))
+        DirectJob job = DirectJob.builder(DirectSigner.builder("12345678910").build(), DOCUMENT, singleExitUrl("https://job.well.done.org"))
                 .withReference("direct job")
                 .build();
 
@@ -82,7 +82,7 @@ public class CreateASiCETest {
 
     @Test
     public void create_portal_asice_and_write_to_disk() throws IOException {
-        PortalJob job = PortalJob.builder(DOCUMENT, new PortalSigner("12345678910"))
+        PortalJob job = PortalJob.builder(DOCUMENT, PortalSigner.builder("12345678910").build())
                 .withReference("portal job")
                 .withActivationTime(new Date())
                 .availableFor(30, DAYS)

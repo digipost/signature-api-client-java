@@ -38,7 +38,7 @@ public class CreatePortalManifestTest {
                 .fileType(Document.FileType.TXT)
                 .build();
 
-        PortalJob job = PortalJob.builder(document, Collections.singletonList(new PortalSigner("12345678910")))
+        PortalJob job = PortalJob.builder(document, Collections.singletonList(PortalSigner.builder("12345678910").build()))
                 .withActivationTime(new Date())
                 .availableFor(30, DAYS)
                 .build();

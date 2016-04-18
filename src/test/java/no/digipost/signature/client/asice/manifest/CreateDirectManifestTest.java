@@ -35,7 +35,7 @@ public class CreateDirectManifestTest {
                 .fileType(Document.FileType.TXT)
                 .build();
 
-        DirectJob job = DirectJob.builder(new DirectSigner("12345678910"), document, ExitUrls.of("http://localhost/signed", "http://localhost/canceled", "http://localhost/failed")).build();
+        DirectJob job = DirectJob.builder(DirectSigner.builder("12345678910").build(), document, ExitUrls.of("http://localhost/signed", "http://localhost/canceled", "http://localhost/failed")).build();
         try {
             createManifest.createManifest(job, new Sender("123456789"));
         } catch (Exception e) {
