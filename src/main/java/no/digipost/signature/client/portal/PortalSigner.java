@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client.portal;
 
-public class Signer {
+public class PortalSigner {
 
     private String personalIdentificationNumber;
     private int order;
 
-    public Signer(String personalIdentificationNumber) {
+    public PortalSigner(String personalIdentificationNumber) {
         this(personalIdentificationNumber, 0);
     }
 
-    public Signer(String personalIdentificationNumber, int order) {
+    public PortalSigner(String personalIdentificationNumber, int order) {
         this.personalIdentificationNumber = personalIdentificationNumber;
         this.order = order;
     }

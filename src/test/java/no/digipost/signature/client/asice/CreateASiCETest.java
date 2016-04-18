@@ -22,9 +22,10 @@ import no.digipost.signature.client.asice.manifest.ManifestCreator;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
-import no.digipost.signature.client.core.Signer;
 import no.digipost.signature.client.direct.DirectJob;
+import no.digipost.signature.client.direct.DirectSigner;
 import no.digipost.signature.client.portal.PortalJob;
+import no.digipost.signature.client.portal.PortalSigner;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -72,7 +73,7 @@ public class CreateASiCETest {
 
     @Test
     public void create_direct_asice_and_write_to_disk() throws IOException {
-        DirectJob job = DirectJob.builder(new Signer("12345678910"), DOCUMENT, singleExitUrl("https://job.well.done.org"))
+        DirectJob job = DirectJob.builder(new DirectSigner("12345678910"), DOCUMENT, singleExitUrl("https://job.well.done.org"))
                 .withReference("direct job")
                 .build();
 
@@ -81,7 +82,7 @@ public class CreateASiCETest {
 
     @Test
     public void create_portal_asice_and_write_to_disk() throws IOException {
-        PortalJob job = PortalJob.builder(DOCUMENT, new Signer("12345678910"))
+        PortalJob job = PortalJob.builder(DOCUMENT, new PortalSigner("12345678910"))
                 .withReference("portal job")
                 .withActivationTime(new Date())
                 .availableFor(30, DAYS)

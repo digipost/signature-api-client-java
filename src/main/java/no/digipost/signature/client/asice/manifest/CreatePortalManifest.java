@@ -18,15 +18,15 @@ package no.digipost.signature.client.asice.manifest;
 import no.digipost.signature.api.xml.*;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.Signer;
 import no.digipost.signature.client.portal.PortalJob;
+import no.digipost.signature.client.portal.PortalSigner;
 
 public class CreatePortalManifest extends ManifestCreator<PortalJob> {
 
     @Override
     Object buildXmlManifest(PortalJob job, Sender sender) {
         XMLPortalSigners xmlSigners = new XMLPortalSigners();
-        for (Signer signer : job.getSigners()) {
+        for (PortalSigner signer : job.getSigners()) {
             xmlSigners.getSigners().add(new XMLPortalSigner()
                     .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
                     .withOrder(signer.getOrder()));

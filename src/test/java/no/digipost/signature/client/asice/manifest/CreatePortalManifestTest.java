@@ -17,8 +17,8 @@ package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.Signer;
 import no.digipost.signature.client.portal.PortalJob;
+import no.digipost.signature.client.portal.PortalSigner;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -38,7 +38,7 @@ public class CreatePortalManifestTest {
                 .fileType(Document.FileType.TXT)
                 .build();
 
-        PortalJob job = PortalJob.builder(document, Collections.singletonList(new Signer("12345678910")))
+        PortalJob job = PortalJob.builder(document, Collections.singletonList(new PortalSigner("12345678910")))
                 .withActivationTime(new Date())
                 .availableFor(30, DAYS)
                 .build();

@@ -19,7 +19,6 @@ import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
-import no.digipost.signature.client.core.Signer;
 import no.motif.Singular;
 import no.motif.single.Optional;
 
@@ -32,13 +31,13 @@ import static java.util.Collections.unmodifiableList;
 public class PortalJob implements SignatureJob {
 
     private String reference;
-    private List<Signer> signers;
+    private List<PortalSigner> signers;
     private Document document;
     private Date activationTime;
     private Long availableSeconds;
     private Optional<Sender> sender = Singular.none();
 
-    private PortalJob(List<Signer> signers, Document document) {
+    private PortalJob(List<PortalSigner> signers, Document document) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
         this.document = document;
     }
@@ -48,7 +47,7 @@ public class PortalJob implements SignatureJob {
         return reference;
     }
 
-    public List<Signer> getSigners() {
+    public List<PortalSigner> getSigners() {
         return signers;
     }
 
@@ -71,11 +70,11 @@ public class PortalJob implements SignatureJob {
     }
 
 
-    public static Builder builder(Document document, Signer... signers) {
+    public static Builder builder(Document document, PortalSigner... signers) {
         return builder(document, Arrays.asList(signers));
     }
 
-    public static Builder builder(Document document, List<Signer> signers) {
+    public static Builder builder(Document document, List<PortalSigner> signers) {
         return new Builder(signers, document);
     }
 
@@ -84,7 +83,7 @@ public class PortalJob implements SignatureJob {
         private final PortalJob target;
         private boolean built = false;
 
-        private Builder(List<Signer> signers, Document document) {
+        private Builder(List<PortalSigner> signers, Document document) {
             target = new PortalJob(signers, document);
         }
 
@@ -110,7 +109,7 @@ public class PortalJob implements SignatureJob {
         /**
          * Set the sender for this specific signature job.
          * <p>
-         * You may use {@link ClientConfiguration.Builder#sender(Sender)} to specify a global sender used for all signature jobs
+         * You may use {@link ClientConfiguration.Builder#globalSender(Sender)} to specify a global sender used for all signature jobs
          */
         public Builder withSender(Sender sender) {
             target.sender = Singular.optional(sender);
