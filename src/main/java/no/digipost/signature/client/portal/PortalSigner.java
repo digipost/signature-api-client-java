@@ -19,6 +19,7 @@ public class PortalSigner {
 
     private String personalIdentificationNumber;
     private int order = 0;
+    private Notifications notifications;
 
     private PortalSigner(String personalIdentificationNumber) {
         this.personalIdentificationNumber = personalIdentificationNumber;
@@ -30,6 +31,10 @@ public class PortalSigner {
 
     public int getOrder() {
         return order;
+    }
+
+    public Notifications getNotifications() {
+        return notifications;
     }
 
     @Override
@@ -56,6 +61,11 @@ public class PortalSigner {
 
         public Builder withOrder(int order) {
             target.order = order;
+            return this;
+        }
+
+        public Builder withNotifications(Notifications notifications) {
+            target.notifications = notifications;
             return this;
         }
 

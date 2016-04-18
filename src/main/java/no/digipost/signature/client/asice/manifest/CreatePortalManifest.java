@@ -27,9 +27,13 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
     Object buildXmlManifest(PortalJob job, Sender sender) {
         XMLPortalSigners xmlSigners = new XMLPortalSigners();
         for (PortalSigner signer : job.getSigners()) {
+            XMLNotifications notifications = signer.getNotifications() != null
+                    ? new XMLNotifications().withEmailAddress(signer.getNotifications().getEmailAddress()).withMobileNumber(signer.getNotifications().getMobileNumber())
+                    : null;
             xmlSigners.getSigners().add(new XMLPortalSigner()
                     .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
-                    .withOrder(signer.getOrder()));
+                    .withOrder(signer.getOrder())
+                    .withNotifications(notifications));
         }
 
         Document document = job.getDocument();
