@@ -15,9 +15,9 @@
  */
 package no.digipost.signature.client.asice.manifest;
 
+import no.digipost.signature.api.xml.XMLDirectDocument;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobManifest;
 import no.digipost.signature.api.xml.XMLDirectSigner;
-import no.digipost.signature.api.xml.XMLDocument;
 import no.digipost.signature.api.xml.XMLSender;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
@@ -32,7 +32,7 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
         return new XMLDirectSignatureJobManifest()
                 .withSigner(new XMLDirectSigner().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber()))
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
-                .withDocument(new XMLDocument()
+                .withDocument(new XMLDirectDocument()
                         .withTitle(document.getSubject())
                         .withDescription(document.getMessage())
                         .withHref(document.getFileName())

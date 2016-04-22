@@ -40,7 +40,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
         return new XMLPortalSignatureJobManifest()
                 .withSigners(xmlSigners)
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
-                .withDocument(new XMLDocument()
+                .withDocument(new XMLPortalDocument()
                         .withTitle(document.getSubject())
                         .withDescription(document.getMessage())
                         .withHref(document.getFileName())

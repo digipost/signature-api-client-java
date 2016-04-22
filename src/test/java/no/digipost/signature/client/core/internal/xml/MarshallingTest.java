@@ -39,20 +39,21 @@ public class MarshallingTest {
         XMLSender sender = new XMLSender().withOrganizationNumber("123456789");
         XMLPortalSigner portalSigner = new XMLPortalSigner().withPersonalIdentificationNumber("12345678910");
         XMLDirectSigner directSigner = new XMLDirectSigner().withPersonalIdentificationNumber("12345678910");
-        XMLDocument document = new XMLDocument("Subject", "Message", "document.pdf", "application/pdf");
+        XMLPortalDocument portalDocument = new XMLPortalDocument("Subject", "Message", "document.pdf", "application/pdf");
+        XMLDirectDocument directDocument = new XMLDirectDocument("Subject", "Message", "document.pdf", "application/pdf");
         XMLExitUrls exitUrls = new XMLExitUrls()
                 .withCompletionUrl("http://localhost/signed")
                 .withRejectionUrl("http://localhost/rejected")
                 .withErrorUrl("http://localhost/failed");
 
         XMLDirectSignatureJobRequest directJob = new XMLDirectSignatureJobRequest("123abc", exitUrls);
-        XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(directSigner, sender, document);
+        XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(directSigner, sender, directDocument);
 
         marshaller.marshal(directJob, new StreamResult(new ByteArrayOutputStream()));
         marshaller.marshal(directManifest, new StreamResult(new ByteArrayOutputStream()));
 
         XMLPortalSignatureJobRequest portalJob = new XMLPortalSignatureJobRequest("123abc");
-        XMLPortalSignatureJobManifest portalManifest = new XMLPortalSignatureJobManifest(new XMLPortalSigners().withSigners(portalSigner), sender, document, new XMLAvailability().withActivationTime(new Date()));
+        XMLPortalSignatureJobManifest portalManifest = new XMLPortalSignatureJobManifest(new XMLPortalSigners().withSigners(portalSigner), sender, portalDocument, new XMLAvailability().withActivationTime(new Date()));
         marshaller.marshal(portalJob, new StreamResult(new ByteArrayOutputStream()));
         marshaller.marshal(portalManifest, new StreamResult(new ByteArrayOutputStream()));
     }
@@ -79,10 +80,11 @@ public class MarshallingTest {
         XMLSender sender = new XMLSender().withOrganizationNumber("123456789");
         XMLPortalSigner portalSigner = new XMLPortalSigner().withPersonalIdentificationNumber("12345678910");
         XMLDirectSigner directSigner = new XMLDirectSigner().withPersonalIdentificationNumber("12345678910");
-        XMLDocument document = new XMLDocument("Subject", "Message", null, "application/pdf");
+        XMLPortalDocument portalDocument = new XMLPortalDocument("Subject", "Message", null, "application/pdf");
+        XMLDirectDocument directDocument = new XMLDirectDocument("Subject", "Message", null, "application/pdf");
 
-        XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(directSigner, sender, document);
-        XMLPortalSignatureJobManifest portalManifest = new XMLPortalSignatureJobManifest(new XMLPortalSigners().withSigners(portalSigner), sender, document, null);
+        XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(directSigner, sender, directDocument);
+        XMLPortalSignatureJobManifest portalManifest = new XMLPortalSignatureJobManifest(new XMLPortalSigners().withSigners(portalSigner), sender, portalDocument, null);
 
         try {
             marshaller.marshal(directManifest, new StreamResult(new ByteArrayOutputStream()));
