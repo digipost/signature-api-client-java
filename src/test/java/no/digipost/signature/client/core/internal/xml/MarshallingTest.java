@@ -39,8 +39,8 @@ public class MarshallingTest {
         XMLSender sender = new XMLSender().withOrganizationNumber("123456789");
         XMLPortalSigner portalSigner = new XMLPortalSigner().withPersonalIdentificationNumber("12345678910");
         XMLDirectSigner directSigner = new XMLDirectSigner().withPersonalIdentificationNumber("12345678910");
-        XMLPortalDocument portalDocument = new XMLPortalDocument("Subject", "Message", "document.pdf", "application/pdf");
-        XMLDirectDocument directDocument = new XMLDirectDocument("Subject", "Message", "document.pdf", "application/pdf");
+        XMLPortalDocument portalDocument = new XMLPortalDocument("Title", "Non-sensitive title", "Message", "document.pdf", "application/pdf");
+        XMLDirectDocument directDocument = new XMLDirectDocument("Title", "Message", "document.pdf", "application/pdf");
         XMLExitUrls exitUrls = new XMLExitUrls()
                 .withCompletionUrl("http://localhost/signed")
                 .withRejectionUrl("http://localhost/rejected")
@@ -80,8 +80,8 @@ public class MarshallingTest {
         XMLSender sender = new XMLSender().withOrganizationNumber("123456789");
         XMLPortalSigner portalSigner = new XMLPortalSigner().withPersonalIdentificationNumber("12345678910");
         XMLDirectSigner directSigner = new XMLDirectSigner().withPersonalIdentificationNumber("12345678910");
-        XMLPortalDocument portalDocument = new XMLPortalDocument("Subject", "Message", null, "application/pdf");
-        XMLDirectDocument directDocument = new XMLDirectDocument("Subject", "Message", null, "application/pdf");
+        XMLPortalDocument portalDocument = new XMLPortalDocument("Title", "Non-sensitive title", "Message", null, "application/pdf");
+        XMLDirectDocument directDocument = new XMLDirectDocument("Title", "Message", null, "application/pdf");
 
         XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(directSigner, sender, directDocument);
         XMLPortalSignatureJobManifest portalManifest = new XMLPortalSignatureJobManifest(new XMLPortalSigners().withSigners(portalSigner), sender, portalDocument, null);

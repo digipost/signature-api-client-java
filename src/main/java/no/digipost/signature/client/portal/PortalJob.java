@@ -16,7 +16,6 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.ClientConfiguration;
-import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.motif.Singular;
@@ -32,12 +31,12 @@ public class PortalJob implements SignatureJob {
 
     private String reference;
     private List<PortalSigner> signers;
-    private Document document;
+    private PortalDocument document;
     private Date activationTime;
     private Long availableSeconds;
     private Optional<Sender> sender = Singular.none();
 
-    private PortalJob(List<PortalSigner> signers, Document document) {
+    private PortalJob(List<PortalSigner> signers, PortalDocument document) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
         this.document = document;
     }
@@ -52,7 +51,7 @@ public class PortalJob implements SignatureJob {
     }
 
     @Override
-    public Document getDocument() {
+    public PortalDocument getDocument() {
         return document;
     }
 
@@ -70,11 +69,11 @@ public class PortalJob implements SignatureJob {
     }
 
 
-    public static Builder builder(Document document, PortalSigner... signers) {
+    public static Builder builder(PortalDocument document, PortalSigner... signers) {
         return builder(document, Arrays.asList(signers));
     }
 
-    public static Builder builder(Document document, List<PortalSigner> signers) {
+    public static Builder builder(PortalDocument document, List<PortalSigner> signers) {
         return new Builder(signers, document);
     }
 
@@ -83,7 +82,7 @@ public class PortalJob implements SignatureJob {
         private final PortalJob target;
         private boolean built = false;
 
-        private Builder(List<PortalSigner> signers, Document document) {
+        private Builder(List<PortalSigner> signers, PortalDocument document) {
             target = new PortalJob(signers, document);
         }
 

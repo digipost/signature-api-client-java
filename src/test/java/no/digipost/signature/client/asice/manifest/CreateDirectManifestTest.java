@@ -17,6 +17,7 @@ package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.direct.DirectDocument;
 import no.digipost.signature.client.direct.DirectJob;
 import no.digipost.signature.client.direct.DirectSigner;
 import no.digipost.signature.client.direct.ExitUrls;
@@ -30,7 +31,7 @@ public class CreateDirectManifestTest {
     public void accept_valid_manifest() {
         CreateDirectManifest createManifest = new CreateDirectManifest();
 
-        Document document = Document.builder("Subject", "file.txt", "hello".getBytes())
+        DirectDocument document = DirectDocument.builder("Subject", "file.txt", "hello".getBytes())
                 .message("Message")
                 .fileType(Document.FileType.TXT)
                 .build();

@@ -19,15 +19,15 @@ import no.digipost.signature.api.xml.XMLDirectDocument;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobManifest;
 import no.digipost.signature.api.xml.XMLDirectSigner;
 import no.digipost.signature.api.xml.XMLSender;
-import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.direct.DirectDocument;
 import no.digipost.signature.client.direct.DirectJob;
 
 public class CreateDirectManifest extends ManifestCreator<DirectJob> {
 
     @Override
     Object buildXmlManifest(DirectJob job, Sender sender) {
-        Document document = job.getDocument();
+        DirectDocument document = job.getDocument();
 
         return new XMLDirectSignatureJobManifest()
                 .withSigner(new XMLDirectSigner().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber()))

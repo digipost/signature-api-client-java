@@ -16,8 +16,8 @@
 package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.api.xml.*;
-import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
 
@@ -36,12 +36,13 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                     .withNotifications(notifications));
         }
 
-        Document document = job.getDocument();
+        PortalDocument document = job.getDocument();
         return new XMLPortalSignatureJobManifest()
                 .withSigners(xmlSigners)
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
                 .withDocument(new XMLPortalDocument()
                         .withTitle(document.getSubject())
+                        .withNonsensitiveTitle(document.getNonsensitiveSubject())
                         .withDescription(document.getMessage())
                         .withHref(document.getFileName())
                         .withMime(document.getMimeType())
