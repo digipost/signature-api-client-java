@@ -31,7 +31,7 @@ public class CreateDirectManifestTest {
     public void accept_valid_manifest() {
         CreateDirectManifest createManifest = new CreateDirectManifest();
 
-        DirectDocument document = DirectDocument.builder("Subject", "file.txt", "hello".getBytes())
+        DirectDocument document = DirectDocument.builder("Title", "file.txt", "hello".getBytes())
                 .message("Message")
                 .fileType(Document.FileType.TXT)
                 .build();

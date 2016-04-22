@@ -19,14 +19,14 @@ import no.digipost.signature.client.asice.ASiCEAttachable;
 
 public abstract class Document implements ASiCEAttachable {
 
-    private String subject;
+    private String title;
     private String message;
     private String fileName;
     private byte[] document;
     private FileType fileType;
 
-    protected Document(final String subject, final String message, final String fileName, final FileType fileType, final byte[] document) {
-        this.subject = subject;
+    protected Document(final String title, final String message, final String fileName, final FileType fileType, final byte[] document) {
+        this.title = title;
         this.message = message;
         this.fileName = fileName;
         this.fileType = fileType;
@@ -48,8 +48,8 @@ public abstract class Document implements ASiCEAttachable {
         return fileType.mimeType;
     }
 
-    public String getSubject() {
-        return subject;
+    public String getTitle() {
+        return title;
     }
 
     public String getMessage() {

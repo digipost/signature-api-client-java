@@ -20,32 +20,32 @@ import no.digipost.signature.client.core.Document;
 import static no.digipost.signature.client.core.Document.FileType.PDF;
 
 public class PortalDocument extends Document {
-    private final String nonsensitiveSubject;
+    private final String nonsensitiveTitle;
 
-    private PortalDocument(String subject, String nonsensitiveSubject, String message, String fileName, FileType fileType, byte[] document) {
-        super(subject, message, fileName, fileType, document);
-        this.nonsensitiveSubject = nonsensitiveSubject;
+    private PortalDocument(String title, String nonsensitiveTitle, String message, String fileName, FileType fileType, byte[] document) {
+        super(title, message, fileName, fileType, document);
+        this.nonsensitiveTitle = nonsensitiveTitle;
     }
 
-    public String getNonsensitiveSubject() {
-        return nonsensitiveSubject;
+    public String getNonsensitiveTitle() {
+        return nonsensitiveTitle;
     }
 
-    public static Builder builder(final String subject, final String fileName, final byte[] document) {
-        return new Builder(subject, fileName, document);
+    public static Builder builder(final String title, final String fileName, final byte[] document) {
+        return new Builder(title, fileName, document);
     }
 
     public static class Builder {
 
-        private String subject;
-        private String nonsensitiveSubject;
+        private String title;
+        private String nonsensitiveTitle;
         private String fileName;
         private byte[] document;
         private String message;
         private FileType fileType = PDF;
 
-        public Builder(final String subject, final String fileName, final byte[] document) {
-            this.subject = subject;
+        public Builder(final String title, final String fileName, final byte[] document) {
+            this.title = title;
             this.fileName = fileName;
             this.document = document;
         }
@@ -55,8 +55,8 @@ public class PortalDocument extends Document {
             return this;
         }
 
-        public Builder nonsensitiveSubject(String nonsensitiveSubject) {
-            this.nonsensitiveSubject = nonsensitiveSubject;
+        public Builder nonsensitiveTitle(String nonsensitiveTitle) {
+            this.nonsensitiveTitle = nonsensitiveTitle;
             return this;
         }
 
@@ -66,7 +66,7 @@ public class PortalDocument extends Document {
         }
 
         public PortalDocument build() {
-            return new PortalDocument(subject, nonsensitiveSubject, message, fileName, fileType, document);
+            return new PortalDocument(title, nonsensitiveTitle, message, fileName, fileType, document);
         }
     }
 }

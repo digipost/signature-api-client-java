@@ -66,12 +66,12 @@ public class CreateASiCETest {
 
     public static Path dumpFolder;
 
-    public static final DirectDocument DIRECT_DOCUMENT = DirectDocument.builder("Subject", "file.txt", "hello".getBytes())
+    public static final DirectDocument DIRECT_DOCUMENT = DirectDocument.builder("Title", "file.txt", "hello".getBytes())
             .message("Message")
             .fileType(Document.FileType.TXT)
             .build();
 
-    public static final PortalDocument PORTAL_DOCUMENT = PortalDocument.builder("Subject", "file.txt", "hello".getBytes())
+    public static final PortalDocument PORTAL_DOCUMENT = PortalDocument.builder("Title", "file.txt", "hello".getBytes())
             .message("Message")
             .fileType(Document.FileType.TXT)
             .build();

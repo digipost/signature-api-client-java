@@ -34,7 +34,7 @@ public class CreatePortalManifestTest {
     public void accept_valid_manifest() {
         CreatePortalManifest createManifest = new CreatePortalManifest();
 
-        PortalDocument document = PortalDocument.builder("Subject", "file.txt", "hello".getBytes())
+        PortalDocument document = PortalDocument.builder("Title", "file.txt", "hello".getBytes())
                 .message("Message")
                 .fileType(Document.FileType.TXT)
                 .build();

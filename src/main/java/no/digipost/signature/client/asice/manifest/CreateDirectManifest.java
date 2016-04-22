@@ -33,7 +33,7 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
                 .withSigner(new XMLDirectSigner().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber()))
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
                 .withDocument(new XMLDirectDocument()
-                        .withTitle(document.getSubject())
+                        .withTitle(document.getTitle())
                         .withDescription(document.getMessage())
                         .withHref(document.getFileName())
                         .withMime(document.getMimeType())
