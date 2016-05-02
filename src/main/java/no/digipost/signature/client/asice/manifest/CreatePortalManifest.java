@@ -17,6 +17,7 @@ package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.api.xml.*;
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.portal.Notifications;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
@@ -27,13 +28,10 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
     Object buildXmlManifest(PortalJob job, Sender sender) {
         XMLPortalSigners xmlSigners = new XMLPortalSigners();
         for (PortalSigner signer : job.getSigners()) {
-            XMLNotifications notifications = signer.getNotifications() != null
-                    ? new XMLNotifications().withEmailAddress(signer.getNotifications().getEmailAddress()).withMobileNumber(signer.getNotifications().getMobileNumber())
-                    : null;
             xmlSigners.getSigners().add(new XMLPortalSigner()
                     .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
                     .withOrder(signer.getOrder())
-                    .withNotifications(notifications));
+                    .withNotifications(generateNotifications(signer.getNotifications())));
         }
 
         PortalDocument document = job.getDocument();
@@ -51,5 +49,20 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                         .withActivationTime(job.getActivationTime())
                         .withAvailableSeconds(job.getAvailableSeconds())
                 );
+    }
+
+    private XMLNotifications generateNotifications(Notifications notifications) {
+        if(notifications == null) {
+            return null;
+        } else {
+            XMLNotifications xmlNotifications = new XMLNotifications();
+            if(notifications.shouldSendEmailNotification()) {
+                xmlNotifications.withEmail(new XMLEmail().withAddress(notifications.getEmailAddress()));
+            }
+            if(notifications.shouldSendMobileNotification()) {
+                xmlNotifications.withSms(new XMLSms().withNumber(notifications.getMobileNumber()));
+            }
+            return xmlNotifications;
+        }
     }
 }
