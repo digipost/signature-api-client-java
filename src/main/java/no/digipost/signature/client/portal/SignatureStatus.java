@@ -26,7 +26,6 @@ public class SignatureStatus {
     public static final SignatureStatus CANCELLED = new SignatureStatus("CANCELLED");
     public static final SignatureStatus RESERVED = new SignatureStatus("RESERVED");
     public static final SignatureStatus CONTACT_INFORMATION_MISSING = new SignatureStatus("CONTACT_INFORMATION_MISSING");
-    public static final SignatureStatus ABORTED = new SignatureStatus("ABORTED");
     public static final SignatureStatus EXPIRED = new SignatureStatus("EXPIRED");
     public static final SignatureStatus WAITING = new SignatureStatus("WAITING");
     public static final SignatureStatus SIGNED = new SignatureStatus("SIGNED");
@@ -36,7 +35,6 @@ public class SignatureStatus {
             CANCELLED,
             RESERVED,
             CONTACT_INFORMATION_MISSING,
-            ABORTED,
             EXPIRED,
             WAITING,
             SIGNED
