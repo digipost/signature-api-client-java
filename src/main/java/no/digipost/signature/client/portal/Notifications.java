@@ -17,8 +17,12 @@ package no.digipost.signature.client.portal;
 
 public class Notifications {
 
-    private String emailAddress;
-    private String mobileNumber;
+    // The email notifications can't be turned off
+    private boolean emailNotification = true;
+    private String emailAddress = null;
+
+    private boolean mobileNotification = false;
+    private String mobileNumber = null;
 
     public String getEmailAddress() {
         return emailAddress;
@@ -26,6 +30,14 @@ public class Notifications {
 
     public String getMobileNumber() {
         return mobileNumber;
+    }
+
+    public boolean shouldSendEmailNotification() {
+        return emailNotification;
+    }
+
+    public boolean shouldSendMobileNotification() {
+        return mobileNotification;
     }
 
     public static Builder builder() {
@@ -41,12 +53,19 @@ public class Notifications {
             target = new Notifications();
         }
 
-        public Builder withEmailAddress(String emailAddress) {
+        public Builder withOverriddenEmailAddress(String emailAddress) {
+            target.emailNotification = true;
             target.emailAddress = emailAddress;
             return this;
         }
 
-        public Builder withMobileNumber(String mobileNumber) {
+        public Builder withMobileNotification(boolean shouldSend) {
+            target.mobileNotification = shouldSend;
+            return this;
+        }
+
+        public Builder withOverriddenMobileNumber(String mobileNumber) {
+            target.mobileNotification = true;
             target.mobileNumber = mobileNumber;
             return this;
         }
