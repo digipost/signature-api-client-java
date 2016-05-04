@@ -20,7 +20,7 @@ import java.util.Objects;
 
 import static java.util.Arrays.asList;
 
-public class SignatureStatus {
+public final class SignatureStatus {
 
     public static final SignatureStatus REJECTED = new SignatureStatus("REJECTED");
     public static final SignatureStatus CANCELLED = new SignatureStatus("CANCELLED");
@@ -62,10 +62,11 @@ public class SignatureStatus {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SignatureStatus that = (SignatureStatus) o;
-        return Objects.equals(identifier, that.identifier);
+        if (o instanceof SignatureStatus) {
+            SignatureStatus that = (SignatureStatus) o;
+            return Objects.equals(identifier, that.identifier);
+        }
+        return false;
     }
 
     @Override
