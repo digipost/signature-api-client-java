@@ -15,31 +15,63 @@
  */
 package no.digipost.signature.client.portal;
 
-import no.digipost.signature.api.xml.XMLSignatureStatus;
+import java.util.List;
+import java.util.Objects;
 
-public enum SignatureStatus {
+import static java.util.Arrays.asList;
 
-    WAITING,
-    REJECTED,
-    CANCELLED,
-    SIGNED,
-    EXPIRED;
+public class SignatureStatus {
 
-    public static SignatureStatus fromXmlType(XMLSignatureStatus xmlSignatureStatus) {
-        switch (xmlSignatureStatus) {
-            case WAITING:
-                return WAITING;
-            case SIGNED:
-                return SIGNED;
-            case REJECTED:
-                return REJECTED;
-            case CANCELLED:
-                return CANCELLED;
-            case EXPIRED:
-                return EXPIRED;
-            default:
-                throw new IllegalArgumentException("Unexpected status: " + xmlSignatureStatus);
-        }
+    public static final SignatureStatus REJECTED = new SignatureStatus("REJECTED");
+    public static final SignatureStatus CANCELLED = new SignatureStatus("CANCELLED");
+    public static final SignatureStatus RESERVED = new SignatureStatus("RESERVED");
+    public static final SignatureStatus CONTACT_INFORMATION_MISSING = new SignatureStatus("CONTACT_INFORMATION_MISSING");
+    public static final SignatureStatus ABORTED = new SignatureStatus("ABORTED");
+    public static final SignatureStatus EXPIRED = new SignatureStatus("EXPIRED");
+    public static final SignatureStatus WAITING = new SignatureStatus("WAITING");
+    public static final SignatureStatus SIGNED = new SignatureStatus("SIGNED");
+
+    private static final List<SignatureStatus> KNOWN_STATUSES = asList(
+            REJECTED,
+            CANCELLED,
+            RESERVED,
+            CONTACT_INFORMATION_MISSING,
+            ABORTED,
+            EXPIRED,
+            WAITING,
+            SIGNED
+    );
+
+    private final String identifier;
+
+    public SignatureStatus(String identifier) {
+        this.identifier = identifier;
     }
 
+    public static SignatureStatus fromXmlType(String xmlSignatureStatus) {
+        for (SignatureStatus status : KNOWN_STATUSES) {
+            if (status.is(xmlSignatureStatus)) {
+                return status;
+            }
+        }
+
+        return new SignatureStatus(xmlSignatureStatus);
+    }
+
+    private boolean is(String xmlSignatureStatus) {
+        return this.identifier.equals(xmlSignatureStatus);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SignatureStatus that = (SignatureStatus) o;
+        return Objects.equals(identifier, that.identifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier);
+    }
 }
