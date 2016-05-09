@@ -161,6 +161,33 @@
             <version>2.0.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.contrib</groupId>
+            <artifactId>junit-theories</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.pholser</groupId>
+            <artifactId>junit-quickcheck-core</artifactId>
+            <version>0.4</version>
+            <scope>test</scope>
+            <exclusions>
+                <!-- Excluding javassist becuase this versjon does not include license information. This is OK,
+                     since a proper version is already depended on by other dependencies. -->
+                <exclusion>
+                    <groupId>javassist</groupId>
+                    <artifactId>javassist</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.pholser</groupId>
+            <artifactId>junit-quickcheck-generators</artifactId>
+            <version>0.4</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -182,6 +209,9 @@
                     <artifactId>maven-notice-plugin</artifactId>
                     <version>1.0.6.1</version>
                     <configuration>
+                        <licenseMapping>
+                            <param>${project.basedir}/src/main/notice/license-mappings.xml</param>
+                        </licenseMapping>
                         <noticeTemplate>${project.basedir}/src/main/notice/NOTICE.template</noticeTemplate>
                     </configuration>
                 </plugin>
