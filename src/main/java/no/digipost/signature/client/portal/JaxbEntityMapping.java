@@ -37,7 +37,7 @@ final class JaxbEntityMapping {
         List<Signature> signatures = new ArrayList<>();
         for (XMLSignature xmlSignature : statusChange.getSignatures().getSignatures()) {
             signatures.add(new Signature(
-                    PortalSigner.builder(xmlSignature.getPersonalIdentificationNumber()).build(),
+                    xmlSignature.getPersonalIdentificationNumber(),
                     SignatureStatus.fromXmlType(xmlSignature.getStatus()),
                     XAdESReference.of(xmlSignature.getXadesUrl())
             ));

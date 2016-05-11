@@ -15,57 +15,43 @@
  */
 package no.digipost.signature.client.portal;
 
-public class Notifications {
+public class NotificationsUsingLookup {
 
-    private String emailAddress = null;
-    private String mobileNumber = null;
-
-    public String getEmailAddress() {
-        return emailAddress;
-    }
-
-    public String getMobileNumber() {
-        return mobileNumber;
-    }
+    // Email notifications can't be turned off
+    private final boolean emailNotification = true;
+    private boolean mobileNotification = false;
 
     public boolean shouldSendEmailNotification() {
-        return emailAddress != null;
+        return emailNotification;
     }
 
     public boolean shouldSendMobileNotification() {
-        return mobileNumber != null;
+        return mobileNotification;
     }
 
-    public static Builder builder() {
+    public static Builder emailNotification() {
         return new Builder();
     }
 
     public static class Builder {
 
-        private final Notifications target;
+        private final NotificationsUsingLookup target;
         private boolean built = false;
 
         private Builder() {
-            target = new Notifications();
+            target = new NotificationsUsingLookup();
         }
 
-        public Builder withEmailNotification(String emailAddress) {
-            target.emailAddress = emailAddress;
+        public Builder andMobileNotification() {
+            target.mobileNotification = true;
             return this;
         }
 
-        public Builder withMobileNotification(String mobileNumber) {
-            target.mobileNumber = mobileNumber;
-            return this;
-        }
-
-        public Notifications build() {
+        public NotificationsUsingLookup build() {
             if (built) throw new IllegalStateException("Can't build twice");
-            if (target.emailAddress == null && target.mobileNumber == null) {
-                throw new IllegalStateException("At least one way of notifying the signer must be specified");
-            }
             built = true;
             return target;
         }
     }
+
 }

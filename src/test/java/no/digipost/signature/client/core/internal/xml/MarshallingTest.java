@@ -37,7 +37,7 @@ public class MarshallingTest {
     @Test
     public void valid_objects_can_be_marshalled() {
         XMLSender sender = new XMLSender().withOrganizationNumber("123456789");
-        XMLPortalSigner portalSigner = new XMLPortalSigner().withPersonalIdentificationNumber("12345678910");
+        XMLPortalSigner portalSigner = new XMLPortalSigner().withPersonalIdentificationNumber("12345678910").withNotificationsUsingLookup(new XMLNotificationsUsingLookup().withEmail(new XMLEnabled()));
         XMLDirectSigner directSigner = new XMLDirectSigner().withPersonalIdentificationNumber("12345678910");
         XMLPortalDocument portalDocument = new XMLPortalDocument("Title", "Non-sensitive title", "Message", "document.pdf", "application/pdf");
         XMLDirectDocument directDocument = new XMLDirectDocument("Title", "Message", "document.pdf", "application/pdf");

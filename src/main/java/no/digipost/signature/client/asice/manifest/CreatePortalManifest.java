@@ -17,10 +17,7 @@ package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.api.xml.*;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.portal.Notifications;
-import no.digipost.signature.client.portal.PortalDocument;
-import no.digipost.signature.client.portal.PortalJob;
-import no.digipost.signature.client.portal.PortalSigner;
+import no.digipost.signature.client.portal.*;
 
 public class CreatePortalManifest extends ManifestCreator<PortalJob> {
 
@@ -28,10 +25,17 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
     Object buildXmlManifest(PortalJob job, Sender sender) {
         XMLPortalSigners xmlSigners = new XMLPortalSigners();
         for (PortalSigner signer : job.getSigners()) {
-            xmlSigners.getSigners().add(new XMLPortalSigner()
+            XMLPortalSigner xmlPortalSigner = new XMLPortalSigner()
                     .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
-                    .withOrder(signer.getOrder())
-                    .withNotifications(generateNotifications(signer.getNotifications())));
+                    .withOrder(signer.getOrder());
+
+            if (signer.getNotifications() != null) {
+                xmlPortalSigner.setNotifications(generateNotifications(signer.getNotifications()));
+            } else if (signer.getNotificationsUsingLookup() != null) {
+                xmlPortalSigner.setNotificationsUsingLookup(generateNotificationsUsingLookup(signer.getNotificationsUsingLookup()));
+            }
+
+            xmlSigners.getSigners().add(xmlPortalSigner);
         }
 
         PortalDocument document = job.getDocument();
@@ -51,18 +55,25 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                 );
     }
 
-    private XMLNotifications generateNotifications(Notifications notifications) {
-        if(notifications == null) {
-            return null;
-        } else {
-            XMLNotifications xmlNotifications = new XMLNotifications();
-            if(notifications.shouldSendEmailNotification()) {
-                xmlNotifications.withEmail(new XMLEmail().withAddress(notifications.getEmailAddress()));
-            }
-            if(notifications.shouldSendMobileNotification()) {
-                xmlNotifications.withSms(new XMLSms().withNumber(notifications.getMobileNumber()));
-            }
-            return xmlNotifications;
+    private XMLNotificationsUsingLookup generateNotificationsUsingLookup(NotificationsUsingLookup notificationsUsingLookup) {
+        XMLNotificationsUsingLookup xmlNotificationsUsingLookup = new XMLNotificationsUsingLookup();
+        if (notificationsUsingLookup.shouldSendEmailNotification()) {
+            xmlNotificationsUsingLookup.setEmail(new XMLEnabled());
         }
+        if (notificationsUsingLookup.shouldSendMobileNotification()) {
+            xmlNotificationsUsingLookup.setSms(new XMLEnabled());
+        }
+        return xmlNotificationsUsingLookup;
+    }
+
+    private XMLNotifications generateNotifications(Notifications notifications) {
+        XMLNotifications xmlNotifications = new XMLNotifications();
+        if (notifications.shouldSendEmailNotification()) {
+            xmlNotifications.setEmail(new XMLEmail().withAddress(notifications.getEmailAddress()));
+        }
+        if (notifications.shouldSendMobileNotification()) {
+            xmlNotifications.setSms(new XMLSms().withNumber(notifications.getMobileNumber()));
+        }
+        return xmlNotifications;
     }
 }

@@ -17,12 +17,15 @@ package no.digipost.signature.client.portal;
 
 public class PortalSigner {
 
-    private String personalIdentificationNumber;
+    private final String personalIdentificationNumber;
+    private final Notifications notifications;
+    private final NotificationsUsingLookup notificationsUsingLookup;
     private int order = 0;
-    private Notifications notifications;
 
-    private PortalSigner(String personalIdentificationNumber) {
+    private PortalSigner(String personalIdentificationNumber, Notifications notifications, NotificationsUsingLookup notificationsUsingLookup) {
         this.personalIdentificationNumber = personalIdentificationNumber;
+        this.notifications = notifications;
+        this.notificationsUsingLookup = notificationsUsingLookup;
     }
 
     public String getPersonalIdentificationNumber() {
@@ -37,6 +40,10 @@ public class PortalSigner {
         return notifications;
     }
 
+    public NotificationsUsingLookup getNotificationsUsingLookup() {
+        return notificationsUsingLookup;
+    }
+
     @Override
     public String toString() {
         return mask(personalIdentificationNumber);
@@ -46,8 +53,12 @@ public class PortalSigner {
         return personalIdentificationNumber.substring(0, 6) + "*****";
     }
 
-    public static Builder builder(String personalIdentificationNumber) {
-        return new Builder(personalIdentificationNumber);
+    public static Builder builder(String personalIdentificationNumber, Notifications notifications) {
+        return new Builder(personalIdentificationNumber, notifications, null);
+    }
+
+    public static Builder builder(String personalIdentificationNumber, NotificationsUsingLookup notificationsUsingLookup) {
+        return new Builder(personalIdentificationNumber, null, notificationsUsingLookup);
     }
 
     public static class Builder {
@@ -55,17 +66,12 @@ public class PortalSigner {
         private final PortalSigner target;
         private boolean built = false;
 
-        private Builder(String personalIdentificationNumber) {
-            target = new PortalSigner(personalIdentificationNumber);
+        private Builder(String personalIdentificationNumber, Notifications notifications, NotificationsUsingLookup notificationsUsingLookup) {
+            target = new PortalSigner(personalIdentificationNumber, notifications, notificationsUsingLookup);
         }
 
         public Builder withOrder(int order) {
             target.order = order;
-            return this;
-        }
-
-        public Builder withNotifications(Notifications notifications) {
-            target.notifications = notifications;
             return this;
         }
 

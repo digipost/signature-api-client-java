@@ -19,11 +19,11 @@ import no.digipost.signature.client.core.XAdESReference;
 
 public class Signature {
 
-    private final PortalSigner signer;
+    private final String signer;
     private final SignatureStatus status;
     private final XAdESReference xAdESReference;
 
-    public Signature(PortalSigner signer, SignatureStatus status, XAdESReference xAdESReference) {
+    public Signature(String signer, SignatureStatus status, XAdESReference xAdESReference) {
         this.signer = signer;
         this.status = status;
         this.xAdESReference = xAdESReference;
@@ -33,7 +33,7 @@ public class Signature {
         return this.status == status;
     }
 
-    public PortalSigner getSigner() {
+    public String getSigner() {
         return signer;
     }
 
