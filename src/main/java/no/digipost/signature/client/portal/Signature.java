@@ -17,6 +17,8 @@ package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.XAdESReference;
 
+import static no.digipost.signature.client.portal.PortalSigner.mask;
+
 public class Signature {
 
     private final String signer;
@@ -47,6 +49,6 @@ public class Signature {
 
     @Override
     public String toString() {
-        return "Signature from " + signer + " with status '" + status + "'" + (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
+        return "Signature from " + mask(signer) + " with status '" + status + "'" + (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
     }
 }
