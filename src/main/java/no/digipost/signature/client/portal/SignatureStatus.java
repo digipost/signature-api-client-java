@@ -113,4 +113,9 @@ public final class SignatureStatus {
     public int hashCode() {
         return Objects.hash(identifier);
     }
+
+    @Override
+    public String toString() {
+        return identifier;
+    }
 }
