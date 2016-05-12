@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.Date;
 
 import static java.util.concurrent.TimeUnit.DAYS;
-import static no.digipost.signature.client.portal.NotificationsUsingLookup.emailNotification;
+import static no.digipost.signature.client.portal.NotificationsUsingLookup.notifyByEMail;
 import static org.junit.Assert.fail;
 
 public class CreatePortalManifestTest {
@@ -40,7 +40,7 @@ public class CreatePortalManifestTest {
                 .fileType(Document.FileType.TXT)
                 .build();
 
-        PortalJob job = PortalJob.builder(document, Collections.singletonList(PortalSigner.builder("12345678910", emailNotification().build()).build()))
+        PortalJob job = PortalJob.builder(document, Collections.singletonList(PortalSigner.builder("12345678910", notifyByEMail().build()).build()))
                 .withActivationTime(new Date())
                 .availableFor(30, DAYS)
                 .build();

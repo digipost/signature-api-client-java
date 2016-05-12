@@ -18,18 +18,18 @@ package no.digipost.signature.client.portal;
 public class NotificationsUsingLookup {
 
     // Email notifications can't be turned off
-    private final boolean emailNotification = true;
-    private boolean mobileNotification = false;
+    private final boolean email = true;
+    private boolean sms = false;
 
-    public boolean shouldSendEmailNotification() {
-        return emailNotification;
+    public boolean shouldSendEmail() {
+        return email;
     }
 
-    public boolean shouldSendMobileNotification() {
-        return mobileNotification;
+    public boolean shouldSendSms() {
+        return sms;
     }
 
-    public static Builder emailNotification() {
+    public static Builder notifyByEMail() {
         return new Builder();
     }
 
@@ -42,8 +42,8 @@ public class NotificationsUsingLookup {
             target = new NotificationsUsingLookup();
         }
 
-        public Builder andMobileNotification() {
-            target.mobileNotification = true;
+        public Builder andSms() {
+            target.sms = true;
             return this;
         }
 

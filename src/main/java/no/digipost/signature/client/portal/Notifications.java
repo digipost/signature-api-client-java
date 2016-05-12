@@ -28,11 +28,11 @@ public class Notifications {
         return mobileNumber;
     }
 
-    public boolean shouldSendEmailNotification() {
+    public boolean shouldSendEmail() {
         return emailAddress != null;
     }
 
-    public boolean shouldSendMobileNotification() {
+    public boolean shouldSendSms() {
         return mobileNumber != null;
     }
 
@@ -49,12 +49,12 @@ public class Notifications {
             target = new Notifications();
         }
 
-        public Builder withEmailNotification(String emailAddress) {
+        public Builder withEmailTo(String emailAddress) {
             target.emailAddress = emailAddress;
             return this;
         }
 
-        public Builder withMobileNotification(String mobileNumber) {
+        public Builder withSmsTo(String mobileNumber) {
             target.mobileNumber = mobileNumber;
             return this;
         }
