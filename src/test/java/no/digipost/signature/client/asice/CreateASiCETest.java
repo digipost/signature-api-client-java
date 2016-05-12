@@ -22,9 +22,12 @@ import no.digipost.signature.client.asice.manifest.ManifestCreator;
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
-import no.digipost.signature.client.core.Signer;
+import no.digipost.signature.client.direct.DirectDocument;
 import no.digipost.signature.client.direct.DirectJob;
+import no.digipost.signature.client.direct.DirectSigner;
+import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
+import no.digipost.signature.client.portal.PortalSigner;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -47,6 +50,7 @@ import static java.util.concurrent.TimeUnit.DAYS;
 import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.referenceFilenamePart;
 import static no.digipost.signature.client.direct.ExitUrls.singleExitUrl;
+import static no.digipost.signature.client.portal.NotificationsUsingLookup.notifyByEMail;
 import static no.motif.Iterate.on;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
@@ -63,7 +67,12 @@ public class CreateASiCETest {
 
     public static Path dumpFolder;
 
-    public static final Document DOCUMENT = Document.builder("Subject", "file.txt", "hello".getBytes())
+    public static final DirectDocument DIRECT_DOCUMENT = DirectDocument.builder("Title", "file.txt", "hello".getBytes())
+            .message("Message")
+            .fileType(Document.FileType.TXT)
+            .build();
+
+    public static final PortalDocument PORTAL_DOCUMENT = PortalDocument.builder("Title", "file.txt", "hello".getBytes())
             .message("Message")
             .fileType(Document.FileType.TXT)
             .build();
@@ -72,7 +81,7 @@ public class CreateASiCETest {
 
     @Test
     public void create_direct_asice_and_write_to_disk() throws IOException {
-        DirectJob job = DirectJob.builder(new Signer("12345678910"), DOCUMENT, singleExitUrl("https://job.well.done.org"))
+        DirectJob job = DirectJob.builder(DirectSigner.builder("12345678910").build(), DIRECT_DOCUMENT, singleExitUrl("https://job.well.done.org"))
                 .withReference("direct job")
                 .build();
 
@@ -81,7 +90,7 @@ public class CreateASiCETest {
 
     @Test
     public void create_portal_asice_and_write_to_disk() throws IOException {
-        PortalJob job = PortalJob.builder(DOCUMENT, new Signer("12345678910"))
+        PortalJob job = PortalJob.builder(PORTAL_DOCUMENT, PortalSigner.builder("12345678910", notifyByEMail().build()).build())
                 .withReference("portal job")
                 .withActivationTime(new Date())
                 .availableFor(30, DAYS)

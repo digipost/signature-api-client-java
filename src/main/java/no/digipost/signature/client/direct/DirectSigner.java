@@ -13,28 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client.direct;
 
-public class Signer {
+public class DirectSigner {
 
     private String personalIdentificationNumber;
-    private int order;
 
-    public Signer(String personalIdentificationNumber) {
-        this(personalIdentificationNumber, 0);
-    }
-
-    public Signer(String personalIdentificationNumber, int order) {
+    private DirectSigner(String personalIdentificationNumber) {
         this.personalIdentificationNumber = personalIdentificationNumber;
-        this.order = order;
     }
 
     public String getPersonalIdentificationNumber() {
         return personalIdentificationNumber;
-    }
-
-    public int getOrder() {
-        return order;
     }
 
     @Override
@@ -44,5 +34,25 @@ public class Signer {
 
     static String mask(String personalIdentificationNumber) {
         return personalIdentificationNumber.substring(0, 6) + "*****";
+    }
+
+    public static Builder builder(String personalIdentificationNumber) {
+        return new Builder(personalIdentificationNumber);
+    }
+
+    public static class Builder {
+
+        private final DirectSigner target;
+        private boolean built = false;
+
+        private Builder(String personalIdentificationNumber) {
+            target = new DirectSigner(personalIdentificationNumber);
+        }
+
+        public DirectSigner build() {
+            if (built) throw new IllegalStateException("Can't build twice");
+            built = true;
+            return target;
+        }
     }
 }

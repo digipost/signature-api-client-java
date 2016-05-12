@@ -17,8 +17,9 @@ package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.Signer;
+import no.digipost.signature.client.direct.DirectDocument;
 import no.digipost.signature.client.direct.DirectJob;
+import no.digipost.signature.client.direct.DirectSigner;
 import no.digipost.signature.client.direct.ExitUrls;
 import org.junit.Test;
 
@@ -30,12 +31,12 @@ public class CreateDirectManifestTest {
     public void accept_valid_manifest() {
         CreateDirectManifest createManifest = new CreateDirectManifest();
 
-        Document document = Document.builder("Subject", "file.txt", "hello".getBytes())
+        DirectDocument document = DirectDocument.builder("Title", "file.txt", "hello".getBytes())
                 .message("Message")
                 .fileType(Document.FileType.TXT)
                 .build();
 
-        DirectJob job = DirectJob.builder(new Signer("12345678910"), document, ExitUrls.of("http://localhost/signed", "http://localhost/canceled", "http://localhost/failed")).build();
+        DirectJob job = DirectJob.builder(DirectSigner.builder("12345678910").build(), document, ExitUrls.of("http://localhost/signed", "http://localhost/canceled", "http://localhost/failed")).build();
         try {
             createManifest.createManifest(job, new Sender("123456789"));
         } catch (Exception e) {
