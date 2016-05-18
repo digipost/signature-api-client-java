@@ -19,6 +19,7 @@ import no.digipost.signature.api.xml.*;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.exceptions.*;
+import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
 import no.motif.single.Optional;
 import org.glassfish.jersey.media.multipart.BodyPart;
@@ -30,7 +31,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +48,7 @@ import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_A
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
 import static no.digipost.signature.client.core.internal.Target.DIRECT;
 import static no.digipost.signature.client.core.internal.Target.PORTAL;
+import static no.digipost.signature.client.core.internal.http.ResponseStatus.Custom.TOO_MANY_REQUESTS;
 import static no.motif.Singular.optional;
 import static no.motif.Strings.nonblank;
 
@@ -105,7 +107,7 @@ public class ClientHelper {
                         .accept(APPLICATION_XML_TYPE)
                         .get();
                 try {
-                    Status status = Status.fromStatusCode(response.getStatus());
+                    StatusType status = ResponseStatus.resolve(response.getStatus());
                     if (status == OK) {
                         return response.readEntity(XMLDirectSignatureJobStatusResponse.class);
                     } else if (status == FORBIDDEN) {
@@ -144,7 +146,7 @@ public class ClientHelper {
                     String url = cancellable.getCancellationUrl().getUrl();
                     Response response = postEmptyEntity(url);
                     try {
-                        Status status = Status.fromStatusCode(response.getStatus());
+                        StatusType status = ResponseStatus.resolve(response.getStatus());
                         if (status == OK) {
                             return;
                         } else if (status == CONFLICT) {
@@ -175,12 +177,12 @@ public class ClientHelper {
                         .accept(APPLICATION_XML_TYPE)
                         .get();
                 try {
-                    Status status = Status.fromStatusCode(response.getStatus());
+                    StatusType status = ResponseStatus.resolve(response.getStatus());
                     if (status == NO_CONTENT) {
                         return null;
                     } else if (status == OK) {
                         return response.readEntity(XMLPortalSignatureJobStatusChangeResponse.class);
-                    } else if (response.getStatus() == 429) {
+                    } else if (status == TOO_MANY_REQUESTS) {
                         throw new TooEagerPollingException(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER));
                     } else {
                         throw exceptionForGeneralError(response);
@@ -201,7 +203,7 @@ public class ClientHelper {
                     LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
                     Response response = postEmptyEntity(url);
                     try {
-                        Status status = Status.fromStatusCode(response.getStatus());
+                        StatusType status = ResponseStatus.resolve(response.getStatus());
                         if (status != OK) {
                             throw exceptionForGeneralError(response);
                         }
@@ -262,7 +264,7 @@ public class ClientHelper {
     }
 
     private <T> T parseResponse(Response response, Class<T> responseType) {
-        Status status = Status.fromStatusCode(response.getStatus());
+        StatusType status = ResponseStatus.resolve(response.getStatus());
         if (status == OK) {
             return response.readEntity(responseType);
         } else {
@@ -275,7 +277,7 @@ public class ClientHelper {
         if (BROKER_NOT_AUTHORIZED.sameAs(error.getErrorCode())) {
             return new BrokerNotAuthorizedException(error);
         }
-        return new UnexpectedResponseException(error, Status.fromStatusCode(response.getStatus()), OK);
+        return new UnexpectedResponseException(error, ResponseStatus.resolve(response.getStatus()), OK);
     }
 
     private static XMLError extractError(Response response) {
@@ -289,17 +291,18 @@ public class ClientHelper {
                 throw new UnexpectedResponseException(
                         HttpHeaders.CONTENT_TYPE + " " + responseContentType.orElse("unknown") + ": " +
                         optional(nonblank, response.readEntity(String.class)).orElse("<no content in response>"),
-                        e, Status.fromStatusCode(response.getStatus()), OK);
+                        e, ResponseStatus.resolve(response.getStatus()), OK);
             }
         } else {
             throw new UnexpectedResponseException(
                     HttpHeaders.CONTENT_TYPE + " " + responseContentType.orElse("unknown") + ": " +
                     optional(nonblank, response.readEntity(String.class)).orElse("<no content in response>"),
-                    Status.fromStatusCode(response.getStatus()), OK);
+                    ResponseStatus.resolve(response.getStatus()), OK);
         }
         if (error == null) {
-            throw new UnexpectedResponseException(null, Status.fromStatusCode(response.getStatus()), OK);
+            throw new UnexpectedResponseException(null, ResponseStatus.resolve(response.getStatus()), OK);
         }
         return error;
     }
+
 }

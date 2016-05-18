@@ -16,28 +16,35 @@
 package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.api.xml.*;
-import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.Signer;
-import no.digipost.signature.client.portal.PortalJob;
+import no.digipost.signature.client.portal.*;
 
 public class CreatePortalManifest extends ManifestCreator<PortalJob> {
 
     @Override
     Object buildXmlManifest(PortalJob job, Sender sender) {
-        XMLSigners xmlSigners = new XMLSigners();
-        for (Signer signer : job.getSigners()) {
-            xmlSigners.getSigners().add(new XMLSigner()
+        XMLPortalSigners xmlSigners = new XMLPortalSigners();
+        for (PortalSigner signer : job.getSigners()) {
+            XMLPortalSigner xmlPortalSigner = new XMLPortalSigner()
                     .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
-                    .withOrder(signer.getOrder()));
+                    .withOrder(signer.getOrder());
+
+            if (signer.getNotifications() != null) {
+                xmlPortalSigner.setNotifications(generateNotifications(signer.getNotifications()));
+            } else if (signer.getNotificationsUsingLookup() != null) {
+                xmlPortalSigner.setNotificationsUsingLookup(generateNotificationsUsingLookup(signer.getNotificationsUsingLookup()));
+            }
+
+            xmlSigners.getSigners().add(xmlPortalSigner);
         }
 
-        Document document = job.getDocument();
+        PortalDocument document = job.getDocument();
         return new XMLPortalSignatureJobManifest()
                 .withSigners(xmlSigners)
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
-                .withDocument(new XMLDocument()
-                        .withTitle(document.getSubject())
+                .withDocument(new XMLPortalDocument()
+                        .withTitle(document.getTitle())
+                        .withNonsensitiveTitle(document.getNonsensitiveTitle())
                         .withDescription(document.getMessage())
                         .withHref(document.getFileName())
                         .withMime(document.getMimeType())
@@ -46,5 +53,27 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                         .withActivationTime(job.getActivationTime())
                         .withAvailableSeconds(job.getAvailableSeconds())
                 );
+    }
+
+    private XMLNotificationsUsingLookup generateNotificationsUsingLookup(NotificationsUsingLookup notificationsUsingLookup) {
+        XMLNotificationsUsingLookup xmlNotificationsUsingLookup = new XMLNotificationsUsingLookup();
+        if (notificationsUsingLookup.shouldSendEmail()) {
+            xmlNotificationsUsingLookup.setEmail(new XMLEnabled());
+        }
+        if (notificationsUsingLookup.shouldSendSms()) {
+            xmlNotificationsUsingLookup.setSms(new XMLEnabled());
+        }
+        return xmlNotificationsUsingLookup;
+    }
+
+    private XMLNotifications generateNotifications(Notifications notifications) {
+        XMLNotifications xmlNotifications = new XMLNotifications();
+        if (notifications.shouldSendEmail()) {
+            xmlNotifications.setEmail(new XMLEmail().withAddress(notifications.getEmailAddress()));
+        }
+        if (notifications.shouldSendSms()) {
+            xmlNotifications.setSms(new XMLSms().withNumber(notifications.getMobileNumber()));
+        }
+        return xmlNotifications;
     }
 }

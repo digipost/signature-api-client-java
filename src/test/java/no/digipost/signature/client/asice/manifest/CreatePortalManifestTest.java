@@ -17,14 +17,16 @@ package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.Signer;
+import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
+import no.digipost.signature.client.portal.PortalSigner;
 import org.junit.Test;
 
 import java.util.Collections;
 import java.util.Date;
 
 import static java.util.concurrent.TimeUnit.DAYS;
+import static no.digipost.signature.client.portal.NotificationsUsingLookup.notifyByEMail;
 import static org.junit.Assert.fail;
 
 public class CreatePortalManifestTest {
@@ -33,12 +35,12 @@ public class CreatePortalManifestTest {
     public void accept_valid_manifest() {
         CreatePortalManifest createManifest = new CreatePortalManifest();
 
-        Document document = Document.builder("Subject", "file.txt", "hello".getBytes())
+        PortalDocument document = PortalDocument.builder("Title", "file.txt", "hello".getBytes())
                 .message("Message")
                 .fileType(Document.FileType.TXT)
                 .build();
 
-        PortalJob job = PortalJob.builder(document, Collections.singletonList(new Signer("12345678910")))
+        PortalJob job = PortalJob.builder(document, Collections.singletonList(PortalSigner.builder("12345678910", notifyByEMail().build()).build()))
                 .withActivationTime(new Date())
                 .availableFor(30, DAYS)
                 .build();
