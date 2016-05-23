@@ -20,16 +20,38 @@ import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.Confirmable;
 
+import static no.digipost.signature.client.direct.DirectJobStatus.NO_CHANGES;
+
 
 public class DirectJobStatusResponse implements Confirmable {
 
-    private final long signatureJobId;
+    /**
+     * This instance indicates that there has been no status updates since the last poll request for
+     * {@link DirectJobStatusResponse}. Its status is {@link DirectJobStatus#NO_CHANGES NO_CHANGES}.
+     */
+    public static final DirectJobStatusResponse NO_UPDATED_STATUS = new DirectJobStatusResponse(null, NO_CHANGES, null, null, null) {
+        @Override
+        public long getSignatureJobId() {
+            throw new IllegalStateException(
+                    "There were " + this + ", and querying the job ID is a programming error. " +
+                            "Use the method is(" + DirectJobStatusResponse.class.getSimpleName() + "." + NO_CHANGES.name() + ") " +
+                            "to check if there were any status change before attempting to get any further information.");
+        };
+
+        @Override
+        public String toString() {
+            return "no direct jobs with updated status";
+        }
+    };
+
+
+    private final Long signatureJobId;
     private final DirectJobStatus status;
     private final ConfirmationReference confirmationReference;
     private final XAdESReference xAdESReference;
     private final PAdESReference pAdESReference;
 
-    public DirectJobStatusResponse(long signatureJobId, DirectJobStatus status, ConfirmationReference confirmationUrl, XAdESReference xAdESReference, PAdESReference pAdESReference) {
+    public DirectJobStatusResponse(Long signatureJobId, DirectJobStatus status, ConfirmationReference confirmationUrl, XAdESReference xAdESReference, PAdESReference pAdESReference) {
         this.signatureJobId = signatureJobId;
         this.status = status;
         this.confirmationReference = confirmationUrl;

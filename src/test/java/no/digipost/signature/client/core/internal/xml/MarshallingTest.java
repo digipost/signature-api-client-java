@@ -46,7 +46,7 @@ public class MarshallingTest {
                 .withRejectionUrl("http://localhost/rejected")
                 .withErrorUrl("http://localhost/failed");
 
-        XMLDirectSignatureJobRequest directJob = new XMLDirectSignatureJobRequest("123abc", exitUrls);
+        XMLDirectSignatureJobRequest directJob = new XMLDirectSignatureJobRequest("123abc", exitUrls, null);
         XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(directSigner, sender, directDocument);
 
         marshaller.marshal(directJob, new StreamResult(new ByteArrayOutputStream()));
@@ -65,7 +65,7 @@ public class MarshallingTest {
                 .withRejectionUrl("http://localhost/rejected")
                 .withErrorUrl("http://localhost/failed");
 
-        XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", exitUrls);
+        XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", exitUrls, null);
 
         try {
             marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));

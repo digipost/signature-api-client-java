@@ -38,7 +38,12 @@ public enum DirectJobStatus {
      *
      * @see XMLDirectSignatureJobStatus#FAILED
      */
-    FAILED;
+    FAILED,
+
+    /**
+     * There has not been any changes since the last received status change.
+     */
+    NO_CHANGES;
 
     public static DirectJobStatus fromXmlType(XMLDirectSignatureJobStatus xmlJobStatus) {
         switch (xmlJobStatus) {

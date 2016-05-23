@@ -32,7 +32,8 @@ final class JaxbEntityMapping {
                         .withCompletionUrl(signatureJob.getCompletionUrl())
                         .withRejectionUrl(signatureJob.getRejectionUrl())
                         .withErrorUrl(signatureJob.getErrorUrl())
-                );
+                )
+                .withStatusRetrievalMethod(signatureJob.getStatusRetrievalMethod().xmlValue);
     }
 
     static DirectJobResponse fromJaxb(XMLDirectSignatureJobResponse xmlSignatureJobResponse) {

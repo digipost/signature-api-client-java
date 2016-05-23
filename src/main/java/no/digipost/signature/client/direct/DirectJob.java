@@ -23,6 +23,8 @@ import no.motif.single.Optional;
 
 import java.util.UUID;
 
+import static no.digipost.signature.client.direct.StatusRetrievalMethod.WAIT_FOR_CALLBACK;
+
 public class DirectJob implements SignatureJob, WithExitUrls {
 
     private String reference;
@@ -32,6 +34,7 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     private String rejectionUrl;
     private String errorUrl;
     private Optional<Sender> sender = Singular.none();
+    private StatusRetrievalMethod statusRetrievalMethod = WAIT_FOR_CALLBACK;
 
     private DirectJob(DirectSigner signer, DirectDocument document, String completionUrl, String rejectionUrl, String errorUrl) {
         this.signer = signer;
@@ -75,6 +78,10 @@ public class DirectJob implements SignatureJob, WithExitUrls {
         return errorUrl;
     }
 
+    public StatusRetrievalMethod getStatusRetrievalMethod() {
+        return statusRetrievalMethod;
+    }
+
     /**
      * Create a new DirectJob.
      *
@@ -116,6 +123,11 @@ public class DirectJob implements SignatureJob, WithExitUrls {
          */
         public Builder withSender(Sender sender) {
             target.sender = Singular.optional(sender);
+            return this;
+        }
+
+        public Builder retrieveStatusBy(StatusRetrievalMethod statusRetrievalMethod) {
+            target.statusRetrievalMethod = statusRetrievalMethod;
             return this;
         }
 

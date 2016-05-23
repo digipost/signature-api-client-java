@@ -164,15 +164,19 @@ public class ClientHelper {
         });
     }
 
-    public XMLPortalSignatureJobStatusChangeResponse getStatusChange() {
-        return getStatusChange(globalSender.orElseThrow(SENDER_NOT_SPECIFIED));
+    public XMLPortalSignatureJobStatusChangeResponse getPortalStatusChange(Optional<Sender> sender) {
+        return getStatusChange(sender, PORTAL, XMLPortalSignatureJobStatusChangeResponse.class);
     }
 
-    public XMLPortalSignatureJobStatusChangeResponse getStatusChange(final Sender sender) {
-        return call(new Callable<XMLPortalSignatureJobStatusChangeResponse>() {
+    public XMLDirectSignatureJobStatusResponse getDirectStatusChange(Optional<Sender> sender) {
+        return getStatusChange(sender, DIRECT, XMLDirectSignatureJobStatusResponse.class);
+    }
+
+    private <RESPONSE_CLASS> RESPONSE_CLASS getStatusChange(final Optional<Sender> sender, final Target target, final Class<RESPONSE_CLASS> responseClass) {
+        return call(new Callable<RESPONSE_CLASS>() {
             @Override
-            public XMLPortalSignatureJobStatusChangeResponse call() {
-                Response response = httpClient.signatureServiceRoot().path(PORTAL.path(sender))
+            public RESPONSE_CLASS call() {
+                Response response = httpClient.signatureServiceRoot().path(target.path(sender.or(globalSender).orElseThrow(SENDER_NOT_SPECIFIED)))
                         .request()
                         .accept(APPLICATION_XML_TYPE)
                         .get();
@@ -181,7 +185,7 @@ public class ClientHelper {
                     if (status == NO_CONTENT) {
                         return null;
                     } else if (status == OK) {
-                        return response.readEntity(XMLPortalSignatureJobStatusChangeResponse.class);
+                        return response.readEntity(responseClass);
                     } else if (status == TOO_MANY_REQUESTS) {
                         throw new TooEagerPollingException(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER));
                     } else {

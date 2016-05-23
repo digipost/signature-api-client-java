@@ -29,6 +29,7 @@ import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
+import no.motif.Singular;
 
 import java.io.InputStream;
 
@@ -69,8 +70,7 @@ public class PortalClient {
      *         never {@code null}.
      */
     public PortalJobStatusChanged getStatusChange() {
-        XMLPortalSignatureJobStatusChangeResponse statusChange = client.getStatusChange();
-        return statusChange == null ? NO_UPDATED_STATUS : JaxbEntityMapping.fromJaxb(statusChange);
+        return getStatusChange(null);
     }
 
     /**
@@ -87,7 +87,7 @@ public class PortalClient {
      */
 
     public PortalJobStatusChanged getStatusChange(Sender sender) {
-        XMLPortalSignatureJobStatusChangeResponse statusChange = client.getStatusChange(sender);
+        XMLPortalSignatureJobStatusChangeResponse statusChange = client.getPortalStatusChange(Singular.optional(sender));
         return statusChange == null ? NO_UPDATED_STATUS : JaxbEntityMapping.fromJaxb(statusChange);
     }
 
