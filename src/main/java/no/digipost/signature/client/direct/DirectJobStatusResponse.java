@@ -34,7 +34,7 @@ public class DirectJobStatusResponse implements Confirmable {
         public long getSignatureJobId() {
             throw new IllegalStateException(
                     "There were " + this + ", and querying the job ID is a programming error. " +
-                            "Use the method is(" + DirectJobStatusResponse.class.getSimpleName() + "." + NO_CHANGES.name() + ") " +
+                            "Use the method is(" + DirectJobStatusResponse.class.getSimpleName() + "." + NO_CHANGES + ") " +
                             "to check if there were any status change before attempting to get any further information.");
         };
 
