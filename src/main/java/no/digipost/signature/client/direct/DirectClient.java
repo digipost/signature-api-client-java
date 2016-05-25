@@ -70,10 +70,38 @@ public class DirectClient {
         return fromJaxb(xmlSignatureJobStatusResponse);
     }
 
+    /**
+     * If there is a job with an updated {@link DirectJobStatus status}, the returned object contains
+     * necessary information to act on the status change. The returned object can be queried using
+     * {@link DirectJobStatusResponse#is(DirectJobStatus) .is(}{@link DirectJobStatus#NO_CHANGES NO_CHANGES)}
+     * to determine if there has been a status change. When processing of the status change is complete, (e.g. retrieving
+     * {@link #getPAdES(PAdESReference) PAdES} and/or {@link #getXAdES(XAdESReference) XAdES} documents for a
+     * {@link DirectJobStatus#SIGNED signed} job, the returned status must be {@link #confirm(DirectJobStatusResponse) confirmed}.
+     * <p>
+     * Only jobs with {@link DirectJob.Builder#retrieveStatusBy(StatusRetrievalMethod) status retrieval method} set
+     * to {@link StatusRetrievalMethod#POLLING POLLING} will be returned.
+     *
+     * @return the changed status for a job, or {@link DirectJobStatusResponse#NO_UPDATED_STATUS NO_UPDATED_STATUS},
+     *         never {@code null}.
+     */
     public DirectJobStatusResponse getStatusChange() {
         return getStatusChange(null);
     }
 
+    /**
+     * If there is a job with an updated {@link DirectJobStatus status}, the returned object contains
+     * necessary information to act on the status change. The returned object can be queried using
+     * {@link DirectJobStatusResponse#is(DirectJobStatus) .is(}{@link DirectJobStatus#NO_CHANGES NO_CHANGES)}
+     * to determine if there has been a status change. When processing of the status change is complete, (e.g. retrieving
+     * {@link #getPAdES(PAdESReference) PAdES} and/or {@link #getXAdES(XAdESReference) XAdES} documents for a
+     * {@link DirectJobStatus#SIGNED signed} job, the returned status must be {@link #confirm(DirectJobStatusResponse) confirmed}.
+     * <p>
+     * Only jobs with {@link DirectJob.Builder#retrieveStatusBy(StatusRetrievalMethod) status retrieval method} set
+     * to {@link StatusRetrievalMethod#POLLING POLLING} will be returned.
+     *
+     * @return the changed status for a job, or {@link DirectJobStatusResponse#NO_UPDATED_STATUS NO_UPDATED_STATUS},
+     *         never {@code null}.
+     */
     public DirectJobStatusResponse getStatusChange(Sender sender) {
         XMLDirectSignatureJobStatusResponse statusChange = client.getDirectStatusChange(Singular.optional(sender));
         return statusChange == null ? NO_UPDATED_STATUS : fromJaxb(statusChange);
@@ -81,12 +109,16 @@ public class DirectClient {
 
 
     /**
-     * Confirms that the status retrieved from {@link #getStatus(StatusReference)} is received.
+     * Confirms that the status retrieved from {@link #getStatus(StatusReference)} or {@link #getStatusChange()} is received.
      * If the confirmed {@link DirectJobStatus} is a terminal status
      * (e.g. {@link DirectJobStatus#SIGNED signed} or {@link DirectJobStatus#REJECTED rejected}),
      * the Signature service may make the job's associated resources unavailable through the API when
      * receiving the confirmation. Calling this method for a response with no {@link ConfirmationReference}
      * has no effect.
+     * <p>
+     * If the status is retrieved using {@link #getStatusChange() the polling method}, failing to confirm the
+     * received response may cause subsequent statuses for the same job to be reported as "changed", even
+     * though the status has not changed.
      *
      * @param receivedStatusResponse the updated status retrieved from {@link #getStatus(StatusReference)}.
      */
