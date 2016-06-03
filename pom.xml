@@ -5,7 +5,7 @@
     <name>Posten signering - Java API Client Library</name>
     <groupId>no.digipost.signature</groupId>
     <artifactId>signature-api-client-java</artifactId>
-    <version>1.1-RC1-SNAPSHOT</version>
+    <version>1.1</version>
 
     <parent>
         <groupId>no.digipost</groupId>
@@ -411,7 +411,7 @@
         <connection>scm:git:git@github.com:digipost/signature-api-client-java.git</connection>
         <developerConnection>scm:git:git@github.com:digipost/signature-api-client-java.git</developerConnection>
         <url>https://github.com/digipost/signature-api-client-java/</url>
-        <tag>HEAD</tag>
+        <tag>1.1</tag>
     </scm>
 
     <prerequisites>
