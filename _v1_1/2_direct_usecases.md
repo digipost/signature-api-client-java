@@ -27,7 +27,7 @@ ClientConfiguration clientConfiguration = ...; // As initialized earlier
 DirectClient client = new DirectClient(clientConfiguration);
 
 byte[] documentBytes = ...;
-Document document = Document.builder("Subject", "document.pdf", documentBytes).build();
+DirectDocument document = DirectDocument.builder("Subject", "document.pdf", documentBytes).build();
 
 ExitUrls exitUrls = ExitUrls.of(
         "http://sender.org/onCompletion",
@@ -35,7 +35,8 @@ ExitUrls exitUrls = ExitUrls.of(
         "http://sender.org/onError"
 );
 
-DirectJob directJob = DirectJob.builder(new Signer("12345678910"), document, exitUrls).build();
+DirectJob directJob =
+        DirectJob.builder(DirectSigner.builder("12345678910").build(), document, exitUrls).build();
 
 DirectJobResponse directJobResponse = client.create(directJob);
 

@@ -29,10 +29,14 @@ ClientConfiguration clientConfiguration = ...; // As initialized earlier
 PortalClient client = new PortalClient(clientConfiguration);
 
 byte[] documentBytes = ...;
-Document document = Document.builder("Subject", "document.pdf", documentBytes).build();
+PortalDocument document = PortalDocument.builder("Subject", "document.pdf", documentBytes).build();
 
-PortalJob portalJob =
-        PortalJob.builder(document, new Signer("12345678910"), new Signer("12345678911")).build();
+PortalJob portalJob = PortalJob.builder(
+        document,
+        PortalSigner.builder("12345678910", NotificationsUsingLookup.notifyByEMail().build()).build(),
+        PortalSigner.builder("12345678911", 
+                Notifications.builder().withEmailTo("email@example.com").build()).build()
+).build();
 
 PortalJobResponse portalJobResponse = client.create(portalJob);
 
