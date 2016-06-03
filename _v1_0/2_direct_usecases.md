@@ -1,5 +1,5 @@
 ---
-id: directusecases
+identifier: directusecases
 title: Direct use cases
 layout: default
 ---

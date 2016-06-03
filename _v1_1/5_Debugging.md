@@ -1,5 +1,5 @@
 ---
-id: Debugging
+identifier: Debugging
 title: Debugging
 layout: default
 ---

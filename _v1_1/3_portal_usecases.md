@@ -1,5 +1,5 @@
 ---
-id: portalusecases
+identifier: portalusecases
 title: Portal use cases
 layout: default
 ---

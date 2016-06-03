@@ -1,5 +1,5 @@
 ---
-id: setup
+identifier: setup
 title: Initial setup
 layout: default
 ---
