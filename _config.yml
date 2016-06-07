@@ -63,8 +63,8 @@ facebook:
 
 # google analytics
 analytics:
-  account:
-  domain:
+  trackingid: UA-77734017-1
+  domain: auto
 
 # DON'T MODIFY
 highlight: rouge
