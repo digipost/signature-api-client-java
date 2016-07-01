@@ -18,21 +18,19 @@ package no.digipost.signature.client.core.internal.xml;
 import no.digipost.signature.api.xml.*;
 import org.junit.Test;
 import org.springframework.oxm.MarshallingFailureException;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-
-import javax.xml.transform.stream.StreamResult;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Date;
 
+import static junit.framework.TestCase.assertEquals;
+import static no.digipost.signature.client.core.internal.xml.Marshalling.marshal;
+import static no.digipost.signature.client.core.internal.xml.Marshalling.unmarshal;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class MarshallingTest {
-
-    private final Jaxb2Marshaller marshaller = Marshalling.instance();
 
     @Test
     public void valid_objects_can_be_marshalled() {
@@ -49,13 +47,13 @@ public class MarshallingTest {
         XMLDirectSignatureJobRequest directJob = new XMLDirectSignatureJobRequest("123abc", exitUrls, null);
         XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(directSigner, sender, directDocument);
 
-        marshaller.marshal(directJob, new StreamResult(new ByteArrayOutputStream()));
-        marshaller.marshal(directManifest, new StreamResult(new ByteArrayOutputStream()));
+        marshal(directJob, new ByteArrayOutputStream());
+        marshal(directManifest, new ByteArrayOutputStream());
 
         XMLPortalSignatureJobRequest portalJob = new XMLPortalSignatureJobRequest("123abc");
         XMLPortalSignatureJobManifest portalManifest = new XMLPortalSignatureJobManifest(new XMLPortalSigners().withSigners(portalSigner), sender, portalDocument, new XMLAvailability().withActivationTime(new Date()));
-        marshaller.marshal(portalJob, new StreamResult(new ByteArrayOutputStream()));
-        marshaller.marshal(portalManifest, new StreamResult(new ByteArrayOutputStream()));
+        marshal(portalJob, new ByteArrayOutputStream());
+        marshal(portalManifest, new ByteArrayOutputStream());
     }
 
     @Test
@@ -68,7 +66,7 @@ public class MarshallingTest {
         XMLDirectSignatureJobRequest signatureJobRequest = new XMLDirectSignatureJobRequest("123abc", exitUrls, null);
 
         try {
-            marshaller.marshal(signatureJobRequest, new StreamResult(new ByteArrayOutputStream()));
+            marshal(signatureJobRequest, new ByteArrayOutputStream());
             fail("Should have failed with XSD-validation error due to completion-url being empty.");
         } catch (MarshallingFailureException e) {
             assertThat(e.getMessage(), allOf(containsString("completion-url"), containsString("is expected")));
@@ -87,12 +85,20 @@ public class MarshallingTest {
         XMLPortalSignatureJobManifest portalManifest = new XMLPortalSignatureJobManifest(new XMLPortalSigners().withSigners(portalSigner), sender, portalDocument, null);
 
         try {
-            marshaller.marshal(directManifest, new StreamResult(new ByteArrayOutputStream()));
-            marshaller.marshal(portalManifest, new StreamResult(new ByteArrayOutputStream()));
+            marshal(directManifest, new ByteArrayOutputStream());
+            marshal(portalManifest, new ByteArrayOutputStream());
             fail("Should have failed with XSD-validation error due to href-attribute on document element being empty.");
         } catch (MarshallingFailureException e) {
             assertThat(e.getMessage(), allOf(containsString("href"), containsString("must appear")));
         }
+    }
+
+    @Test
+    public void ignores_unexpected_elements_in_response() {
+        XMLDirectSignatureJobStatusResponse unmarshalled = (XMLDirectSignatureJobStatusResponse) unmarshal(this.getClass().getResourceAsStream("/xml/direct_signature_job_response_with_unexpected_element.xml"));
+
+        assertEquals(1, unmarshalled.getSignatureJobId());
+        assertEquals("SIGNED", unmarshalled.getStatus().name());
     }
 
 }

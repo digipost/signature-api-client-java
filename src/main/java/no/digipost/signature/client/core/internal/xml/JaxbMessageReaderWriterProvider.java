@@ -16,7 +16,6 @@
 package no.digipost.signature.client.core.internal.xml;
 
 import org.glassfish.jersey.message.internal.AbstractMessageReaderWriterProvider;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
@@ -24,24 +23,19 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
+import static no.digipost.signature.client.core.internal.xml.Marshalling.marshal;
+import static no.digipost.signature.client.core.internal.xml.Marshalling.unmarshal;
+
 @Provider
 @Produces(MediaType.APPLICATION_XML)
 @Consumes(MediaType.APPLICATION_XML)
 public class JaxbMessageReaderWriterProvider extends AbstractMessageReaderWriterProvider<Object> {
-
-    private final Jaxb2Marshaller marshaller;
-
-    public JaxbMessageReaderWriterProvider() {
-        marshaller = Marshalling.instance();
-    }
 
     @Override
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
@@ -50,7 +44,7 @@ public class JaxbMessageReaderWriterProvider extends AbstractMessageReaderWriter
 
     @Override
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
-        return marshaller.unmarshal(new StreamSource(entityStream));
+        return unmarshal(entityStream);
     }
 
     @Override
@@ -60,6 +54,6 @@ public class JaxbMessageReaderWriterProvider extends AbstractMessageReaderWriter
 
     @Override
     public void writeTo(Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-        marshaller.marshal(o, new StreamResult(entityStream));
+        marshal(o, entityStream);
     }
 }
