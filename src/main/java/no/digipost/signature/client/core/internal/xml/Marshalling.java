@@ -23,27 +23,47 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 public class Marshalling {
 
+    private static final Class[] OUTBOUND_CLASSES = new Class[]{
+            XMLDirectSignatureJobManifest.class, XMLDirectSignatureJobRequest.class, XMLPortalSignatureJobManifest.class, XMLPortalSignatureJobRequest.class, QualifyingProperties.class, XAdESSignatures.class
+    };
+    private static final Class[] INBOUND_CLASSES = new Class[]{
+            XMLDirectSignatureJobResponse.class, XMLDirectSignatureJobStatusResponse.class, XMLPortalSignatureJobResponse.class, XMLPortalSignatureJobStatusChangeResponse.class, XMLError.class
+    };
+
     private static final class Jaxb2MarshallerHolder {
-        private static final Jaxb2Marshaller instance; static {
-            instance = new Jaxb2Marshaller();
-            instance.setClassesToBeBound(
-                    XMLDirectSignatureJobManifest.class, XMLDirectSignatureJobRequest.class, XMLDirectSignatureJobResponse.class, XMLDirectSignatureJobStatusResponse.class,
-                    XMLPortalSignatureJobManifest.class, XMLPortalSignatureJobRequest.class, XMLPortalSignatureJobResponse.class, XMLPortalSignatureJobStatusChangeResponse.class,
-                    XMLError.class,
-                    QualifyingProperties.class, XAdESSignatures.class);
-            instance.setSchemas(Schemas.allSchemaResources());
+        private static final Jaxb2Marshaller marshaller;
+        private static final Jaxb2Marshaller unmarshaller;
+
+        static {
+            marshaller = new Jaxb2Marshaller();
+            marshaller.setClassesToBeBound(OUTBOUND_CLASSES);
+            marshaller.setSchemas(Schemas.allSchemaResources());
+
+            unmarshaller = new Jaxb2Marshaller();
+            unmarshaller.setClassesToBeBound(INBOUND_CLASSES);
+
             try {
-                instance.afterPropertiesSet();
+                marshaller.afterPropertiesSet();
+                unmarshaller.afterPropertiesSet();
             } catch (Exception e) {
                 throw new ConfigurationException("Kunne ikke sette opp Jaxb marshaller", e);
             }
         }
     }
 
-    public static Jaxb2Marshaller instance() {
-        return Jaxb2MarshallerHolder.instance;
+    public static void marshal(Object object, OutputStream entityStream) {
+        Jaxb2MarshallerHolder.marshaller.marshal(object, new StreamResult(entityStream));
+    }
+
+    public static Object unmarshal(InputStream entityStream) {
+        return Jaxb2MarshallerHolder.unmarshaller.unmarshal(new StreamSource(entityStream));
     }
 
     public static class Schemas {

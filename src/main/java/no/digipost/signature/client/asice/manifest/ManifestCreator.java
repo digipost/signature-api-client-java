@@ -19,24 +19,21 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.XmlValidationException;
-import no.digipost.signature.client.core.internal.xml.Marshalling;
 import org.springframework.oxm.MarshallingFailureException;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.xml.sax.SAXParseException;
 
-import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public abstract class ManifestCreator<JOB extends SignatureJob> {
+import static no.digipost.signature.client.core.internal.xml.Marshalling.marshal;
 
-    private static final Jaxb2Marshaller marshaller = Marshalling.instance();
+public abstract class ManifestCreator<JOB extends SignatureJob> {
 
     public Manifest createManifest(JOB job, Sender sender) {
         Object xmlManifest = buildXmlManifest(job, sender);
 
         try (ByteArrayOutputStream manifestStream = new ByteArrayOutputStream()) {
-            marshaller.marshal(xmlManifest, new StreamResult(manifestStream));
+            marshal(xmlManifest, manifestStream);
             return new Manifest(manifestStream.toByteArray());
         } catch (MarshallingFailureException e) {
             if (e.getMostSpecificCause() instanceof SAXParseException) {

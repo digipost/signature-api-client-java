@@ -15,21 +15,19 @@
  */
 package no.digipost.signature.client.asice.signature;
 
-import no.digipost.signature.client.TestKonfigurasjon;
-import no.digipost.signature.client.asice.ASiCEAttachable;
-import no.digipost.signature.client.core.internal.xml.Marshalling;
-import no.digipost.signature.client.security.KeyStoreConfig;
 import no.digipost.signature.api.xml.thirdparty.asice.XAdESSignatures;
 import no.digipost.signature.api.xml.thirdparty.xades.*;
 import no.digipost.signature.api.xml.thirdparty.xmldsig.Reference;
 import no.digipost.signature.api.xml.thirdparty.xmldsig.SignedInfo;
 import no.digipost.signature.api.xml.thirdparty.xmldsig.X509IssuerSerialType;
+import no.digipost.signature.client.TestKonfigurasjon;
+import no.digipost.signature.client.asice.ASiCEAttachable;
+import no.digipost.signature.client.security.KeyStoreConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.xml.transform.stream.StreamSource;
-
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.util.List;
@@ -51,7 +49,10 @@ public class CreateSignatureTest {
     private KeyStoreConfig noekkelpar;
     private List<ASiCEAttachable> files;
 
-    private static final Jaxb2Marshaller marshaller = Marshalling.instance();
+    private static final Jaxb2Marshaller marshaller; static {
+        marshaller = new Jaxb2Marshaller();
+        marshaller.setClassesToBeBound(XAdESSignatures.class, QualifyingProperties.class);
+    }
 
     @Before
     public void setUp() throws Exception {
