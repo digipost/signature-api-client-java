@@ -22,7 +22,9 @@ import org.springframework.oxm.MarshallingFailureException;
 import java.io.ByteArrayOutputStream;
 import java.util.Date;
 
+import static junit.framework.TestCase.assertEquals;
 import static no.digipost.signature.client.core.internal.xml.Marshalling.marshal;
+import static no.digipost.signature.client.core.internal.xml.Marshalling.unmarshal;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
@@ -89,6 +91,14 @@ public class MarshallingTest {
         } catch (MarshallingFailureException e) {
             assertThat(e.getMessage(), allOf(containsString("href"), containsString("must appear")));
         }
+    }
+
+    @Test
+    public void ignores_unexpected_elements_in_response() {
+        XMLDirectSignatureJobStatusResponse unmarshalled = (XMLDirectSignatureJobStatusResponse) unmarshal(this.getClass().getResourceAsStream("/xml/direct_signature_job_response_with_unexpected_element.xml"));
+
+        assertEquals(1, unmarshalled.getSignatureJobId());
+        assertEquals("SIGNED", unmarshalled.getStatus().name());
     }
 
 }
