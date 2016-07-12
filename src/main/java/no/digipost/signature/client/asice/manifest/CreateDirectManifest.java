@@ -22,6 +22,10 @@ import no.digipost.signature.api.xml.XMLSender;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.direct.DirectDocument;
 import no.digipost.signature.client.direct.DirectJob;
+import no.digipost.signature.client.direct.DirectSigner;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CreateDirectManifest extends ManifestCreator<DirectJob> {
 
@@ -29,8 +33,13 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
     Object buildXmlManifest(DirectJob job, Sender sender) {
         DirectDocument document = job.getDocument();
 
+        List<XMLDirectSigner> signers = new ArrayList<>();
+        for (DirectSigner signer : job.getSigners()) {
+            signers.add(new XMLDirectSigner().withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber()));
+        }
+
         return new XMLDirectSignatureJobManifest()
-                .withSigner(new XMLDirectSigner().withPersonalIdentificationNumber(job.getSigner().getPersonalIdentificationNumber()))
+                .withSigners(signers)
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
                 .withDocument(new XMLDirectDocument()
                         .withTitle(document.getTitle())

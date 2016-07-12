@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.springframework.oxm.MarshallingFailureException;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.Date;
 
 import static junit.framework.TestCase.assertEquals;
@@ -45,7 +46,7 @@ public class MarshallingTest {
                 .withErrorUrl("http://localhost/failed");
 
         XMLDirectSignatureJobRequest directJob = new XMLDirectSignatureJobRequest("123abc", exitUrls, null);
-        XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(directSigner, sender, directDocument);
+        XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(Arrays.asList(directSigner), sender, directDocument);
 
         marshal(directJob, new ByteArrayOutputStream());
         marshal(directManifest, new ByteArrayOutputStream());
@@ -81,7 +82,7 @@ public class MarshallingTest {
         XMLPortalDocument portalDocument = new XMLPortalDocument("Title", "Non-sensitive title", "Message", null, "application/pdf");
         XMLDirectDocument directDocument = new XMLDirectDocument("Title", "Message", null, "application/pdf");
 
-        XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(directSigner, sender, directDocument);
+        XMLDirectSignatureJobManifest directManifest = new XMLDirectSignatureJobManifest(Arrays.asList(directSigner), sender, directDocument);
         XMLPortalSignatureJobManifest portalManifest = new XMLPortalSignatureJobManifest(new XMLPortalSigners().withSigners(portalSigner), sender, portalDocument, null);
 
         try {
@@ -98,7 +99,7 @@ public class MarshallingTest {
         XMLDirectSignatureJobStatusResponse unmarshalled = (XMLDirectSignatureJobStatusResponse) unmarshal(this.getClass().getResourceAsStream("/xml/direct_signature_job_response_with_unexpected_element.xml"));
 
         assertEquals(1, unmarshalled.getSignatureJobId());
-        assertEquals("SIGNED", unmarshalled.getStatus().name());
+        assertEquals("SIGNED", unmarshalled.getStatuses().get(0).getValue());
     }
 
 }

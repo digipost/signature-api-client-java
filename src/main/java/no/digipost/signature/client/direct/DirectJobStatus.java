@@ -20,31 +20,26 @@ import no.digipost.signature.api.xml.XMLDirectSignatureJobStatus;
 public enum DirectJobStatus {
 
     /**
-     * The document(s) of the job has been signed by the receiver.
+     * At least one signer has not yet performed any action to the document.
+     * For details about the state, see the {@link SignerStatus status} of each signer.
      *
-     * @see XMLDirectSignatureJobStatus#SIGNED
+     * @see XMLDirectSignatureJobStatus#IN_PROGRESS
      */
-    SIGNED,
+    IN_PROGRESS,
 
     /**
-     * The signature job has been rejected by the receiver.
+     * All signers have successfully signed the document.
      *
-     * @see XMLDirectSignatureJobStatus#REJECTED
+     * @see XMLDirectSignatureJobStatus#COMPLETED_SUCCESSFULLY
      */
-    REJECTED,
+    COMPLETED_SUCCESSFULLY,
 
     /**
-     * An error occured during the signing ceremony.
+     * All signers have performed an action to the document, but at least one have a non successful status (e.g. rejected, expired or failed).
      *
      * @see XMLDirectSignatureJobStatus#FAILED
      */
     FAILED,
-    /**
-     * The user didn't sign the document before the job expired.
-     *
-     * @see XMLDirectSignatureJobStatus#EXPIRED
-     */
-    EXPIRED,
 
     /**
      * There has not been any changes since the last received status change.
@@ -53,11 +48,14 @@ public enum DirectJobStatus {
 
     public static DirectJobStatus fromXmlType(XMLDirectSignatureJobStatus xmlJobStatus) {
         switch (xmlJobStatus) {
-            case SIGNED:   return SIGNED;
-            case REJECTED: return REJECTED;
-            case FAILED:   return FAILED;
-            case EXPIRED:  return EXPIRED;
-            default:       throw new IllegalArgumentException("Unexpected status: " + xmlJobStatus);
+            case IN_PROGRESS:
+                return IN_PROGRESS;
+            case COMPLETED_SUCCESSFULLY:
+                return COMPLETED_SUCCESSFULLY;
+            case FAILED:
+                return FAILED;
+            default:
+                throw new IllegalArgumentException("Unexpected status: " + xmlJobStatus);
         }
     }
 

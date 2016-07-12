@@ -17,8 +17,9 @@ package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
-import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.Confirmable;
+
+import java.util.List;
 
 import static no.digipost.signature.client.direct.DirectJobStatus.NO_CHANGES;
 
@@ -48,14 +49,14 @@ public class DirectJobStatusResponse implements Confirmable {
     private final Long signatureJobId;
     private final DirectJobStatus status;
     private final ConfirmationReference confirmationReference;
-    private final XAdESReference xAdESReference;
+    private final List<Signature> signatures;
     private final PAdESReference pAdESReference;
 
-    public DirectJobStatusResponse(Long signatureJobId, DirectJobStatus status, ConfirmationReference confirmationUrl, XAdESReference xAdESReference, PAdESReference pAdESReference) {
+    public DirectJobStatusResponse(Long signatureJobId, DirectJobStatus signatureJobStatus, ConfirmationReference confirmationUrl, List<Signature> signatures, PAdESReference pAdESReference) {
         this.signatureJobId = signatureJobId;
-        this.status = status;
+        this.status = signatureJobStatus;
         this.confirmationReference = confirmationUrl;
-        this.xAdESReference = xAdESReference;
+        this.signatures = signatures;
         this.pAdESReference = pAdESReference;
     }
 
@@ -71,16 +72,16 @@ public class DirectJobStatusResponse implements Confirmable {
         return this.status == status;
     }
 
-    public XAdESReference getxAdESUrl() {
-        return xAdESReference;
-    }
-
     public boolean isPAdESAvailable() {
         return pAdESReference != null;
     }
 
     public PAdESReference getpAdESUrl() {
         return pAdESReference;
+    }
+
+    public List<Signature> getSignatures() {
+        return signatures;
     }
 
     @Override
@@ -92,4 +93,5 @@ public class DirectJobStatusResponse implements Confirmable {
     public String toString() {
         return "status for direct job with ID " + signatureJobId + ": " + status;
     }
+
 }

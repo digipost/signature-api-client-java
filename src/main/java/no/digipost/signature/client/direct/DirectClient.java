@@ -58,7 +58,8 @@ public class DirectClient {
     /**
      * Get the current status for the given {@link StatusReference}, which references the status for a specific job.
      * When processing of the status is complete (e.g. retrieving {@link #getPAdES(PAdESReference) PAdES} and/or
-     * {@link #getXAdES(XAdESReference) XAdES} documents for a {@link DirectJobStatus#SIGNED signed} job),
+     * {@link #getXAdES(XAdESReference) XAdES} documents for a {@link DirectJobStatus#COMPLETED_SUCCESSFULLY completed} job
+     * where all signers have {@link SignerStatus#SIGNED signed} their documents),
      * the returned status must be {@link #confirm(DirectJobStatusResponse) confirmed}.
      *
      * @param statusReference the reference to the status of a specific job.
@@ -76,7 +77,8 @@ public class DirectClient {
      * {@link DirectJobStatusResponse#is(DirectJobStatus) .is(}{@link DirectJobStatus#NO_CHANGES NO_CHANGES)}
      * to determine if there has been a status change. When processing of the status change is complete, (e.g. retrieving
      * {@link #getPAdES(PAdESReference) PAdES} and/or {@link #getXAdES(XAdESReference) XAdES} documents for a
-     * {@link DirectJobStatus#SIGNED signed} job, the returned status must be {@link #confirm(DirectJobStatusResponse) confirmed}.
+     * {@link DirectJobStatus#COMPLETED_SUCCESSFULLY completed} job where all signers have {@link SignerStatus#SIGNED signed} their documents,
+     * the returned status must be {@link #confirm(DirectJobStatusResponse) confirmed}.
      * <p>
      * Only jobs with {@link DirectJob.Builder#retrieveStatusBy(StatusRetrievalMethod) status retrieval method} set
      * to {@link StatusRetrievalMethod#POLLING POLLING} will be returned.
@@ -94,7 +96,8 @@ public class DirectClient {
      * {@link DirectJobStatusResponse#is(DirectJobStatus) .is(}{@link DirectJobStatus#NO_CHANGES NO_CHANGES)}
      * to determine if there has been a status change. When processing of the status change is complete, (e.g. retrieving
      * {@link #getPAdES(PAdESReference) PAdES} and/or {@link #getXAdES(XAdESReference) XAdES} documents for a
-     * {@link DirectJobStatus#SIGNED signed} job, the returned status must be {@link #confirm(DirectJobStatusResponse) confirmed}.
+     * {@link DirectJobStatus#COMPLETED_SUCCESSFULLY completed} job where all signers have {@link SignerStatus#SIGNED signed} their documents,
+     * the returned status must be {@link #confirm(DirectJobStatusResponse) confirmed}.
      * <p>
      * Only jobs with {@link DirectJob.Builder#retrieveStatusBy(StatusRetrievalMethod) status retrieval method} set
      * to {@link StatusRetrievalMethod#POLLING POLLING} will be returned.
@@ -111,7 +114,7 @@ public class DirectClient {
     /**
      * Confirms that the status retrieved from {@link #getStatus(StatusReference)} or {@link #getStatusChange()} is received.
      * If the confirmed {@link DirectJobStatus} is a terminal status
-     * (e.g. {@link DirectJobStatus#SIGNED signed} or {@link DirectJobStatus#REJECTED rejected}),
+     * (i.e. {@link DirectJobStatus#COMPLETED_SUCCESSFULLY completed} or {@link DirectJobStatus#FAILED failed}),
      * the Signature service may make the job's associated resources unavailable through the API when
      * receiving the confirmation. Calling this method for a response with no {@link ConfirmationReference}
      * has no effect.
