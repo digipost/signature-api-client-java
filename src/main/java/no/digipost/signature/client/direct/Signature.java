@@ -16,6 +16,7 @@
 package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.core.XAdESReference;
+import no.motif.f.Predicate;
 
 import static no.digipost.signature.client.direct.DirectSigner.mask;
 
@@ -40,6 +41,10 @@ public class Signature {
         return signer;
     }
 
+    public boolean isFrom(String personalIdentificationNumber) {
+        return this.signer.equals(personalIdentificationNumber);
+    }
+
     public SignerStatus getStatus() {
         return status;
     }
@@ -51,6 +56,15 @@ public class Signature {
     @Override
     public String toString() {
         return "Signature from " + mask(signer) + " with status '" + status + "'" + (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
+    }
+
+    static Predicate<Signature> signatureFrom(final String personalIdentificationNumber) {
+        return new Predicate<Signature>() {
+            @Override
+            public boolean $(Signature signature) {
+                return signature.isFrom(personalIdentificationNumber);
+            }
+        };
     }
 
 
