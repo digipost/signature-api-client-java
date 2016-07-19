@@ -86,22 +86,31 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     /**
      * Create a new DirectJob.
      *
-     * @param signer      The {@link DirectSigner} of the document.
      * @param document    The {@link DirectDocument} that should be signed.
      * @param hasExitUrls specifies the urls the user will be redirected back to upon completing/rejecting/failing
      *                    the signing ceremony. See {@link ExitUrls#of(String, String, String)}, and alternatively
      *                    {@link ExitUrls#singleExitUrl(String)}.
+     * @param signers     The {@link DirectSigner DirectSigners} of the document.
      *
      * @return a builder to further customize the job
+     * @see DirectJob#builder(DirectDocument, WithExitUrls, List)
      */
-    public static Builder builder(DirectSigner signer, DirectDocument document, WithExitUrls hasExitUrls) {
-        return new Builder(Arrays.asList(signer), document, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
-    }
-
     public static Builder builder(DirectDocument document, WithExitUrls hasExitUrls, DirectSigner... signers) {
         return builder(document, hasExitUrls, Arrays.asList(signers));
     }
 
+    /**
+     * Create a new DirectJob.
+     *
+     * @param document    The {@link DirectDocument} that should be signed.
+     * @param hasExitUrls specifies the urls the user will be redirected back to upon completing/rejecting/failing
+     *                    the signing ceremony. See {@link ExitUrls#of(String, String, String)}, and alternatively
+     *                    {@link ExitUrls#singleExitUrl(String)}.
+     * @param signers     The {@link DirectSigner DirectSigners} of the document.
+     *
+     * @return a builder to further customize the job
+     * @see DirectJob#builder(DirectDocument, WithExitUrls, DirectSigner...)
+     */
     public static Builder builder(DirectDocument document, WithExitUrls hasExitUrls, List<DirectSigner> signers) {
         return new Builder(signers, document, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
     }
