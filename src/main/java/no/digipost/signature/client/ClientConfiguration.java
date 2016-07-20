@@ -22,13 +22,11 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.KeyException;
 import no.digipost.signature.client.core.internal.http.AddRequestHeaderFilter;
-import no.digipost.signature.client.core.internal.http.PostenEnterpriseCertificateStrategy;
 import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
+import no.digipost.signature.client.core.internal.http.PostenEnterpriseCertificateStrategy;
 import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
 import no.digipost.signature.client.core.internal.security.TrustStoreLoader;
 import no.digipost.signature.client.core.internal.xml.JaxbMessageReaderWriterProvider;
-import no.digipost.signature.client.direct.DirectJob;
-import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import no.motif.f.Do;
 import no.motif.single.Optional;
@@ -279,7 +277,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         /**
          * Set the sender used globally for every signature job.
          * <p>
-         * Use {@link PortalJob.Builder#withSender(Sender)} or {@link DirectJob.Builder#withSender(Sender)}
+         * Use {@link no.digipost.signature.client.portal.PortalJob.Builder#withSender(Sender)} or {@link no.digipost.signature.client.direct.DirectJob.Builder#withSender(Sender)}
          * if you need to specify different senders per signature job (typically when acting as a broker on
          * behalf of multiple other organizations)
          */
@@ -315,7 +313,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * The files will be given names on the format
          * <pre>{@code timestamp-[reference_from_job-]asice.zip}</pre>
          * The <em>reference_from_job</em> part is only included if the job is given such a reference using
-         * {@link DirectJob.Builder#withReference(UUID)} or {@link PortalJob.Builder#withReference(UUID)}.
+         * {@link no.digipost.signature.client.direct.DirectJob.Builder#withReference(UUID) DirectJob.Builder.withReference(..)} or {@link no.digipost.signature.client.portal.PortalJob.Builder#withReference(UUID) PortalJob.Builder.withReference(..)}.
          *
          * @param directory the directory to dump to. This directory must already exist, or
          *                  creating new signature jobs will fail. Miserably.

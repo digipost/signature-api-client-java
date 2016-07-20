@@ -15,7 +15,6 @@
  */
 package no.digipost.signature.client.portal;
 
-import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.motif.Singular;
@@ -108,7 +107,8 @@ public class PortalJob implements SignatureJob {
         /**
          * Set the sender for this specific signature job.
          * <p>
-         * You may use {@link ClientConfiguration.Builder#globalSender(Sender)} to specify a global sender used for all signature jobs
+         * You may use {@link no.digipost.signature.client.ClientConfiguration.Builder#globalSender(Sender)}
+         * to specify a global sender used for all signature jobs.
          */
         public Builder withSender(Sender sender) {
             target.sender = Singular.optional(sender);
