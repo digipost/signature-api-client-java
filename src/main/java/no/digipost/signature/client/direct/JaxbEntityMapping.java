@@ -22,7 +22,6 @@ import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.direct.RedirectUrls.RedirectUrl;
 import no.motif.f.Fn;
 import no.motif.f.Predicate;
-import no.motif.single.Optional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,10 +53,11 @@ final class JaxbEntityMapping {
     static DirectJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse) {
         List<Signature> signatures = new ArrayList<>();
         for (XMLSignerStatus signerStatus : statusResponse.getStatuses()) {
-            Optional<String> xAdESUrl = on(statusResponse.getXadesUrls())
+            String xAdESUrl = on(statusResponse.getXadesUrls())
                     .filter(forSigner(signerStatus.getSigner()))
                     .head()
-                    .map(getUrl());
+                    .map(getUrl())
+                    .orNull();
 
             signatures.add(new Signature(
                     signerStatus.getSigner(),

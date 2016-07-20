@@ -15,17 +15,10 @@
  */
 package no.digipost.signature.client.core;
 
-import no.motif.Singular;
-import no.motif.single.Optional;
-
 public class XAdESReference {
 
     public static XAdESReference of(String url) {
-        return of(Singular.optional(url));
-    }
-
-    public static XAdESReference of(Optional<String> url) {
-        return url.isSome() ? new XAdESReference(url.get()) : null;
+        return url == null ? null : new XAdESReference(url);
     }
 
     private final String xAdESUrl;
