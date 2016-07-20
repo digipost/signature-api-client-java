@@ -25,15 +25,16 @@ import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public class Marshalling {
 
-    private static final Class[] OUTBOUND_CLASSES = new Class[]{
+    private static final Class<?>[] OUTBOUND_CLASSES = new Class[] {
             XMLDirectSignatureJobManifest.class, XMLDirectSignatureJobRequest.class, XMLPortalSignatureJobManifest.class, XMLPortalSignatureJobRequest.class, QualifyingProperties.class, XAdESSignatures.class
     };
-    private static final Class[] INBOUND_CLASSES = new Class[]{
+    private static final Class<?>[] INBOUND_CLASSES = new Class[] {
             XMLDirectSignatureJobResponse.class, XMLDirectSignatureJobStatusResponse.class, XMLPortalSignatureJobResponse.class, XMLPortalSignatureJobStatusChangeResponse.class, XMLError.class
     };
 
