@@ -38,19 +38,10 @@ public class DirectJobResponse {
      * Gets the only redirect URL for this job.
      * Convenience method for retrieving the redirect URL for jobs with exactly one signer.
      * @throws IllegalStateException if there are multiple redirect URLs
-     * @see #getRedirectUrlFor(String)
+     * @see #getRedirectUrls()
      */
-    public String getRedirectUrl() {
+    public String getSingleRedirectUrl() {
         return redirectUrls.getSingleRedirectUrl();
-    }
-
-	/**
-     * Gets the redirect URL for a given signer.
-     * @throws IllegalArgumentException if the job response doesn't contain a redirect URL for this signer
-     * @see #getRedirectUrl()
-     */
-    public String getRedirectUrlFor(String personalIdentificationNumber) {
-        return redirectUrls.getFor(personalIdentificationNumber);
     }
 
     public RedirectUrls getRedirectUrls() {

@@ -32,6 +32,11 @@ public class RedirectUrls {
         return urls.get(0).getUrl();
     }
 
+    /**
+     * Gets the redirect URL for a given signer.
+     * @throws IllegalArgumentException if the job response doesn't contain a redirect URL for this signer
+     * @see DirectJobResponse#getSingleRedirectUrl()
+     */
     public String getFor(String personalIdentificationNumber) {
         for (RedirectUrl redirectUrl : urls) {
             if (redirectUrl.signer.equals(personalIdentificationNumber)) {
@@ -39,6 +44,10 @@ public class RedirectUrls {
             }
         }
         throw new IllegalArgumentException("Unable to find redirect URL for this signer");
+    }
+
+    public List<RedirectUrl> getAll() {
+        return urls;
     }
 
     public static class RedirectUrl {
