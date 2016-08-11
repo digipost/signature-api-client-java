@@ -20,7 +20,7 @@ Klientbiblioteket er releaset til [![Maven Central](https://maven-badges.herokua
 <dependency>
     <groupId>no.digipost.signature</groupId>
     <artifactId>signature-api-client-java</artifactId>
-    <version>1.2</version>
+    <version>1.2.1</version>
 </dependency>
 ```
 
