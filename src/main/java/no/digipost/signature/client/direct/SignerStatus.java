@@ -44,7 +44,7 @@ public class SignerStatus {
      */
     public static final SignerStatus SIGNED = new SignerStatus("SIGNED");
     /**
-     * The signer has successfully signed the document.
+     * An unexpected error occured during the signing ceremony.
      */
     public static final SignerStatus FAILED = new SignerStatus("FAILED");
 
