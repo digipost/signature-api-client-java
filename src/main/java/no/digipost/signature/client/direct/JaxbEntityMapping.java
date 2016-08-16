@@ -15,13 +15,18 @@
  */
 package no.digipost.signature.client.direct;
 
-import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
-import no.digipost.signature.api.xml.XMLDirectSignatureJobResponse;
-import no.digipost.signature.api.xml.XMLDirectSignatureJobStatusResponse;
-import no.digipost.signature.api.xml.XMLExitUrls;
+import no.digipost.signature.api.xml.*;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.XAdESReference;
+import no.digipost.signature.client.direct.RedirectUrls.RedirectUrl;
+import no.motif.f.Fn;
+import no.motif.f.Predicate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static no.motif.Iterate.on;
 
 final class JaxbEntityMapping {
 
@@ -37,14 +42,47 @@ final class JaxbEntityMapping {
     }
 
     static DirectJobResponse fromJaxb(XMLDirectSignatureJobResponse xmlSignatureJobResponse) {
-        return new DirectJobResponse(xmlSignatureJobResponse.getSignatureJobId(), xmlSignatureJobResponse.getRedirectUrl(), xmlSignatureJobResponse.getStatusUrl());
+        List<RedirectUrl> redirectUrls = new ArrayList<>();
+        for (XMLSignerSpecificUrl redirectUrl : xmlSignatureJobResponse.getRedirectUrls()) {
+            redirectUrls.add(new RedirectUrl(redirectUrl.getSigner(), redirectUrl.getValue()));
+        }
+
+        return new DirectJobResponse(xmlSignatureJobResponse.getSignatureJobId(), redirectUrls, xmlSignatureJobResponse.getStatusUrl());
     }
 
     static DirectJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse) {
+        List<Signature> signatures = new ArrayList<>();
+        for (XMLSignerStatus signerStatus : statusResponse.getStatuses()) {
+            String xAdESUrl = on(statusResponse.getXadesUrls())
+                    .filter(forSigner(signerStatus.getSigner()))
+                    .head()
+                    .map(getUrl())
+                    .orNull();
+
+            signatures.add(new Signature(
+                    signerStatus.getSigner(),
+                    SignerStatus.fromXmlType(signerStatus.getValue()),
+                    XAdESReference.of(xAdESUrl)
+            ));
+        }
+
         return new DirectJobStatusResponse(
-                statusResponse.getSignatureJobId(), DirectJobStatus.fromXmlType(statusResponse.getStatus()),
+                statusResponse.getSignatureJobId(),
+                DirectJobStatus.fromXmlType(statusResponse.getSignatureJobStatus()),
                 ConfirmationReference.of(statusResponse.getConfirmationUrl()),
-                XAdESReference.of(statusResponse.getXadesUrl()),
+                signatures,
                 PAdESReference.of(statusResponse.getPadesUrl()));
+    }
+
+    private static Fn<XMLSignerSpecificUrl, String> getUrl() {
+        return new Fn<XMLSignerSpecificUrl, String>() {
+            @Override public String $(XMLSignerSpecificUrl url) { return url.getValue(); }
+        };
+    }
+
+    private static Predicate<XMLSignerSpecificUrl> forSigner(final String signer) {
+        return new Predicate<XMLSignerSpecificUrl>() {
+            @Override public boolean $(XMLSignerSpecificUrl url) { return url.getSigner().equals(signer); }
+        };
     }
 }

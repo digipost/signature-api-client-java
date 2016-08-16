@@ -65,14 +65,14 @@ public class CreateASiCETest {
         Files.createDirectories(dumpFolder);
     }
 
-    public static Path dumpFolder;
+    private static Path dumpFolder;
 
-    public static final DirectDocument DIRECT_DOCUMENT = DirectDocument.builder("Title", "file.txt", "hello".getBytes())
+    private static final DirectDocument DIRECT_DOCUMENT = DirectDocument.builder("Title", "file.txt", "hello".getBytes())
             .message("Message")
             .fileType(Document.FileType.TXT)
             .build();
 
-    public static final PortalDocument PORTAL_DOCUMENT = PortalDocument.builder("Title", "file.txt", "hello".getBytes())
+    private static final PortalDocument PORTAL_DOCUMENT = PortalDocument.builder("Title", "file.txt", "hello".getBytes())
             .message("Message")
             .fileType(Document.FileType.TXT)
             .build();
@@ -81,7 +81,7 @@ public class CreateASiCETest {
 
     @Test
     public void create_direct_asice_and_write_to_disk() throws IOException {
-        DirectJob job = DirectJob.builder(DirectSigner.builder("12345678910").build(), DIRECT_DOCUMENT, singleExitUrl("https://job.well.done.org"))
+        DirectJob job = DirectJob.builder(DIRECT_DOCUMENT, singleExitUrl("https://job.well.done.org"), DirectSigner.builder("12345678910").build())
                 .withReference("direct job")
                 .build();
 

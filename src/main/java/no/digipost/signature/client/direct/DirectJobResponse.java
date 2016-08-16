@@ -15,14 +15,18 @@
  */
 package no.digipost.signature.client.direct;
 
-public class DirectJobResponse {
-    private long signatureJobId;
-    private String redirectUrl;
-    private String statusUrl;
+import no.digipost.signature.client.direct.RedirectUrls.RedirectUrl;
 
-    public DirectJobResponse(long signatureJobId, String redirectUrl, String statusUrl) {
+import java.util.List;
+
+public class DirectJobResponse {
+    private final long signatureJobId;
+    private final RedirectUrls redirectUrls;
+    private final String statusUrl;
+
+    public DirectJobResponse(long signatureJobId, List<RedirectUrl> redirectUrls, String statusUrl) {
         this.signatureJobId = signatureJobId;
-        this.redirectUrl = redirectUrl;
+        this.redirectUrls = new RedirectUrls(redirectUrls);
         this.statusUrl = statusUrl;
     }
 
@@ -30,8 +34,18 @@ public class DirectJobResponse {
         return signatureJobId;
     }
 
-    public String getRedirectUrl() {
-        return redirectUrl;
+	/**
+     * Gets the only redirect URL for this job.
+     * Convenience method for retrieving the redirect URL for jobs with exactly one signer.
+     * @throws IllegalStateException if there are multiple redirect URLs
+     * @see #getRedirectUrls()
+     */
+    public String getSingleRedirectUrl() {
+        return redirectUrls.getSingleRedirectUrl();
+    }
+
+    public RedirectUrls getRedirectUrls() {
+        return redirectUrls;
     }
 
     public String getStatusUrl() {

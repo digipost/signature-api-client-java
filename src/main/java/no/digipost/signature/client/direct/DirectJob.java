@@ -20,14 +20,15 @@ import no.digipost.signature.client.core.SignatureJob;
 import no.motif.Singular;
 import no.motif.single.Optional;
 
-import java.util.UUID;
+import java.util.*;
 
+import static java.util.Collections.unmodifiableList;
 import static no.digipost.signature.client.direct.StatusRetrievalMethod.WAIT_FOR_CALLBACK;
 
 public class DirectJob implements SignatureJob, WithExitUrls {
 
     private String reference;
-    private DirectSigner signer;
+    private List<DirectSigner> signers;
     private DirectDocument document;
     private String completionUrl;
     private String rejectionUrl;
@@ -35,8 +36,8 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     private Optional<Sender> sender = Singular.none();
     private StatusRetrievalMethod statusRetrievalMethod = WAIT_FOR_CALLBACK;
 
-    private DirectJob(DirectSigner signer, DirectDocument document, String completionUrl, String rejectionUrl, String errorUrl) {
-        this.signer = signer;
+    private DirectJob(List<DirectSigner> signers, DirectDocument document, String completionUrl, String rejectionUrl, String errorUrl) {
+        this.signers = unmodifiableList(new ArrayList<>(signers));
         this.document = document;
         this.completionUrl = completionUrl;
         this.rejectionUrl = rejectionUrl;
@@ -48,8 +49,8 @@ public class DirectJob implements SignatureJob, WithExitUrls {
         return reference;
     }
 
-    public DirectSigner getSigner() {
-        return signer;
+    public List<DirectSigner> getSigners() {
+        return signers;
     }
 
     @Override
@@ -84,26 +85,42 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     /**
      * Create a new DirectJob.
      *
-     * @param signer      The {@link DirectSigner} of the document.
      * @param document    The {@link DirectDocument} that should be signed.
      * @param hasExitUrls specifies the urls the user will be redirected back to upon completing/rejecting/failing
      *                    the signing ceremony. See {@link ExitUrls#of(String, String, String)}, and alternatively
      *                    {@link ExitUrls#singleExitUrl(String)}.
+     * @param signers     The {@link DirectSigner DirectSigners} of the document.
      *
      * @return a builder to further customize the job
+     * @see DirectJob#builder(DirectDocument, WithExitUrls, List)
      */
-    public static Builder builder(DirectSigner signer, DirectDocument document, WithExitUrls hasExitUrls) {
-        return new Builder(signer, document, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
+    public static Builder builder(DirectDocument document, WithExitUrls hasExitUrls, DirectSigner... signers) {
+        return builder(document, hasExitUrls, Arrays.asList(signers));
     }
 
+    /**
+     * Create a new DirectJob.
+     *
+     * @param document    The {@link DirectDocument} that should be signed.
+     * @param hasExitUrls specifies the urls the user will be redirected back to upon completing/rejecting/failing
+     *                    the signing ceremony. See {@link ExitUrls#of(String, String, String)}, and alternatively
+     *                    {@link ExitUrls#singleExitUrl(String)}.
+     * @param signers     The {@link DirectSigner DirectSigners} of the document.
+     *
+     * @return a builder to further customize the job
+     * @see DirectJob#builder(DirectDocument, WithExitUrls, DirectSigner...)
+     */
+    public static Builder builder(DirectDocument document, WithExitUrls hasExitUrls, List<DirectSigner> signers) {
+        return new Builder(signers, document, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
+    }
 
     public static class Builder {
 
         private final DirectJob target;
         private boolean built = false;
 
-        public Builder(DirectSigner signer, DirectDocument document, String completionUrl, String rejectionUrl, String errorUrl) {
-            target = new DirectJob(signer, document, completionUrl, rejectionUrl, errorUrl);
+        public Builder(List<DirectSigner> signers, DirectDocument document, String completionUrl, String rejectionUrl, String errorUrl) {
+            target = new DirectJob(signers, document, completionUrl, rejectionUrl, errorUrl);
         }
 
         public Builder withReference(UUID uuid) {
