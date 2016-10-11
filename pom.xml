@@ -384,7 +384,7 @@
             <plugin>
                 <groupId>com.github.siom79.japicmp</groupId>
                 <artifactId>japicmp-maven-plugin</artifactId>
-                <version>0.8.0</version>
+                <version>0.9.1</version>
                 <configuration>
                     <newVersion>
                         <file><path>${project.build.directory}/${project.build.finalName}.${project.packaging}</path></file>
@@ -393,8 +393,11 @@
                         <onlyModified>true</onlyModified>
                         <onlyBinaryIncompatible>true</onlyBinaryIncompatible>
                         <includes>
-                            <include>no.digipost</include>
+                            <include>no.digipost.signature.client</include>
                         </includes>
+                        <excludes>
+                            <exclude>no.digipost.signature.client.core.internal</exclude>
+                        </excludes>
                     </parameter>
                 </configuration>
             </plugin>
