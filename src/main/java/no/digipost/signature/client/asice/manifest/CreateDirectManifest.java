@@ -35,7 +35,13 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
 
         List<XMLDirectSigner> signers = new ArrayList<>();
         for (DirectSigner signer : job.getSigners()) {
-            signers.add(new XMLDirectSigner().withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber()));
+            XMLDirectSigner xmlSigner = new XMLDirectSigner();
+            if (signer.isIdentifiedByPersonalIdentificationNumber()) {
+                xmlSigner.setPersonalIdentificationNumber(signer.getPersonalIdentificationNumber());
+            } else {
+                xmlSigner.setSignerIdentifier(signer.getCustomIdentifier());
+            }
+            signers.add(xmlSigner);
         }
 
         return new XMLDirectSignatureJobManifest()

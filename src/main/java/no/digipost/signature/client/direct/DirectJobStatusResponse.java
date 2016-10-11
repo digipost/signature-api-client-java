@@ -90,12 +90,17 @@ public class DirectJobStatusResponse implements Confirmable {
     /**
      * Gets the signature from a given signer.
      *
+     * @param signer a string referring to a signer of the job. It may be a personal identification number or
+     *               a custom signer reference, depending of how the {@link DirectSigner signer} was initially created
+     *               (using {@link DirectSigner#withPersonalIdentificationNumber(String)} or
+     *               {@link DirectSigner#withCustomIdentifier(String)}).
+     *
      * @throws IllegalArgumentException if the job response doesn't contain a signature from this signer
      * @see #getSignatures()
      */
-    public Signature getSignatureFrom(final String personalIdentificationNumber) {
+    public Signature getSignatureFrom(final String signer) {
         return on(signatures)
-                .filter(signatureFrom(personalIdentificationNumber))
+                .filter(signatureFrom(signer))
                 .head()
                 .orElseThrow(new Fn0<IllegalArgumentException>() {
                     @Override
