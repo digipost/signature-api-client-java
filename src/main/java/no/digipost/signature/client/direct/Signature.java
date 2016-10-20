@@ -58,11 +58,11 @@ public class Signature {
         return "Signature from " + mask(signer) + " with status '" + status + "'" + (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
     }
 
-    static Predicate<Signature> signatureFrom(final String personalIdentificationNumber) {
+    static Predicate<Signature> signatureFrom(final String signer) {
         return new Predicate<Signature>() {
             @Override
             public boolean $(Signature signature) {
-                return signature.isFrom(personalIdentificationNumber);
+                return signature.isFrom(signer);
             }
         };
     }

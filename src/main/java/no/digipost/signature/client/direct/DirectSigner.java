@@ -17,42 +17,49 @@ package no.digipost.signature.client.direct;
 
 public class DirectSigner {
 
-    private String personalIdentificationNumber;
+    public static DirectSigner withPersonalIdentificationNumber(String personalIdentificationNumber) {
+        return new DirectSigner(personalIdentificationNumber, null);
+    }
 
-    private DirectSigner(String personalIdentificationNumber) {
+    public static DirectSigner withCustomIdentifier(String customIdentifier) {
+        return new DirectSigner(null, customIdentifier);
+    }
+
+
+
+    private final String personalIdentificationNumber;
+    private final String customIdentifier;
+
+    private DirectSigner(String personalIdentificationNumber, String customIdentifier) {
         this.personalIdentificationNumber = personalIdentificationNumber;
+        this.customIdentifier = customIdentifier;
+    }
+
+    public boolean isIdentifiedByPersonalIdentificationNumber() {
+        return personalIdentificationNumber != null;
     }
 
     public String getPersonalIdentificationNumber() {
+        if (!isIdentifiedByPersonalIdentificationNumber()) {
+            throw new IllegalStateException(this + " is not identified by personal identification number, use getCustomIdentifier() instead.");
+        }
         return personalIdentificationNumber;
+    }
+
+    public String getCustomIdentifier() {
+        if (customIdentifier == null) {
+            throw new IllegalStateException(this + " is not identified by a custom identifier, use getPersonalIdentificationNumber() instead.");
+        }
+        return customIdentifier;
     }
 
     @Override
     public String toString() {
-        return mask(personalIdentificationNumber);
+        return DirectSigner.class.getSimpleName() + ": " + (isIdentifiedByPersonalIdentificationNumber() ? mask(personalIdentificationNumber) : customIdentifier);
     }
 
     static String mask(String personalIdentificationNumber) {
         return personalIdentificationNumber.substring(0, 6) + "*****";
     }
 
-    public static Builder builder(String personalIdentificationNumber) {
-        return new Builder(personalIdentificationNumber);
-    }
-
-    public static class Builder {
-
-        private final DirectSigner target;
-        private boolean built = false;
-
-        private Builder(String personalIdentificationNumber) {
-            target = new DirectSigner(personalIdentificationNumber);
-        }
-
-        public DirectSigner build() {
-            if (built) throw new IllegalStateException("Can't build twice");
-            built = true;
-            return target;
-        }
-    }
 }
