@@ -20,8 +20,9 @@ import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.core.exceptions.XmlConfigurationException;
 import no.digipost.signature.client.core.exceptions.XmlValidationException;
-import no.digipost.signature.client.core.internal.xml.Marshalling;
 import no.digipost.signature.client.security.KeyStoreConfig;
+import no.digipost.signature.xsd.SignatureApiSchemas;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.xml.validation.SchemaLoaderUtils;
 import org.springframework.xml.validation.XmlValidatorFactory;
@@ -32,7 +33,16 @@ import org.xml.sax.SAXException;
 
 import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dom.DOMStructure;
-import javax.xml.crypto.dsig.*;
+import javax.xml.crypto.dsig.CanonicalizationMethod;
+import javax.xml.crypto.dsig.DigestMethod;
+import javax.xml.crypto.dsig.Reference;
+import javax.xml.crypto.dsig.SignatureMethod;
+import javax.xml.crypto.dsig.SignedInfo;
+import javax.xml.crypto.dsig.Transform;
+import javax.xml.crypto.dsig.XMLObject;
+import javax.xml.crypto.dsig.XMLSignature;
+import javax.xml.crypto.dsig.XMLSignatureException;
+import javax.xml.crypto.dsig.XMLSignatureFactory;
 import javax.xml.crypto.dsig.dom.DOMSignContext;
 import javax.xml.crypto.dsig.keyinfo.KeyInfo;
 import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
@@ -97,7 +107,7 @@ public class CreateSignature {
 
     private Schema loadSchema() {
         try {
-            return SchemaLoaderUtils.loadSchema(new Resource[]{Marshalling.Schemas.XMLDSIG_SCHEMA, Marshalling.Schemas.ASICE_SCHEMA}, XmlValidatorFactory.SCHEMA_W3C_XML);
+            return SchemaLoaderUtils.loadSchema(new Resource[]{new ClassPathResource(SignatureApiSchemas.XMLDSIG_SCHEMA), new ClassPathResource(SignatureApiSchemas.ASICE_SCHEMA)}, XmlValidatorFactory.SCHEMA_W3C_XML);
         } catch (IOException | SAXException e) {
             throw new ConfigurationException("Failed to load schemas for validating signatures", e);
         }
