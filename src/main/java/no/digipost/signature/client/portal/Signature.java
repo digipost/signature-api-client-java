@@ -17,7 +17,7 @@ package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.XAdESReference;
 
-import static no.digipost.signature.client.portal.PortalSigner.mask;
+import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
 
 public class Signature {
 

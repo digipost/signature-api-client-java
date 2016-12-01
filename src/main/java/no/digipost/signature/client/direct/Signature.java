@@ -18,7 +18,7 @@ package no.digipost.signature.client.direct;
 import no.digipost.signature.client.core.XAdESReference;
 import no.motif.f.Predicate;
 
-import static no.digipost.signature.client.direct.DirectSigner.mask;
+import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
 
 
 public class Signature {

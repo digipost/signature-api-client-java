@@ -15,6 +15,8 @@
  */
 package no.digipost.signature.client.portal;
 
+import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
+
 public class PortalSigner {
 
     private final String personalIdentificationNumber;
@@ -47,10 +49,6 @@ public class PortalSigner {
     @Override
     public String toString() {
         return mask(personalIdentificationNumber);
-    }
-
-    static String mask(String personalIdentificationNumber) {
-        return personalIdentificationNumber.substring(0, 6) + "*****";
     }
 
     public static Builder builder(String personalIdentificationNumber, Notifications notifications) {
