@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.direct;
+package no.digipost.signature.client.core;
 
-import no.digipost.signature.api.xml.XMLStatusRetrievalMethod;
+import no.digipost.signature.api.xml.XMLAuthenticationLevel;
 import no.digipost.signature.client.core.internal.MarshallableEnum;
 
-public enum StatusRetrievalMethod implements MarshallableEnum<XMLStatusRetrievalMethod> {
+public enum AuthenticationLevel implements MarshallableEnum<XMLAuthenticationLevel> {
 
-    WAIT_FOR_CALLBACK(XMLStatusRetrievalMethod.WAIT_FOR_CALLBACK),
-    POLLING(XMLStatusRetrievalMethod.POLLING);
+    THREE(XMLAuthenticationLevel.THREE),
+    FOUR(XMLAuthenticationLevel.FOUR);
 
-    private final XMLStatusRetrievalMethod xmlValue;
-
-    StatusRetrievalMethod(XMLStatusRetrievalMethod xmlValue) {
-        this.xmlValue = xmlValue;
-    }
+    private final XMLAuthenticationLevel xmlEnumValue;
 
     @Override
-    public XMLStatusRetrievalMethod getXmlEnumValue() {
-        return xmlValue;
+    public XMLAuthenticationLevel getXmlEnumValue() {
+        return xmlEnumValue;
     }
+
+    private AuthenticationLevel(XMLAuthenticationLevel xmlEnumValue) {
+        this.xmlEnumValue = xmlEnumValue;
+    }
+
 }

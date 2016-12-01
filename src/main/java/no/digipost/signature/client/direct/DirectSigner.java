@@ -15,26 +15,57 @@
  */
 package no.digipost.signature.client.direct;
 
+import no.digipost.signature.client.core.SignatureType;
+import no.digipost.signature.client.core.internal.SignerCustomizations;
+import no.motif.Singular;
+import no.motif.single.Optional;
+
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
+import static no.motif.Singular.optional;
 
 public class DirectSigner {
 
-    public static DirectSigner withPersonalIdentificationNumber(String personalIdentificationNumber) {
-        return new DirectSigner(personalIdentificationNumber, null);
+    public static Builder withPersonalIdentificationNumber(String personalIdentificationNumber) {
+        return new Builder(personalIdentificationNumber, null);
     }
 
-    public static DirectSigner withCustomIdentifier(String customIdentifier) {
-        return new DirectSigner(null, customIdentifier);
+    public static Builder withCustomIdentifier(String customIdentifier) {
+        return new Builder(null, customIdentifier);
+    }
+
+    public static final class Builder implements SignerCustomizations<Builder> {
+
+        private String personalIdentificationNumber;
+        private String customIdentifier;
+        private Optional<SignatureType> signatureType = Singular.none();
+
+        private Builder(String personalIdentificationNumber, String customIdentifier) {
+            this.personalIdentificationNumber = personalIdentificationNumber;
+            this.customIdentifier = customIdentifier;
+        }
+
+        @Override
+        public Builder withSignatureType(SignatureType type) {
+            this.signatureType = optional(type);
+            return this;
+        }
+
+        public DirectSigner build() {
+            return new DirectSigner(personalIdentificationNumber, customIdentifier, signatureType);
+        }
+
     }
 
 
 
     private final String personalIdentificationNumber;
     private final String customIdentifier;
+    private final Optional<SignatureType> signatureType;
 
-    private DirectSigner(String personalIdentificationNumber, String customIdentifier) {
+    private DirectSigner(String personalIdentificationNumber, String customIdentifier, Optional<SignatureType> signatureType) {
         this.personalIdentificationNumber = personalIdentificationNumber;
         this.customIdentifier = customIdentifier;
+        this.signatureType = signatureType;
     }
 
     public boolean isIdentifiedByPersonalIdentificationNumber() {
@@ -53,6 +84,10 @@ public class DirectSigner {
             throw new IllegalStateException(this + " is not identified by a custom identifier, use getPersonalIdentificationNumber() instead.");
         }
         return customIdentifier;
+    }
+
+    public Optional<SignatureType> getSignatureType() {
+        return signatureType;
     }
 
     @Override

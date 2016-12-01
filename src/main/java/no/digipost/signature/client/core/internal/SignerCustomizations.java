@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client.core.internal;
 
-import no.motif.single.Optional;
+import no.digipost.signature.client.core.SignatureType;
 
-public interface SignatureJob {
+/**
+ * Provides operations for customizing signers using builder-type methods for
+ * properties which are common for both Direct and Portal signers.
+ * You would not under normal circumstances refer to this type.
+ */
+public interface SignerCustomizations<B extends SignerCustomizations<B>> {
 
-    Document getDocument();
-
-    Optional<Sender> getSender();
-
-    String getReference();
-
-    Optional<AuthenticationLevel> getRequiredAuthentication();
+    /**
+     * Specify the {@link SignatureType type of signature} to use for the signer.
+     *
+     * @param type the {@link SignatureType}
+     */
+    B withSignatureType(SignatureType type);
 
 }

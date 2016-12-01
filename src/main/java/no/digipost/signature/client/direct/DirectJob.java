@@ -15,15 +15,20 @@
  */
 package no.digipost.signature.client.direct;
 
+import no.digipost.signature.client.core.AuthenticationLevel;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
+import no.digipost.signature.client.core.internal.JobCustomizations;
 import no.motif.Singular;
 import no.motif.single.Optional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 import static java.util.Collections.unmodifiableList;
-import static no.digipost.signature.client.direct.StatusRetrievalMethod.WAIT_FOR_CALLBACK;
+import static no.motif.Singular.optional;
 
 public class DirectJob implements SignatureJob, WithExitUrls {
 
@@ -34,7 +39,8 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     private String rejectionUrl;
     private String errorUrl;
     private Optional<Sender> sender = Singular.none();
-    private StatusRetrievalMethod statusRetrievalMethod = WAIT_FOR_CALLBACK;
+    private Optional<StatusRetrievalMethod> statusRetrievalMethod = Singular.none();
+    private Optional<AuthenticationLevel> requiredAuthentication = Singular.none();
 
     private DirectJob(List<DirectSigner> signers, DirectDocument document, String completionUrl, String rejectionUrl, String errorUrl) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
@@ -47,10 +53,6 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     @Override
     public String getReference() {
         return reference;
-    }
-
-    public List<DirectSigner> getSigners() {
-        return signers;
     }
 
     @Override
@@ -78,9 +80,19 @@ public class DirectJob implements SignatureJob, WithExitUrls {
         return errorUrl;
     }
 
-    public StatusRetrievalMethod getStatusRetrievalMethod() {
+    @Override
+    public Optional<AuthenticationLevel> getRequiredAuthentication() {
+        return requiredAuthentication;
+    }
+
+    public List<DirectSigner> getSigners() {
+        return signers;
+    }
+
+    public Optional<StatusRetrievalMethod> getStatusRetrievalMethod() {
         return statusRetrievalMethod;
     }
+
 
     /**
      * Create a new DirectJob.
@@ -114,7 +126,7 @@ public class DirectJob implements SignatureJob, WithExitUrls {
         return new Builder(signers, document, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
     }
 
-    public static class Builder {
+    public static class Builder implements JobCustomizations<Builder> {
 
         private final DirectJob target;
         private boolean built = false;
@@ -123,28 +135,31 @@ public class DirectJob implements SignatureJob, WithExitUrls {
             target = new DirectJob(signers, document, completionUrl, rejectionUrl, errorUrl);
         }
 
+        @Override
         public Builder withReference(UUID uuid) {
             return withReference(uuid.toString());
         }
 
+        @Override
         public Builder withReference(String reference) {
             target.reference = reference;
             return this;
         }
 
-        /**
-         * Set the sender for this specific signature job.
-         * <p>
-         * You may use {@link no.digipost.signature.client.ClientConfiguration.Builder#globalSender(Sender)}
-         * to specify a global sender used for all signature jobs.
-         */
+        @Override
         public Builder withSender(Sender sender) {
             target.sender = Singular.optional(sender);
             return this;
         }
 
+        @Override
+        public Builder requireAuthentication(AuthenticationLevel level) {
+            target.requiredAuthentication = optional(level);
+            return this;
+        }
+
         public Builder retrieveStatusBy(StatusRetrievalMethod statusRetrievalMethod) {
-            target.statusRetrievalMethod = statusRetrievalMethod;
+            target.statusRetrievalMethod = optional(statusRetrievalMethod);
             return this;
         }
 

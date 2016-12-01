@@ -15,7 +15,13 @@
  */
 package no.digipost.signature.client.portal;
 
+import no.digipost.signature.client.core.SignatureType;
+import no.digipost.signature.client.core.internal.SignerCustomizations;
+import no.motif.Singular;
+import no.motif.single.Optional;
+
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
+import static no.motif.Singular.optional;
 
 public class PortalSigner {
 
@@ -23,6 +29,7 @@ public class PortalSigner {
     private final Notifications notifications;
     private final NotificationsUsingLookup notificationsUsingLookup;
     private int order = 0;
+    private Optional<SignatureType> signatureType = Singular.none();
 
     private PortalSigner(String personalIdentificationNumber, Notifications notifications, NotificationsUsingLookup notificationsUsingLookup) {
         this.personalIdentificationNumber = personalIdentificationNumber;
@@ -46,6 +53,10 @@ public class PortalSigner {
         return notificationsUsingLookup;
     }
 
+    public Optional<SignatureType> getSignatureType() {
+        return signatureType;
+    }
+
     @Override
     public String toString() {
         return mask(personalIdentificationNumber);
@@ -59,7 +70,7 @@ public class PortalSigner {
         return new Builder(personalIdentificationNumber, null, notificationsUsingLookup);
     }
 
-    public static class Builder {
+    public static class Builder implements SignerCustomizations<Builder>{
 
         private final PortalSigner target;
         private boolean built = false;
@@ -73,10 +84,17 @@ public class PortalSigner {
             return this;
         }
 
+        @Override
+        public Builder withSignatureType(SignatureType type) {
+            target.signatureType = optional(type);
+            return this;
+        }
+
         public PortalSigner build() {
             if (built) throw new IllegalStateException("Can't build twice");
             built = true;
             return target;
         }
+
     }
 }

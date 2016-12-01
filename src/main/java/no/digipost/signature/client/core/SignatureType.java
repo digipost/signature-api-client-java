@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.direct;
+package no.digipost.signature.client.core;
 
-import no.digipost.signature.api.xml.XMLStatusRetrievalMethod;
+import no.digipost.signature.api.xml.XMLSignatureType;
 import no.digipost.signature.client.core.internal.MarshallableEnum;
 
-public enum StatusRetrievalMethod implements MarshallableEnum<XMLStatusRetrievalMethod> {
+/**
+ * Specifies which type of signature to facilitate for a signer.
+ */
+public enum SignatureType implements MarshallableEnum<XMLSignatureType> {
 
-    WAIT_FOR_CALLBACK(XMLStatusRetrievalMethod.WAIT_FOR_CALLBACK),
-    POLLING(XMLStatusRetrievalMethod.POLLING);
+    AUTHENTICATED_SIGNATURE(XMLSignatureType.AUTHENTICATED_ELECTRONIC_SIGNATURE),
+    ADVANCED_SIGNATURE(XMLSignatureType.ADVANCED_ELECTRONIC_SIGNATURE);
 
-    private final XMLStatusRetrievalMethod xmlValue;
+    private final XMLSignatureType xmlEnumValue;
 
-    StatusRetrievalMethod(XMLStatusRetrievalMethod xmlValue) {
-        this.xmlValue = xmlValue;
+    private SignatureType(XMLSignatureType xmlEnumValue) {
+        this.xmlEnumValue = xmlEnumValue;
     }
 
     @Override
-    public XMLStatusRetrievalMethod getXmlEnumValue() {
-        return xmlValue;
+    public XMLSignatureType getXmlEnumValue() {
+        return xmlEnumValue;
     }
+
 }
