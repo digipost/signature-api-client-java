@@ -15,6 +15,8 @@
  */
 package no.digipost.signature.client.direct;
 
+import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
+
 public class DirectSigner {
 
     public static DirectSigner withPersonalIdentificationNumber(String personalIdentificationNumber) {
@@ -56,10 +58,6 @@ public class DirectSigner {
     @Override
     public String toString() {
         return DirectSigner.class.getSimpleName() + ": " + (isIdentifiedByPersonalIdentificationNumber() ? mask(personalIdentificationNumber) : customIdentifier);
-    }
-
-    static String mask(String personalIdentificationNumber) {
-        return personalIdentificationNumber.substring(0, 6) + "*****";
     }
 
 }
