@@ -76,10 +76,10 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
 
     private XMLNotificationsUsingLookup generateNotificationsUsingLookup(NotificationsUsingLookup notificationsUsingLookup) {
         XMLNotificationsUsingLookup xmlNotificationsUsingLookup = new XMLNotificationsUsingLookup();
-        if (notificationsUsingLookup.shouldSendEmail()) {
+        if (notificationsUsingLookup.shouldSendEmail) {
             xmlNotificationsUsingLookup.setEmail(new XMLEnabled());
         }
-        if (notificationsUsingLookup.shouldSendSms()) {
+        if (notificationsUsingLookup.shouldSendSms) {
             xmlNotificationsUsingLookup.setSms(new XMLEnabled());
         }
         return xmlNotificationsUsingLookup;

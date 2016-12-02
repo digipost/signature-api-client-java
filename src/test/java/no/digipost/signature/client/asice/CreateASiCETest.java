@@ -25,6 +25,7 @@ import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.direct.DirectDocument;
 import no.digipost.signature.client.direct.DirectJob;
 import no.digipost.signature.client.direct.DirectSigner;
+import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
@@ -50,7 +51,6 @@ import static java.util.concurrent.TimeUnit.DAYS;
 import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.referenceFilenamePart;
 import static no.digipost.signature.client.direct.ExitUrls.singleExitUrl;
-import static no.digipost.signature.client.portal.NotificationsUsingLookup.notifyByEMail;
 import static no.motif.Iterate.on;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
@@ -90,7 +90,7 @@ public class CreateASiCETest {
 
     @Test
     public void create_portal_asice_and_write_to_disk() throws IOException {
-        PortalJob job = PortalJob.builder(PORTAL_DOCUMENT, PortalSigner.builder("12345678910", notifyByEMail().build()).build())
+        PortalJob job = PortalJob.builder(PORTAL_DOCUMENT, PortalSigner.builder("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build())
                 .withReference("portal job")
                 .withActivationTime(new Date())
                 .availableFor(30, DAYS)

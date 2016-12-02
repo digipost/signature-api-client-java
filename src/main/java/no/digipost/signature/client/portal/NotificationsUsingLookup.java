@@ -15,43 +15,17 @@
  */
 package no.digipost.signature.client.portal;
 
-public class NotificationsUsingLookup {
+public enum NotificationsUsingLookup {
 
-    // Email notifications can't be turned off
-    private final boolean email = true;
-    private boolean sms = false;
+    EMAIL_ONLY(true, false),   //Email notifications can't be turned off
+    EMAIL_AND_SMS(true, true);
 
-    public boolean shouldSendEmail() {
-        return email;
-    }
+    public final boolean shouldSendEmail;
+    public final boolean shouldSendSms;
 
-    public boolean shouldSendSms() {
-        return sms;
-    }
-
-    public static Builder notifyByEMail() {
-        return new Builder();
-    }
-
-    public static class Builder {
-
-        private final NotificationsUsingLookup target;
-        private boolean built = false;
-
-        private Builder() {
-            target = new NotificationsUsingLookup();
-        }
-
-        public Builder andSms() {
-            target.sms = true;
-            return this;
-        }
-
-        public NotificationsUsingLookup build() {
-            if (built) throw new IllegalStateException("Can't build twice");
-            built = true;
-            return target;
-        }
+    private NotificationsUsingLookup(boolean sendEmail, boolean sendSms) {
+        this.shouldSendEmail = sendEmail;
+        this.shouldSendSms = sendSms;
     }
 
 }
