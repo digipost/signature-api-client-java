@@ -40,7 +40,7 @@ public interface JobCustomizations<B extends JobCustomizations<B>> {
     /**
      * Specify the minimum level of authentication of the signer(s) of this job. This
      * includes the required authentication both in order to <em>view</em> the document, as well
-     * as it will limit which <em>authentication mechanims offerend at the time of signing</em>
+     * as it will limit which <em>authentication mechanisms offered at the time of signing</em>
      * the document.
      *
      * @param level the required minimum {@link AuthenticationLevel}.

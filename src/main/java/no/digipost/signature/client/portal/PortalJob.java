@@ -65,7 +65,7 @@ public class PortalJob implements SignatureJob {
 
     @Override
     public Optional<AuthenticationLevel> getRequiredAuthentication() {
-        return requiredAuthentication ;
+        return requiredAuthentication;
     }
 
     public List<PortalSigner> getSigners() {
