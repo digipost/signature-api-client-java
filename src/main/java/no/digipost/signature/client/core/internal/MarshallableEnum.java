@@ -13,18 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client.core.internal;
 
-import no.motif.single.Optional;
+import no.motif.f.Fn;
 
-public interface SignatureJob {
+public interface MarshallableEnum<XML_ENUM_TYPE> {
 
-    Document getDocument();
+    XML_ENUM_TYPE getXmlEnumValue();
 
-    Optional<Sender> getSender();
-
-    String getReference();
-
-    Optional<AuthenticationLevel> getRequiredAuthentication();
+    final class To {
+        public static <X> Fn<MarshallableEnum<X>, X> xmlValue() {
+            return new Fn<MarshallableEnum<X>, X>() {
+                @Override
+                public X $(MarshallableEnum<X> marshallableEnum) {
+                    return marshallableEnum.getXmlEnumValue();
+                }
+            };
+        }
+        private To() {}
+    }
 
 }

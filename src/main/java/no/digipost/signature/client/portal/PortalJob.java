@@ -15,25 +15,33 @@
  */
 package no.digipost.signature.client.portal;
 
+import no.digipost.signature.client.core.AuthenticationLevel;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
+import no.digipost.signature.client.core.internal.JobCustomizations;
 import no.motif.Singular;
 import no.motif.single.Optional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.unmodifiableList;
+import static no.motif.Singular.optional;
 
 
 public class PortalJob implements SignatureJob {
 
+    private final List<PortalSigner> signers;
+    private final PortalDocument document;
     private String reference;
-    private List<PortalSigner> signers;
-    private PortalDocument document;
     private Date activationTime;
     private Long availableSeconds;
     private Optional<Sender> sender = Singular.none();
+    private Optional<AuthenticationLevel> requiredAuthentication = Singular.none();
 
     private PortalJob(List<PortalSigner> signers, PortalDocument document) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
@@ -45,10 +53,6 @@ public class PortalJob implements SignatureJob {
         return reference;
     }
 
-    public List<PortalSigner> getSigners() {
-        return signers;
-    }
-
     @Override
     public PortalDocument getDocument() {
         return document;
@@ -57,6 +61,15 @@ public class PortalJob implements SignatureJob {
     @Override
     public Optional<Sender> getSender() {
         return sender;
+    }
+
+    @Override
+    public Optional<AuthenticationLevel> getRequiredAuthentication() {
+        return requiredAuthentication;
+    }
+
+    public List<PortalSigner> getSigners() {
+        return signers;
     }
 
     public Date getActivationTime() {
@@ -76,7 +89,7 @@ public class PortalJob implements SignatureJob {
         return new Builder(signers, document);
     }
 
-    public static class Builder {
+    public static class Builder implements JobCustomizations<Builder> {
 
         private final PortalJob target;
         private boolean built = false;
@@ -85,12 +98,26 @@ public class PortalJob implements SignatureJob {
             target = new PortalJob(signers, document);
         }
 
+        @Override
         public Builder withReference(UUID uuid) {
             return withReference(uuid.toString());
         }
 
+        @Override
         public Builder withReference(String reference) {
             target.reference = reference;
+            return this;
+        }
+
+        @Override
+        public Builder withSender(Sender sender) {
+            target.sender = optional(sender);
+            return this;
+        }
+
+        @Override
+        public Builder requireAuthentication(AuthenticationLevel minimumLevel) {
+            target.requiredAuthentication = optional(minimumLevel);
             return this;
         }
 
@@ -104,22 +131,12 @@ public class PortalJob implements SignatureJob {
             return this;
         }
 
-        /**
-         * Set the sender for this specific signature job.
-         * <p>
-         * You may use {@link no.digipost.signature.client.ClientConfiguration.Builder#globalSender(Sender)}
-         * to specify a global sender used for all signature jobs.
-         */
-        public Builder withSender(Sender sender) {
-            target.sender = Singular.optional(sender);
-            return this;
-        }
-
         public PortalJob build() {
             if (built) throw new IllegalStateException("Can't build twice");
             built = true;
             return target;
         }
+
 
     }
 
