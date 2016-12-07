@@ -24,7 +24,6 @@ import no.digipost.signature.api.xml.XMLNotificationsUsingLookup;
 import no.digipost.signature.api.xml.XMLPortalDocument;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobManifest;
 import no.digipost.signature.api.xml.XMLPortalSigner;
-import no.digipost.signature.api.xml.XMLPortalSigners;
 import no.digipost.signature.api.xml.XMLSender;
 import no.digipost.signature.api.xml.XMLSignatureType;
 import no.digipost.signature.api.xml.XMLSms;
@@ -36,11 +35,14 @@ import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CreatePortalManifest extends ManifestCreator<PortalJob> {
 
     @Override
     Object buildXmlManifest(PortalJob job, Sender sender) {
-        XMLPortalSigners xmlSigners = new XMLPortalSigners();
+        List<XMLPortalSigner> xmlSigners = new ArrayList<>();
         for (PortalSigner signer : job.getSigners()) {
             XMLPortalSigner xmlPortalSigner = new XMLPortalSigner()
                     .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
@@ -52,8 +54,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
             } else if (signer.getNotificationsUsingLookup() != null) {
                 xmlPortalSigner.setNotificationsUsingLookup(generateNotificationsUsingLookup(signer.getNotificationsUsingLookup()));
             }
-
-            xmlSigners.getSigners().add(xmlPortalSigner);
+            xmlSigners.add(xmlPortalSigner);
         }
 
         PortalDocument document = job.getDocument();
