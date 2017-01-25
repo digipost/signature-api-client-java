@@ -15,8 +15,13 @@
  */
 package no.digipost.signature.client.portal;
 
-import no.digipost.signature.api.xml.*;
-import no.digipost.signature.client.core.*;
+import no.digipost.signature.api.xml.XMLPortalSignatureJobRequest;
+import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
+import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
+import no.digipost.signature.api.xml.XMLSignature;
+import no.digipost.signature.client.core.ConfirmationReference;
+import no.digipost.signature.client.core.PAdESReference;
+import no.digipost.signature.client.core.XAdESReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +44,8 @@ final class JaxbEntityMapping {
             signatures.add(new Signature(
                     xmlSignature.getPersonalIdentificationNumber(),
                     SignatureStatus.fromXmlType(xmlSignature.getStatus()),
-                    XAdESReference.of(xmlSignature.getXadesUrl())
+                    XAdESReference.of(xmlSignature.getXadesUrl()),
+                    xmlSignature.getStatus().getHappenedAt()
             ));
         }
 

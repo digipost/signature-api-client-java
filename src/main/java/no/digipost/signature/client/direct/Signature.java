@@ -18,6 +18,8 @@ package no.digipost.signature.client.direct;
 import no.digipost.signature.client.core.XAdESReference;
 import no.motif.f.Predicate;
 
+import java.util.Date;
+
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
 
 
@@ -26,11 +28,13 @@ public class Signature {
     private final String signer;
     private final SignerStatus status;
     private final XAdESReference xAdESReference;
+    private final Date happenedAt;
 
-    public Signature(String signer, SignerStatus status, XAdESReference xAdESReference) {
+    public Signature(String signer, SignerStatus status, XAdESReference xAdESReference, Date happenedAt) {
         this.signer = signer;
         this.status = status;
         this.xAdESReference = xAdESReference;
+        this.happenedAt = happenedAt;
     }
 
     public boolean is(SignerStatus status) {
@@ -53,9 +57,22 @@ public class Signature {
         return xAdESReference;
     }
 
+    /**
+     * @return Point in time when the action (document was signed, signature job expired, etc.) leading to the
+     * current {@link Signature#status} happened.
+     * <br>
+     * {@code null} if nothing has happened to this signature, i.e. {@link Signature#status} is
+     * {@link SignerStatus#WAITING WAITING}
+     */
+    public Date getHappenedAt() {
+        return happenedAt;
+    }
+
     @Override
     public String toString() {
-        return "Signature from " + mask(signer) + " with status '" + status + "'" + (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
+        return "Signature from " + mask(signer) + " with status '" + status + "'" +
+                (happenedAt != null ? ". Happened at " + happenedAt : "") +
+                (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
     }
 
     static Predicate<Signature> signatureFrom(final String signer) {
