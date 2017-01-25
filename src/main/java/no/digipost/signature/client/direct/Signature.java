@@ -28,13 +28,13 @@ public class Signature {
     private final String signer;
     private final SignerStatus status;
     private final XAdESReference xAdESReference;
-    private final Date since;
+    private final Date dateTimeForStatus;
 
-    public Signature(String signer, SignerStatus status, XAdESReference xAdESReference, Date since) {
+    public Signature(String signer, SignerStatus status, XAdESReference xAdESReference, Date dateTimeForStatus) {
         this.signer = signer;
         this.status = status;
         this.xAdESReference = xAdESReference;
-        this.since = since;
+        this.dateTimeForStatus = dateTimeForStatus;
     }
 
     public boolean is(SignerStatus status) {
@@ -61,13 +61,13 @@ public class Signature {
      * @return Point in time when the action (document was signed, signature job expired, etc.) leading to the
      * current {@link Signature#status} happened.
      */
-    public Date getSince() {
-        return since;
+    public Date getDateTimeForStatus() {
+        return dateTimeForStatus;
     }
 
     @Override
     public String toString() {
-        return "Signature from " + mask(signer) + " with status '" + status + "' since " + since + "" +
+        return "Signature from " + mask(signer) + " with status '" + status + "' since " + dateTimeForStatus + "" +
                 (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
     }
 
