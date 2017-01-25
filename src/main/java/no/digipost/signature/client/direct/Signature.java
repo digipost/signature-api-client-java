@@ -28,13 +28,13 @@ public class Signature {
     private final String signer;
     private final SignerStatus status;
     private final XAdESReference xAdESReference;
-    private final Date happenedAt;
+    private final Date since;
 
-    public Signature(String signer, SignerStatus status, XAdESReference xAdESReference, Date happenedAt) {
+    public Signature(String signer, SignerStatus status, XAdESReference xAdESReference, Date since) {
         this.signer = signer;
         this.status = status;
         this.xAdESReference = xAdESReference;
-        this.happenedAt = happenedAt;
+        this.since = since;
     }
 
     public boolean is(SignerStatus status) {
@@ -60,18 +60,14 @@ public class Signature {
     /**
      * @return Point in time when the action (document was signed, signature job expired, etc.) leading to the
      * current {@link Signature#status} happened.
-     * <br>
-     * {@code null} if nothing has happened to this signature, i.e. {@link Signature#status} is
-     * {@link SignerStatus#WAITING WAITING}
      */
-    public Date getHappenedAt() {
-        return happenedAt;
+    public Date getSince() {
+        return since;
     }
 
     @Override
     public String toString() {
-        return "Signature from " + mask(signer) + " with status '" + status + "'" +
-                (happenedAt != null ? ". Happened at " + happenedAt : "") +
+        return "Signature from " + mask(signer) + " with status '" + status + "' since " + since + "" +
                 (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
     }
 

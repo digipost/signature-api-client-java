@@ -45,7 +45,7 @@ final class JaxbEntityMapping {
                     xmlSignature.getPersonalIdentificationNumber(),
                     SignatureStatus.fromXmlType(xmlSignature.getStatus()),
                     XAdESReference.of(xmlSignature.getXadesUrl()),
-                    xmlSignature.getStatus().getHappenedAt()
+                    xmlSignature.getStatus().getSince()
             ));
         }
 

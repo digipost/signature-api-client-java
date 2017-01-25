@@ -70,7 +70,7 @@ final class JaxbEntityMapping {
                     signerStatus.getSigner(),
                     SignerStatus.fromXmlType(signerStatus.getValue()),
                     XAdESReference.of(xAdESUrl),
-                    signerStatus.getHappenedAt()
+                    signerStatus.getSince()
             ));
         }
 
