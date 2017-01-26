@@ -15,6 +15,7 @@
  */
 package no.digipost.signature.client.direct;
 
+import no.digipost.signature.client.core.OnBehalfOf;
 import no.digipost.signature.client.core.SignatureType;
 import no.digipost.signature.client.core.internal.SignerCustomizations;
 import no.motif.Singular;
@@ -38,6 +39,7 @@ public class DirectSigner {
         private String personalIdentificationNumber;
         private String customIdentifier;
         private Optional<SignatureType> signatureType = Singular.none();
+        private Optional<OnBehalfOf> onBehalfOf = Singular.none();
 
         private Builder(String personalIdentificationNumber, String customIdentifier) {
             this.personalIdentificationNumber = personalIdentificationNumber;
@@ -50,8 +52,14 @@ public class DirectSigner {
             return this;
         }
 
+        @Override
+        public Builder withOnBehalfOf(OnBehalfOf onBehalfOf) {
+            this.onBehalfOf = optional(onBehalfOf);
+            return this;
+        }
+
         public DirectSigner build() {
-            return new DirectSigner(personalIdentificationNumber, customIdentifier, signatureType);
+            return new DirectSigner(personalIdentificationNumber, customIdentifier, signatureType, onBehalfOf);
         }
 
     }
@@ -61,11 +69,13 @@ public class DirectSigner {
     private final String personalIdentificationNumber;
     private final String customIdentifier;
     private final Optional<SignatureType> signatureType;
+    private final Optional<OnBehalfOf> onBehalfOf;
 
-    private DirectSigner(String personalIdentificationNumber, String customIdentifier, Optional<SignatureType> signatureType) {
+    private DirectSigner(String personalIdentificationNumber, String customIdentifier, Optional<SignatureType> signatureType, Optional<OnBehalfOf> onBehalfOf) {
         this.personalIdentificationNumber = personalIdentificationNumber;
         this.customIdentifier = customIdentifier;
         this.signatureType = signatureType;
+        this.onBehalfOf = onBehalfOf;
     }
 
     public boolean isIdentifiedByPersonalIdentificationNumber() {
@@ -88,6 +98,10 @@ public class DirectSigner {
 
     public Optional<SignatureType> getSignatureType() {
         return signatureType;
+    }
+
+    public Optional<OnBehalfOf> getOnBehalfOf() {
+        return onBehalfOf;
     }
 
     @Override

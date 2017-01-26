@@ -26,6 +26,7 @@ import no.digipost.signature.api.xml.XMLPortalSignatureJobManifest;
 import no.digipost.signature.api.xml.XMLPortalSigner;
 import no.digipost.signature.api.xml.XMLSender;
 import no.digipost.signature.api.xml.XMLSignatureType;
+import no.digipost.signature.api.xml.XMLSigningOnBehalfOf;
 import no.digipost.signature.api.xml.XMLSms;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.internal.MarshallableEnum;
@@ -47,7 +48,8 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
             XMLPortalSigner xmlPortalSigner = new XMLPortalSigner()
                     .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
                     .withOrder(signer.getOrder())
-                    .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull());
+                    .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
+                    .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
 
             if (signer.getNotifications() != null) {
                 xmlPortalSigner.setNotifications(generateNotifications(signer.getNotifications()));

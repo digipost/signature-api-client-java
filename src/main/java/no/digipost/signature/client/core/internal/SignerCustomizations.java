@@ -15,6 +15,7 @@
  */
 package no.digipost.signature.client.core.internal;
 
+import no.digipost.signature.client.core.OnBehalfOf;
 import no.digipost.signature.client.core.SignatureType;
 
 /**
@@ -30,5 +31,7 @@ public interface SignerCustomizations<B extends SignerCustomizations<B>> {
      * @param type the {@link SignatureType}
      */
     B withSignatureType(SignatureType type);
+
+    B withOnBehalfOf(OnBehalfOf onBehalfOf);
 
 }
