@@ -24,19 +24,17 @@ import static no.digipost.signature.client.core.internal.PersonalIdentificationN
 public class Signature {
 
     private final String signer;
-    private final SignatureStatus status;
-    private final XAdESReference xAdESReference;
-    private final Date dateTimeForStatus;
 
-    public Signature(String signer, SignatureStatus status, XAdESReference xAdESReference, Date dateTimeForStatus) {
+    private final SignatureStatus status;
+    private final Date statusDateTime;
+
+    private final XAdESReference xAdESReference;
+
+    public Signature(String signer, SignatureStatus status, Date statusDateTime, XAdESReference xAdESReference) {
         this.signer = signer;
         this.status = status;
         this.xAdESReference = xAdESReference;
-        this.dateTimeForStatus = dateTimeForStatus;
-    }
-
-    public boolean is(SignatureStatus status) {
-        return this.status == status;
+        this.statusDateTime = statusDateTime;
     }
 
     public String getSigner() {
@@ -47,21 +45,25 @@ public class Signature {
         return status;
     }
 
-    public XAdESReference getxAdESUrl() {
-        return xAdESReference;
+    public boolean is(SignatureStatus status) {
+        return this.status == status;
     }
 
     /**
      * @return Point in time when the action (document was signed, signature job expired, etc.) leading to the
      * current {@link Signature#status} happened.
      */
-    public Date getDateTimeForStatus() {
-        return dateTimeForStatus;
+    public Date getStatusDateTime() {
+        return statusDateTime;
+    }
+
+    public XAdESReference getxAdESUrl() {
+        return xAdESReference;
     }
 
     @Override
     public String toString() {
-        return "Signature from " + mask(signer) + " with status '" + status + "' since " + dateTimeForStatus + "" +
+        return "Signature from " + mask(signer) + " with status '" + status + "' since " + statusDateTime + "" +
                 (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
     }
 }

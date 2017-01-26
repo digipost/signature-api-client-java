@@ -69,8 +69,8 @@ final class JaxbEntityMapping {
             signatures.add(new Signature(
                     signerStatus.getSigner(),
                     SignerStatus.fromXmlType(signerStatus.getValue()),
-                    XAdESReference.of(xAdESUrl),
-                    signerStatus.getSince()
+                    signerStatus.getSince(),
+                    XAdESReference.of(xAdESUrl)
             ));
         }
 
