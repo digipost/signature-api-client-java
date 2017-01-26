@@ -15,6 +15,8 @@
  */
 package no.digipost.signature.client.portal;
 
+import no.digipost.signature.api.xml.XMLSignatureStatus;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -86,14 +88,15 @@ public final class SignatureStatus {
         this.identifier = identifier;
     }
 
-    public static SignatureStatus fromXmlType(String xmlSignatureStatus) {
+    public static SignatureStatus fromXmlType(XMLSignatureStatus xmlSignatureStatus) {
+        String value = xmlSignatureStatus.getValue();
         for (SignatureStatus status : KNOWN_STATUSES) {
-            if (status.is(xmlSignatureStatus)) {
+            if (status.is(value)) {
                 return status;
             }
         }
 
-        return new SignatureStatus(xmlSignatureStatus);
+        return new SignatureStatus(value);
     }
 
     private boolean is(String xmlSignatureStatus) {
