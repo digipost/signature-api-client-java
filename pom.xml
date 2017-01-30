@@ -16,7 +16,7 @@
     <properties>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
-        <signature.api.version>1.7.SIGNING-FOR-SNAPSHOT</signature.api.version>
+        <signature.api.version>1.7</signature.api.version>
         <slf4j.version>1.7.21</slf4j.version>
     </properties>
 
