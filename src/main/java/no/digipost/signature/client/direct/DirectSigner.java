@@ -53,7 +53,7 @@ public class DirectSigner {
         }
 
         @Override
-        public Builder withOnBehalfOf(OnBehalfOf onBehalfOf) {
+        public Builder onBehalfOf(OnBehalfOf onBehalfOf) {
             this.onBehalfOf = optional(onBehalfOf);
             return this;
         }

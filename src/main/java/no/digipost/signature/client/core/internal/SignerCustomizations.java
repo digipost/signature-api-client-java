@@ -32,6 +32,11 @@ public interface SignerCustomizations<B extends SignerCustomizations<B>> {
      */
     B withSignatureType(SignatureType type);
 
-    B withOnBehalfOf(OnBehalfOf onBehalfOf);
+    /**
+     * Specify which party the signer is {@link OnBehalfOf signing on behalf of}.
+     *
+     * @param onBehalfOf the {@link OnBehalfOf}-value
+     */
+    B onBehalfOf(OnBehalfOf onBehalfOf);
 
 }

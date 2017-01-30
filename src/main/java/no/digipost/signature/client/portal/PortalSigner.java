@@ -98,7 +98,7 @@ public class PortalSigner {
         }
 
         @Override
-        public Builder withOnBehalfOf(OnBehalfOf onBehalfOf) {
+        public Builder onBehalfOf(OnBehalfOf onBehalfOf) {
             target.onBehalfOf = optional(onBehalfOf);
             return this;
         }
