@@ -21,6 +21,7 @@ import no.digipost.signature.api.xml.XMLDirectSignatureJobManifest;
 import no.digipost.signature.api.xml.XMLDirectSigner;
 import no.digipost.signature.api.xml.XMLSender;
 import no.digipost.signature.api.xml.XMLSignatureType;
+import no.digipost.signature.api.xml.XMLSigningOnBehalfOf;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.internal.MarshallableEnum;
 import no.digipost.signature.client.direct.DirectDocument;
@@ -39,7 +40,8 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
         List<XMLDirectSigner> signers = new ArrayList<>();
         for (DirectSigner signer : job.getSigners()) {
             XMLDirectSigner xmlSigner = new XMLDirectSigner()
-                    .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull());
+                    .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
+                    .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
             if (signer.isIdentifiedByPersonalIdentificationNumber()) {
                 xmlSigner.setPersonalIdentificationNumber(signer.getPersonalIdentificationNumber());
             } else {

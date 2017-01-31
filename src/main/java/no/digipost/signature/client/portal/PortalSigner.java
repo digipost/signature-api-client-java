@@ -15,11 +15,13 @@
  */
 package no.digipost.signature.client.portal;
 
+import no.digipost.signature.client.core.OnBehalfOf;
 import no.digipost.signature.client.core.SignatureType;
 import no.digipost.signature.client.core.internal.SignerCustomizations;
 import no.motif.Singular;
 import no.motif.single.Optional;
 
+import static no.digipost.signature.client.core.OnBehalfOf.OTHER;
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
 import static no.motif.Singular.optional;
 
@@ -30,6 +32,7 @@ public class PortalSigner {
     private final NotificationsUsingLookup notificationsUsingLookup;
     private int order = 0;
     private Optional<SignatureType> signatureType = Singular.none();
+    private Optional<OnBehalfOf> onBehalfOf = Singular.none();
 
     private PortalSigner(String personalIdentificationNumber, Notifications notifications, NotificationsUsingLookup notificationsUsingLookup) {
         this.personalIdentificationNumber = personalIdentificationNumber;
@@ -55,6 +58,10 @@ public class PortalSigner {
 
     public Optional<SignatureType> getSignatureType() {
         return signatureType;
+    }
+
+    public Optional<OnBehalfOf> getOnBehalfOf() {
+        return onBehalfOf;
     }
 
     @Override
@@ -90,7 +97,16 @@ public class PortalSigner {
             return this;
         }
 
+        @Override
+        public Builder onBehalfOf(OnBehalfOf onBehalfOf) {
+            target.onBehalfOf = optional(onBehalfOf);
+            return this;
+        }
+
         public PortalSigner build() {
+            if (target.onBehalfOf.isSome() && target.onBehalfOf.get() == OTHER && target.notificationsUsingLookup != null) {
+                throw new IllegalStateException("Can't look up contact information for notifications when signing on behalf of a third party");
+            }
             if (built) throw new IllegalStateException("Can't build twice");
             built = true;
             return target;
