@@ -20,7 +20,7 @@ Klientbiblioteket er releaset til [![Maven Central](https://maven-badges.herokua
 <dependency>
     <groupId>no.digipost.signature</groupId>
     <artifactId>signature-api-client-java</artifactId>
-    <version>1.3</version>
+    <version>2.2</version>
 </dependency>
 ```
 
@@ -41,7 +41,7 @@ import no.digipost.signering.client.internal.KeyStoreConfig;
 
 public class TestKonfigurasjon {
 
-    public static final KeyStoreConfig CLIENT_KEYSTORE = KeyStoreConfig.fraKeyStore(
+    public static final KeyStoreConfig CLIENT_KEYSTORE = KeyStoreConfig.fromKeyStore(
             <inputstream med keystore>,
             "<alias>",
             "<keystore passord>",
