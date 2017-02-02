@@ -16,7 +16,7 @@ try {
     // Broker is not authorized to perform action. Contact Difi in order to set up access rights.
 } catch (UnexpectedResponseException unexpectedResponse) {
     // The server returned an unexpected response.
-    Response.Status httpStatusCode = unexpectedResponse.getActualStatus();
+    Response.StatusType httpStatusCode = unexpectedResponse.getActualStatus();
 
     // errorCode and errorMesage will normally contain information returned by the server. May be null.
     String errorCode = unexpectedResponse.getErrorCode();

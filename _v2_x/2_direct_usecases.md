@@ -8,7 +8,7 @@ layout: default
 
 {% highlight java %}
 
-KeyStoreConfig keystoreConfig = KeyStoreConfig.fromKeyStore(keyStore,
+KeyStoreConfig keyStoreConfig = KeyStoreConfig.fromKeyStore(keyStore,
         certificateAlias, keyStorePassword, privateKeyPassword);
 
 ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreConfig)
@@ -35,8 +35,8 @@ ExitUrls exitUrls = ExitUrls.of(
         "http://sender.org/onError"
 );
 
-DirectJob directJob =
-        DirectJob.builder(DirectSigner.builder("12345678910").build(), document, exitUrls).build();
+DirectSigner signer = DirectSigner.withPersonalIdentificationNumber("12345678910").build();
+DirectJob directJob = DirectJob.builder(document, exitUrls, signer).build();
 
 DirectJobResponse directJobResponse = client.create(directJob);
 
@@ -69,7 +69,7 @@ If you, for any reason, are unable to retrieve status by using the status query 
 {% highlight java %}
 DirectClient client = ...; // As initialized earlier
 
-DirectJob directJob = DirectJob.builder(signer, document, exitUrls)
+DirectJob directJob = DirectJob.builder(document, exitUrls, signer)
         .retrieveStatusBy(StatusRetrievalMethod.POLLING)
         .build();
 
@@ -95,11 +95,14 @@ client.confirm(statusChange);
 DirectClient client = ...; // As initialized earlier
 DirectJobStatusResponse directJobStatusResponse = ...; // As returned when getting job status
 
-if (directJobStatusResponse.is(DirectJobStatus.SIGNED)) {
-    InputStream xAdESStream = client.getXAdES(directJobStatusResponse.getxAdESUrl());
+if (directJobStatusResponse.isPAdESAvailable()) {
     InputStream pAdESStream = client.getPAdES(directJobStatusResponse.getpAdESUrl());
-} else {
-    // status was either REJECTED or FAILED, XAdES and PAdES are not available.
+}
+
+for (Signature signature : directJobStatusResponse.getSignatures()) {
+    if (signature.is(SignerStatus.SIGNED)) {
+        InputStream xAdESStream = client.getXAdES(signature.getxAdESUrl());
+    }
 }
 
 {% endhighlight %}

@@ -4,7 +4,7 @@ title: Portal use cases
 layout: default
 ---
 
-<h3 id="uc06">Create Client Configuration</h3>
+<h3 id="uc07">Create Client Configuration</h3>
 
 {% highlight java %}
 
@@ -19,7 +19,7 @@ ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreCo
 
 > Note: For organizations acting as *brokers* on behalf of multiple *senders*, you may specify the sender's organization number on each signature job. The sender specified for a job will always take precedence over the `globalSender` in `ClientConfiguration`
 
-<h3 id="uc07">Create and send signature job</h3>
+<h3 id="uc08">Create and send signature job</h3>
 
 The following example shows how to create a document and send it to two signers.
 
@@ -29,17 +29,21 @@ ClientConfiguration clientConfiguration = ...; // As initialized earlier
 PortalClient client = new PortalClient(clientConfiguration);
 
 byte[] documentBytes = ...;
-Document document = Document.builder("Subject", "document.pdf", documentBytes).build();
+PortalDocument document = PortalDocument.builder("Subject", "document.pdf", documentBytes).build();
 
-PortalJob portalJob =
-        PortalJob.builder(document, new Signer("12345678910"), new Signer("12345678911")).build();
+PortalJob portalJob = PortalJob.builder(
+        document,
+        PortalSigner.builder("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build(),
+        PortalSigner.builder("12345678911",
+                Notifications.builder().withEmailTo("email@example.com").build()).build()
+).build();
 
 PortalJobResponse portalJobResponse = client.create(portalJob);
 
 {% endhighlight %}
 
 
-<h3 id="uc08">Get status changes</h3>
+<h3 id="uc09">Get status changes</h3>
 
 All changes to signature jobs will be added to a queue from which you can poll for status updates. If the queue is empty (i.e. no jobs have changed status since last poll), you are not allowed to poll again for a defined period. Refer to the [API specification](https://github.com/digipost/signature-api-specification/blob/master/README.md#hvor-ofte-skal-du-polle) to see how long this period is.
 
@@ -67,7 +71,7 @@ try {
 
 {% endhighlight %}
 
-<h3 id="uc09">Get signed documents</h3>
+<h3 id="uc10">Get signed documents</h3>
 
 When getting XAdES and PAdES for a `PortalJob`, remember that the XAdES is per signer, while there is only one PAdES. 
 
@@ -88,7 +92,7 @@ for (Signature signature : statusChange.getSignatures()) {
 
 {% endhighlight %}
 
-<h3 id="uc10">Confirm processed signature job</h3>
+<h3 id="uc11">Confirm processed signature job</h3>
 
 To avoid this status change to return to the queue, you must confirm that it has been processed.
 
