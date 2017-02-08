@@ -10,10 +10,10 @@ The client library is available on [Maven Central](https://search.maven.org/#sea
 <dependency>
     <groupId>no.digipost.signature</groupId>
     <artifactId>signature-api-client-java</artifactId>
-    <version>1.0</version>
+    <version>2.2</version>
 </dependency>
 {% endhighlight %}
 
 #### Javadoc
 
-Javadoc is available here: [javadoc.io/doc/no.digipost.signature/signature-api-client-java](https://www.javadoc.io/doc/no.digipost.signature/signature-api-client-java/1.0)
+Javadoc is available here: [javadoc.io/doc/no.digipost.signature/signature-api-client-java](https://www.javadoc.io/doc/no.digipost.signature/signature-api-client-java/2.2)
