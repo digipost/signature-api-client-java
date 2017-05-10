@@ -27,12 +27,17 @@ import static no.motif.Singular.optional;
 
 public class PortalSigner {
 
-    private final String personalIdentificationNumber;
-    private final Notifications notifications;
-    private final NotificationsUsingLookup notificationsUsingLookup;
+    private String personalIdentificationNumber;
+    private String customIdentifier;
+    private Notifications notifications;
+    private NotificationsUsingLookup notificationsUsingLookup;
     private int order = 0;
     private Optional<SignatureType> signatureType = Singular.none();
     private Optional<OnBehalfOf> onBehalfOf = Singular.none();
+
+    private PortalSigner(String customIdentifier) {
+        this.customIdentifier = customIdentifier;
+    }
 
     private PortalSigner(String personalIdentificationNumber, Notifications notifications, NotificationsUsingLookup notificationsUsingLookup) {
         this.personalIdentificationNumber = personalIdentificationNumber;
@@ -40,8 +45,35 @@ public class PortalSigner {
         this.notificationsUsingLookup = notificationsUsingLookup;
     }
 
+    public static Builder builder(String personalIdentificationNumber, Notifications notifications) {
+        return new Builder(personalIdentificationNumber, notifications, null);
+    }
+
+    public static Builder builder(String personalIdentificationNumber, NotificationsUsingLookup notificationsUsingLookup) {
+        return new Builder(personalIdentificationNumber, null, notificationsUsingLookup);
+    }
+
+    public static Builder withCustomIdentifier(String customIdentifier) {
+        return new Builder(customIdentifier);
+    }
+
+    public boolean isIdentifiedByPersonalIdentificationNumber() {
+        return personalIdentificationNumber != null;
+    }
+
     public String getPersonalIdentificationNumber() {
+        if (!isIdentifiedByPersonalIdentificationNumber()) {
+            throw new IllegalStateException(this + " is not identified by personal identification number, use getCustomIdentifier() instead.");
+        }
+
         return personalIdentificationNumber;
+    }
+
+    public String getCustomIdentifier() {
+        if (customIdentifier == null) {
+            throw new IllegalStateException(this + " is not identified by a custom identifier, use getPersonalIdentificationNumber() instead.");
+        }
+        return customIdentifier;
     }
 
     public int getOrder() {
@@ -69,21 +101,18 @@ public class PortalSigner {
         return mask(personalIdentificationNumber);
     }
 
-    public static Builder builder(String personalIdentificationNumber, Notifications notifications) {
-        return new Builder(personalIdentificationNumber, notifications, null);
-    }
 
-    public static Builder builder(String personalIdentificationNumber, NotificationsUsingLookup notificationsUsingLookup) {
-        return new Builder(personalIdentificationNumber, null, notificationsUsingLookup);
-    }
-
-    public static class Builder implements SignerCustomizations<Builder>{
+    public static class Builder implements SignerCustomizations<Builder> {
 
         private final PortalSigner target;
         private boolean built = false;
 
         private Builder(String personalIdentificationNumber, Notifications notifications, NotificationsUsingLookup notificationsUsingLookup) {
             target = new PortalSigner(personalIdentificationNumber, notifications, notificationsUsingLookup);
+        }
+
+        private Builder(String customIdentifier) {
+            target = new PortalSigner(customIdentifier);
         }
 
         public Builder withOrder(int order) {
