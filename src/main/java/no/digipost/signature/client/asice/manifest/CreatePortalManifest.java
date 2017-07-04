@@ -19,6 +19,7 @@ import no.digipost.signature.api.xml.XMLAuthenticationLevel;
 import no.digipost.signature.api.xml.XMLAvailability;
 import no.digipost.signature.api.xml.XMLEmail;
 import no.digipost.signature.api.xml.XMLEnabled;
+import no.digipost.signature.api.xml.XMLLinkNotification;
 import no.digipost.signature.api.xml.XMLNotifications;
 import no.digipost.signature.api.xml.XMLNotificationsUsingLookup;
 import no.digipost.signature.api.xml.XMLPortalDocument;
@@ -45,11 +46,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
     Object buildXmlManifest(PortalJob job, Sender sender) {
         List<XMLPortalSigner> xmlSigners = new ArrayList<>();
         for (PortalSigner signer : job.getSigners()) {
-            XMLPortalSigner xmlPortalSigner = new XMLPortalSigner()
-                    .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
-                    .withOrder(signer.getOrder())
-                    .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
-                    .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
+            XMLPortalSigner xmlPortalSigner = generateSigner(signer);
 
             if (signer.getNotifications() != null) {
                 xmlPortalSigner.setNotifications(generateNotifications(signer.getNotifications()));
@@ -75,6 +72,22 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                         .withActivationTime(job.getActivationTime())
                         .withAvailableSeconds(job.getAvailableSeconds())
                 );
+    }
+
+    private XMLPortalSigner generateSigner(PortalSigner signer) {
+        if (signer.isIdentifiedByPersonalIdentificationNumber()) {
+            return new XMLPortalSigner()
+                    .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
+                    .withOrder(signer.getOrder())
+                    .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
+                    .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
+        } else {
+            return new XMLPortalSigner()
+                    .withLinkNotification(new XMLLinkNotification(null, new XMLEmail(signer.getCustomIdentifier())))//Todo: Lag støtte for sms også
+                    .withOrder(signer.getOrder())
+                    .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
+                    .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
+        }
     }
 
     private XMLNotificationsUsingLookup generateNotificationsUsingLookup(NotificationsUsingLookup notificationsUsingLookup) {
