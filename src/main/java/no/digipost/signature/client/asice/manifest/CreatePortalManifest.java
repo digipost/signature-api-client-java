@@ -40,6 +40,9 @@ import no.digipost.signature.client.portal.PortalSigner;
 import java.util.ArrayList;
 import java.util.List;
 
+import static no.digipost.signature.client.core.internal.IdentifierType.EMAIL;
+import static no.digipost.signature.client.core.internal.IdentifierType.MOBILE_NUMBER;
+
 public class CreatePortalManifest extends ManifestCreator<PortalJob> {
 
     @Override
@@ -75,19 +78,19 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
     }
 
     private XMLPortalSigner generateSigner(PortalSigner signer) {
+        XMLPortalSigner xmlSigner = new XMLPortalSigner()
+                .withOrder(signer.getOrder())
+                .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
+                .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
+
         if (signer.isIdentifiedByPersonalIdentificationNumber()) {
-            return new XMLPortalSigner()
-                    .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
-                    .withOrder(signer.getOrder())
-                    .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
-                    .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
+            xmlSigner.setPersonalIdentificationNumber(signer.getIdentifier());
         } else {
-            return new XMLPortalSigner()
-                    .withLinkNotification(new XMLLinkNotification(null, new XMLEmail(signer.getCustomIdentifier())))//Todo: Lag støtte for sms også
-                    .withOrder(signer.getOrder())
-                    .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
-                    .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
+            XMLEmail email = signer.getIdentifierType() == EMAIL ? new XMLEmail(signer.getIdentifier()) : null;
+            XMLSms sms = signer.getIdentifierType() == MOBILE_NUMBER ? new XMLSms(signer.getIdentifier()) : null;
+            xmlSigner.setLinkNotification(new XMLLinkNotification(sms, email));
         }
+        return xmlSigner;
     }
 
     private XMLNotificationsUsingLookup generateNotificationsUsingLookup(NotificationsUsingLookup notificationsUsingLookup) {

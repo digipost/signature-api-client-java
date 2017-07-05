@@ -17,30 +17,38 @@ package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.OnBehalfOf;
 import no.digipost.signature.client.core.SignatureType;
+import no.digipost.signature.client.core.internal.IdentifierType;
 import no.digipost.signature.client.core.internal.SignerCustomizations;
 import no.motif.Singular;
 import no.motif.single.Optional;
 
 import static no.digipost.signature.client.core.OnBehalfOf.OTHER;
+import static no.digipost.signature.client.core.internal.IdentifierType.EMAIL;
+import static no.digipost.signature.client.core.internal.IdentifierType.MOBILE_NUMBER;
+import static no.digipost.signature.client.core.internal.IdentifierType.PERSONAL_IDENTIFICATION_NUMBER;
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
 import static no.motif.Singular.optional;
 
 public class PortalSigner {
 
-    private String personalIdentificationNumber;
-    private String customIdentifier;
+    private final IdentifierType identifierType;
+    private final String identifier;
+
     private Notifications notifications;
     private NotificationsUsingLookup notificationsUsingLookup;
+
     private int order = 0;
     private Optional<SignatureType> signatureType = Singular.none();
     private Optional<OnBehalfOf> onBehalfOf = Singular.none();
 
-    private PortalSigner(String customIdentifier) {
-        this.customIdentifier = customIdentifier;
+    private PortalSigner(String customIdentifier, IdentifierType identifierType) {
+        this.identifier = customIdentifier;
+        this.identifierType = identifierType;
     }
 
     private PortalSigner(String personalIdentificationNumber, Notifications notifications, NotificationsUsingLookup notificationsUsingLookup) {
-        this.personalIdentificationNumber = personalIdentificationNumber;
+        this.identifier = personalIdentificationNumber;
+        this.identifierType = PERSONAL_IDENTIFICATION_NUMBER;
         this.notifications = notifications;
         this.notificationsUsingLookup = notificationsUsingLookup;
     }
@@ -53,27 +61,24 @@ public class PortalSigner {
         return new Builder(personalIdentificationNumber, null, notificationsUsingLookup);
     }
 
-    public static Builder withCustomIdentifier(String customIdentifier) {
-        return new Builder(customIdentifier);
+    public static Builder identifiedByEmail(String emailAddress) {
+        return new Builder(emailAddress, EMAIL);
+    }
+
+    public static Builder identifiedByMobileNumber(String number) {
+        return new Builder(number, MOBILE_NUMBER);
     }
 
     public boolean isIdentifiedByPersonalIdentificationNumber() {
-        return personalIdentificationNumber != null;
+        return identifierType == PERSONAL_IDENTIFICATION_NUMBER;
     }
 
-    public String getPersonalIdentificationNumber() {
-        if (!isIdentifiedByPersonalIdentificationNumber()) {
-            throw new IllegalStateException(this + " is not identified by personal identification number, use getCustomIdentifier() instead.");
-        }
-
-        return personalIdentificationNumber;
+    public String getIdentifier() {
+        return identifier;
     }
 
-    public String getCustomIdentifier() {
-        if (customIdentifier == null) {
-            throw new IllegalStateException(this + " is not identified by a custom identifier, use getPersonalIdentificationNumber() instead.");
-        }
-        return customIdentifier;
+    public IdentifierType getIdentifierType() {
+        return identifierType;
     }
 
     public int getOrder() {
@@ -98,7 +103,7 @@ public class PortalSigner {
 
     @Override
     public String toString() {
-        return isIdentifiedByPersonalIdentificationNumber() ? mask(personalIdentificationNumber) : customIdentifier;
+        return isIdentifiedByPersonalIdentificationNumber() ? mask(identifier) : identifier;
     }
 
 
@@ -111,8 +116,8 @@ public class PortalSigner {
             target = new PortalSigner(personalIdentificationNumber, notifications, notificationsUsingLookup);
         }
 
-        private Builder(String customIdentifier) {
-            target = new PortalSigner(customIdentifier);
+        private Builder(String customIdentifier, IdentifierType identifierType) {
+            target = new PortalSigner(customIdentifier, identifierType);
         }
 
         public Builder withOrder(int order) {
