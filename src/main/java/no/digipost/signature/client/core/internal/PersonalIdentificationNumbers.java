@@ -15,6 +15,8 @@
  */
 package no.digipost.signature.client.core.internal;
 
+import no.motif.f.Fn;
+
 import static java.util.Arrays.fill;
 
 public final class PersonalIdentificationNumbers {
@@ -29,6 +31,12 @@ public final class PersonalIdentificationNumbers {
         fill(masking, '*');
         return personalIdentificationNumber.substring(0, 6) + new String(masking);
     }
+
+    public static Fn<String, String> mask = new Fn<String, String>() {
+        @Override public String $(String value) {
+            return mask(value);
+        }
+    };
 
     private PersonalIdentificationNumbers() { }
 

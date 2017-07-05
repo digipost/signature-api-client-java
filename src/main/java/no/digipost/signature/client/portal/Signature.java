@@ -16,6 +16,7 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.XAdESReference;
+import no.motif.Singular;
 
 import java.util.Date;
 
@@ -23,22 +24,21 @@ import static no.digipost.signature.client.core.internal.PersonalIdentificationN
 
 public class Signature {
 
-    private final String signer;
-
+    private final Signer signer;
     private final SignatureStatus status;
     private final Date statusDateTime;
 
     private final XAdESReference xAdESReference;
 
-    public Signature(String signer, SignatureStatus status, Date statusDateTime, XAdESReference xAdESReference) {
-        this.signer = signer;
+    public Signature(String personalIdentificationNumber, String identifier, SignatureStatus status, Date statusDateTime, XAdESReference xAdESReference) {
+        this.signer = new Signer(personalIdentificationNumber, identifier);
         this.status = status;
         this.xAdESReference = xAdESReference;
         this.statusDateTime = statusDateTime;
     }
 
     public String getSigner() {
-        return signer;
+        return signer.getActualIdentifier();
     }
 
     public SignatureStatus getStatus() {
@@ -63,7 +63,33 @@ public class Signature {
 
     @Override
     public String toString() {
-        return "Signature from " + mask(signer) + " with status '" + status + "' since " + statusDateTime + "" +
+        return "Signature from " + signer + " with status '" + status + "' since " + statusDateTime + "" +
                 (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
+    }
+
+    /**
+     * The signer is represented either with a personal identification number, or a custom identifier
+     * as specified by the sender {@link PortalSigner upon creation of the job}.
+     *
+     * Exactly one of {@link Signer#personalIdentificationNumber} or {@link Signer#customIdentifier} will have a value.
+     */
+    private class Signer {
+
+        final String personalIdentificationNumber;
+        final String customIdentifier;
+
+        Signer(String personalIdentificationNumber, String customIdentifier) {
+            this.personalIdentificationNumber = personalIdentificationNumber;
+            this.customIdentifier = customIdentifier;
+        }
+
+        String getActualIdentifier() {
+            return Singular.optional(personalIdentificationNumber).orElse(customIdentifier);
+        }
+
+        @Override
+        public String toString() {
+            return Singular.optional(personalIdentificationNumber).map(mask).orElse(customIdentifier);
+        }
     }
 }

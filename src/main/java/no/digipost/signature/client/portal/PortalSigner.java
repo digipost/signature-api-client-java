@@ -98,7 +98,7 @@ public class PortalSigner {
 
     @Override
     public String toString() {
-        return mask(personalIdentificationNumber);
+        return isIdentifiedByPersonalIdentificationNumber() ? mask(personalIdentificationNumber) : customIdentifier;
     }
 
 
