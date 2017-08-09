@@ -395,6 +395,9 @@
                                     </excludes>
                                     <searchTransitive>true</searchTransitive>
                                 </bannedDependencies>
+                                <requireMavenVersion>
+                                    <version>3.0</version>
+                                </requireMavenVersion>
                             </rules>
                         </configuration>
                     </execution>
@@ -444,9 +447,5 @@
         <url>https://github.com/digipost/signature-api-client-java/</url>
         <tag>HEAD</tag>
     </scm>
-
-    <prerequisites>
-        <maven>3.3.0</maven>
-    </prerequisites>
 
 </project>
