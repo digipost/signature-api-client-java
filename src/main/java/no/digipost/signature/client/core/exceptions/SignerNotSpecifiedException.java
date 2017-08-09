@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.internal;
+package no.digipost.signature.client.core.exceptions;
 
-public enum IdentifierType {
+import no.motif.f.Fn0;
 
-    PERSONAL_IDENTIFICATION_NUMBER,
-    EMAIL,
-    MOBILE_NUMBER,
-    EMAIL_AND_MOBILE_NUMBER,
-    ;
+public class SignerNotSpecifiedException extends SignatureException {
+
+    public static final Fn0<SignatureException> SIGNER_NOT_SPECIFIED = new Fn0<SignatureException>() {
+        @Override
+        public SignatureException $() {
+            return new SignerNotSpecifiedException();
+        }
+    };
+
+    private SignerNotSpecifiedException() {
+        super("Signer's personal identification number must be specified.");
+    }
 }

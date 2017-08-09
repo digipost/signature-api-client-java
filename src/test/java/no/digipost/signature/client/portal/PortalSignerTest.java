@@ -15,6 +15,8 @@
  */
 package no.digipost.signature.client.portal;
 
+import no.motif.Singular;
+import no.motif.single.Optional;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,7 +39,7 @@ public class PortalSignerTest {
                 Notifications.builder().withEmailTo("email@example.com").build())
                 .build();
 
-        assertThat(portalSigner.getIdentifier(), is("01013300001"));
+        assertThat(portalSigner.getIdentifier().get(), is("01013300001"));
         assertTrue(portalSigner.isIdentifiedByPersonalIdentificationNumber());
     }
 
@@ -45,7 +47,9 @@ public class PortalSignerTest {
     public void get_email_custom_identifier() {
         PortalSigner portalSigner = PortalSigner.identifiedByEmail("email@example.com").build();
 
-        assertThat(portalSigner.getIdentifier(), is("email@example.com"));
+        assertThat(portalSigner.getIdentifier(), is(Singular.<String>none()));
+        assertThat(portalSigner.getNotifications().getEmailAddress(), is("email@example.com"));
+        assertTrue(portalSigner.getNotifications().shouldSendEmail());
         assertFalse(portalSigner.isIdentifiedByPersonalIdentificationNumber());
     }
 
@@ -53,7 +57,24 @@ public class PortalSignerTest {
     public void get_mobile_number_custom_identifier() {
         PortalSigner portalSigner = PortalSigner.identifiedByMobileNumber("12345678").build();
 
-        assertThat(portalSigner.getIdentifier(), is("12345678"));
+        assertThat(portalSigner.getIdentifier(), is(Singular.<String>none()));
+        assertThat(portalSigner.getNotifications().getMobileNumber(), is("12345678"));
+        assertTrue(portalSigner.getNotifications().shouldSendSms());
+        assertFalse(portalSigner.isIdentifiedByPersonalIdentificationNumber());
+    }
+
+    @Test
+    public void get_email_and_mobile_number_custom_identifier() {
+        PortalSigner portalSigner = PortalSigner.identifiedByEmailAndMobileNumber("email@example.com", "12345678").build();
+
+        assertThat(portalSigner.getIdentifier(), is(Singular.<String>none()));
+
+        assertThat(portalSigner.getNotifications().getEmailAddress(), is("email@example.com"));
+        assertTrue(portalSigner.getNotifications().shouldSendEmail());
+
+        assertThat(portalSigner.getNotifications().getMobileNumber(), is("12345678"));
+        assertTrue(portalSigner.getNotifications().shouldSendSms());
+
         assertFalse(portalSigner.isIdentifiedByPersonalIdentificationNumber());
     }
 }
