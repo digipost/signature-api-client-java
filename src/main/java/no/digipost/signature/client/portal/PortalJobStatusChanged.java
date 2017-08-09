@@ -19,10 +19,14 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.Confirmable;
+import no.motif.f.Fn0;
 
 import java.util.List;
 
+import static java.lang.String.format;
 import static no.digipost.signature.client.portal.PortalJobStatus.NO_CHANGES;
+import static no.digipost.signature.client.portal.Signature.signatureFrom;
+import static no.motif.Iterate.on;
 
 /**
  * Indicates a job which has got a new {@link PortalJobStatus status}
@@ -93,6 +97,54 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
 
     public List<Signature> getSignatures() {
         return signatures;
+    }
+
+
+    /**
+     * Gets the signature from a given signer.
+     *
+     * @param identifier a string referring to a signer of the job. It may be a personal identification number or
+     *                   a custom signer reference, depending of how the {@link PortalSigner signer} was initially created
+     *                   (using {@link PortalSigner#identifiedByPersonalIdentificationNumber(String, Notifications) personal identification number}<sup>1</sup>,
+     *                   {@link PortalSigner#identifiedByPersonalIdentificationNumber(String, NotificationsUsingLookup) personal identification number}<sup>2</sup>,
+     *                   {@link PortalSigner#identifiedByEmail(String) email address} or {@link PortalSigner#identifiedByMobileNumber(String) mobile number}.
+     *                   <p>
+     *                   For signers identified by {@link PortalSigner#identifiedByEmailAndMobileNumber(String, String) both email
+     *                   address and mobile number}, see {@link #getSignatureFrom(String, String)}.
+     *                   </p>
+     *                   <p>
+     *                   <sup>1</sup>: with contact information provided.<br>
+     *                   <sup>2</sup>: using contact information from a lookup service.
+     *                   </p>
+     * @throws IllegalArgumentException if the job response doesn't contain a signature from this signer
+     * @see #getSignatures()
+     * @see #getSignatureFrom(String, String)
+     */
+    public Signature getSignatureFrom(String identifier) {
+        return on(signatures)
+                .filter(signatureFrom(identifier))
+                .head()
+                .orElseThrow(new Fn0<IllegalArgumentException>() {
+                    @Override
+                    public IllegalArgumentException $() {
+                        return new IllegalArgumentException("Unable to find signature from this signer");
+                    }
+                });
+    }
+
+    /**
+     * Gets the signature from a given signer when identifying by {@link PortalSigner#identifiedByEmailAndMobileNumber(String, String)
+     * both email address and mobile number} upon creation.
+     *
+     * For signers identified by other means, use {@link #getSignatureFrom(String)}.
+     *
+     *
+     * @throws IllegalArgumentException if the job response doesn't contain a signature from this signer
+     * @see #getSignatures()
+     * @see #getSignatureFrom(String)
+     */
+    public Signature getSignatureFrom(String email, String mobileNumber) {
+        return getSignatureFrom(format("%s;%s", email, mobileNumber));
     }
 
     @Override

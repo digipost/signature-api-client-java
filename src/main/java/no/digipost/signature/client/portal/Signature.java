@@ -17,6 +17,7 @@ package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.XAdESReference;
 import no.motif.Singular;
+import no.motif.f.Predicate;
 
 import java.util.Date;
 
@@ -47,6 +48,15 @@ public class Signature {
 
     public boolean is(SignatureStatus status) {
         return this.status == status;
+    }
+
+    static Predicate<Signature> signatureFrom(final String signer) {
+        return new Predicate<Signature>() {
+            @Override
+            public boolean $(Signature signature) {
+                return signature.getSigner().equals(signer);
+            }
+        };
     }
 
     /**
