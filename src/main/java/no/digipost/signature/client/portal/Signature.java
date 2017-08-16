@@ -15,8 +15,9 @@
  */
 package no.digipost.signature.client.portal;
 
+import no.digipost.signature.api.xml.XMLNotifications;
 import no.digipost.signature.client.core.XAdESReference;
-import no.motif.Singular;
+import no.digipost.signature.client.core.exceptions.SignatureException;
 import no.motif.f.Predicate;
 
 import java.util.Date;
@@ -31,15 +32,24 @@ public class Signature {
 
     private final XAdESReference xAdESReference;
 
-    public Signature(String personalIdentificationNumber, String identifier, SignatureStatus status, Date statusDateTime, XAdESReference xAdESReference) {
+    public Signature(String personalIdentificationNumber, XMLNotifications identifier, SignatureStatus status, Date statusDateTime, XAdESReference xAdESReference) {
         this.signer = new Signer(personalIdentificationNumber, identifier);
         this.status = status;
         this.xAdESReference = xAdESReference;
         this.statusDateTime = statusDateTime;
     }
 
+    /**
+     * Retrieves signer's personal identification number. If signer is identified
+     * by contact information, use {@link PortalJobStatusChanged#getSignatureFrom(SignerIdentifier)}.
+     *
+     * @throws SignatureException if signer is identified by contact information.
+     */
     public String getSigner() {
-        return signer.getActualIdentifier();
+        if (signer.hasPersonalIdentificationNumber()) {
+            return signer.personalIdentificationNumber;
+        }
+        throw new SignatureException("Can't retrieve signers identified by contact information using this method. Use method PortalJobStatusChange.getSignatureFrom() instead.");
     }
 
     public SignatureStatus getStatus() {
@@ -50,11 +60,11 @@ public class Signature {
         return this.status == status;
     }
 
-    static Predicate<Signature> signatureFrom(final String signer) {
+    static Predicate<Signature> signatureFrom(final SignerIdentifier signer) {
         return new Predicate<Signature>() {
             @Override
             public boolean $(Signature signature) {
-                return signature.getSigner().equals(signer);
+                return signature.signer.isSameAs(signer);
             }
         };
     }
@@ -81,25 +91,53 @@ public class Signature {
      * The signer is represented either with a personal identification number, or a custom identifier
      * as specified by the sender {@link PortalSigner upon creation of the job}.
      *
-     * Exactly one of {@link Signer#personalIdentificationNumber} or {@link Signer#customIdentifier} will have a value.
+     * Exactly one of {@link Signer#personalIdentificationNumber} or {@link Signer#emailAddress} and/or
+     * {@link Signer#mobileNumber} will have a value.
      */
-    private class Signer {
+    static class Signer {
 
         final String personalIdentificationNumber;
-        final String customIdentifier;
+        String emailAddress;
+        String mobileNumber;
 
-        Signer(String personalIdentificationNumber, String customIdentifier) {
+        Signer(String personalIdentificationNumber, XMLNotifications identifier) {
             this.personalIdentificationNumber = personalIdentificationNumber;
-            this.customIdentifier = customIdentifier;
+            if (identifier != null) {
+                if (identifier.getEmail() != null) {
+                    this.emailAddress = identifier.getEmail().getAddress();
+                }
+                if (identifier.getSms() != null) {
+                    this.mobileNumber = identifier.getSms().getNumber();
+                }
+            }
         }
 
-        String getActualIdentifier() {
-            return Singular.optional(personalIdentificationNumber).orElse(customIdentifier);
+
+        private static boolean isEqual(Object a, Object b) {
+            return (a == null && b == null) || (a != null && a.equals(b));
+        }
+
+        boolean isSameAs(SignerIdentifier other) {
+            return isEqual(this.personalIdentificationNumber, other.personalIdentificationNumber) &&
+                   isEqual(this.emailAddress, other.emailAddress) &&
+                   isEqual(this.mobileNumber, other.mobileNumber);
+        }
+
+        boolean hasPersonalIdentificationNumber() {
+            return personalIdentificationNumber != null;
         }
 
         @Override
         public String toString() {
-            return Singular.optional(personalIdentificationNumber).map(mask).orElse(customIdentifier);
+            if (personalIdentificationNumber != null) {
+                return mask(personalIdentificationNumber);
+            } else if (emailAddress != null && mobileNumber == null) {
+                return emailAddress;
+            } else if (emailAddress == null && mobileNumber != null) {
+                return mobileNumber;
+            } else {
+                return emailAddress + " and " + mobileNumber;
+            }
         }
     }
 }
