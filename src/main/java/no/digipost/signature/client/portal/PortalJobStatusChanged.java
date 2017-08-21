@@ -106,7 +106,7 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
      *               (using {@link PortalSigner#identifiedByPersonalIdentificationNumber(String, Notifications) personal identification number}<sup>1</sup>,
      *               {@link PortalSigner#identifiedByPersonalIdentificationNumber(String, NotificationsUsingLookup) personal identification number}<sup>2</sup>,
      *               {@link PortalSigner#identifiedByEmail(String) email address}, {@link PortalSigner#identifiedByMobileNumber(String) mobile number} or
-     *               .{@link PortalSigner#identifiedByEmailAndMobileNumber(String, String) both email address and mobile number})
+     *               {@link PortalSigner#identifiedByEmailAndMobileNumber(String, String) both email address and mobile number}).
      *               <p>
      *               <sup>1</sup>: with contact information provided.<br>
      *               <sup>2</sup>: using contact information from a lookup service.
