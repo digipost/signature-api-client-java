@@ -16,11 +16,12 @@
 package no.digipost.signature.client.portal;
 
 import no.motif.Singular;
-import no.motif.single.Optional;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
+import static no.digipost.signature.client.portal.PortalSigner.identifiedByEmail;
+import static no.digipost.signature.client.portal.PortalSigner.identifiedByEmailAndMobileNumber;
+import static no.digipost.signature.client.portal.PortalSigner.identifiedByMobileNumber;
+import static no.digipost.signature.client.portal.PortalSigner.identifiedByPersonalIdentificationNumber;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -28,16 +29,13 @@ import static org.junit.Assert.assertTrue;
 
 public class PortalSignerTest {
 
-    @Rule
-    public final ExpectedException expectedException = ExpectedException.none();
-
     @Test
     public void get_personal_identification_number() {
 
-        PortalSigner portalSigner = PortalSigner.builder(
+        PortalSigner portalSigner = identifiedByPersonalIdentificationNumber(
                 "01013300001",
-                Notifications.builder().withEmailTo("email@example.com").build())
-                .build();
+                Notifications.builder().withEmailTo("email@example.com").build()
+        ).build();
 
         assertThat(portalSigner.getIdentifier().get(), is("01013300001"));
         assertTrue(portalSigner.isIdentifiedByPersonalIdentificationNumber());
@@ -45,7 +43,7 @@ public class PortalSignerTest {
 
     @Test
     public void get_email_custom_identifier() {
-        PortalSigner portalSigner = PortalSigner.identifiedByEmail("email@example.com").build();
+        PortalSigner portalSigner = identifiedByEmail("email@example.com").build();
 
         assertThat(portalSigner.getIdentifier(), is(Singular.<String>none()));
         assertThat(portalSigner.getNotifications().getEmailAddress(), is("email@example.com"));
@@ -55,7 +53,7 @@ public class PortalSignerTest {
 
     @Test
     public void get_mobile_number_custom_identifier() {
-        PortalSigner portalSigner = PortalSigner.identifiedByMobileNumber("12345678").build();
+        PortalSigner portalSigner = identifiedByMobileNumber("12345678").build();
 
         assertThat(portalSigner.getIdentifier(), is(Singular.<String>none()));
         assertThat(portalSigner.getNotifications().getMobileNumber(), is("12345678"));
@@ -65,7 +63,7 @@ public class PortalSignerTest {
 
     @Test
     public void get_email_and_mobile_number_custom_identifier() {
-        PortalSigner portalSigner = PortalSigner.identifiedByEmailAndMobileNumber("email@example.com", "12345678").build();
+        PortalSigner portalSigner = identifiedByEmailAndMobileNumber("email@example.com", "12345678").build();
 
         assertThat(portalSigner.getIdentifier(), is(Singular.<String>none()));
 
