@@ -17,31 +17,91 @@ package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.OnBehalfOf;
 import no.digipost.signature.client.core.SignatureType;
+import no.digipost.signature.client.core.internal.IdentifierType;
 import no.digipost.signature.client.core.internal.SignerCustomizations;
 import no.motif.Singular;
+import no.motif.single.A;
 import no.motif.single.Optional;
 
 import static no.digipost.signature.client.core.OnBehalfOf.OTHER;
+import static no.digipost.signature.client.core.internal.IdentifierType.EMAIL;
+import static no.digipost.signature.client.core.internal.IdentifierType.EMAIL_AND_MOBILE_NUMBER;
+import static no.digipost.signature.client.core.internal.IdentifierType.MOBILE_NUMBER;
+import static no.digipost.signature.client.core.internal.IdentifierType.PERSONAL_IDENTIFICATION_NUMBER;
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
 import static no.motif.Singular.optional;
 
 public class PortalSigner {
 
-    private final String personalIdentificationNumber;
-    private final Notifications notifications;
-    private final NotificationsUsingLookup notificationsUsingLookup;
+    private final IdentifierType identifierType;
+    private final Optional<String> identifier;
+
+    private Notifications notifications;
+    private NotificationsUsingLookup notificationsUsingLookup;
+
     private int order = 0;
     private Optional<SignatureType> signatureType = Singular.none();
     private Optional<OnBehalfOf> onBehalfOf = Singular.none();
 
+    private PortalSigner(IdentifierType identifierType, Notifications notifications) {
+        this.identifier = Singular.none();
+        this.identifierType = identifierType;
+        this.notifications = notifications;
+    }
+
     private PortalSigner(String personalIdentificationNumber, Notifications notifications, NotificationsUsingLookup notificationsUsingLookup) {
-        this.personalIdentificationNumber = personalIdentificationNumber;
+        this.identifier = Singular.optional(personalIdentificationNumber);
+        this.identifierType = PERSONAL_IDENTIFICATION_NUMBER;
         this.notifications = notifications;
         this.notificationsUsingLookup = notificationsUsingLookup;
     }
 
-    public String getPersonalIdentificationNumber() {
-        return personalIdentificationNumber;
+    /**
+     * @deprecated See {@link #identifiedByPersonalIdentificationNumber(String, Notifications)}
+     */
+    @Deprecated
+    public static Builder builder(String personalIdentificationNumber, Notifications notifications) {
+        return new Builder(personalIdentificationNumber, notifications, null);
+    }
+
+    /**
+     * @deprecated See {@link #identifiedByPersonalIdentificationNumber(String, NotificationsUsingLookup)}
+     */
+    @Deprecated
+    public static Builder builder(String personalIdentificationNumber, NotificationsUsingLookup notificationsUsingLookup) {
+        return new Builder(personalIdentificationNumber, null, notificationsUsingLookup);
+    }
+
+    public static Builder identifiedByPersonalIdentificationNumber(String personalIdentificationNumber, Notifications notifications) {
+        return new Builder(personalIdentificationNumber, notifications, null);
+    }
+
+    public static Builder identifiedByPersonalIdentificationNumber(String personalIdentificationNumber, NotificationsUsingLookup notificationsUsingLookup) {
+        return new Builder(personalIdentificationNumber, null, notificationsUsingLookup);
+    }
+
+    public static Builder identifiedByEmail(String emailAddress) {
+        return new Builder(EMAIL, Notifications.builder().withEmailTo(emailAddress).build());
+    }
+
+    public static Builder identifiedByMobileNumber(String number) {
+        return new Builder(MOBILE_NUMBER, Notifications.builder().withSmsTo(number).build());
+    }
+
+    public static Builder identifiedByEmailAndMobileNumber(String emailAddress, String number) {
+        return new Builder(EMAIL_AND_MOBILE_NUMBER, Notifications.builder().withEmailTo(emailAddress).withSmsTo(number).build());
+    }
+
+    public boolean isIdentifiedByPersonalIdentificationNumber() {
+        return identifierType == PERSONAL_IDENTIFICATION_NUMBER;
+    }
+
+    public Optional<String> getIdentifier() {
+        return identifier;
+    }
+
+    public IdentifierType getIdentifierType() {
+        return identifierType;
     }
 
     public int getOrder() {
@@ -66,24 +126,21 @@ public class PortalSigner {
 
     @Override
     public String toString() {
-        return mask(personalIdentificationNumber);
+        return isIdentifiedByPersonalIdentificationNumber() ? mask(identifier.get()) : "Signer with " + notifications;
     }
 
-    public static Builder builder(String personalIdentificationNumber, Notifications notifications) {
-        return new Builder(personalIdentificationNumber, notifications, null);
-    }
 
-    public static Builder builder(String personalIdentificationNumber, NotificationsUsingLookup notificationsUsingLookup) {
-        return new Builder(personalIdentificationNumber, null, notificationsUsingLookup);
-    }
-
-    public static class Builder implements SignerCustomizations<Builder>{
+    public static class Builder implements SignerCustomizations<Builder> {
 
         private final PortalSigner target;
         private boolean built = false;
 
         private Builder(String personalIdentificationNumber, Notifications notifications, NotificationsUsingLookup notificationsUsingLookup) {
             target = new PortalSigner(personalIdentificationNumber, notifications, notificationsUsingLookup);
+        }
+
+        private Builder(IdentifierType identifierType, Notifications notifications) {
+            target = new PortalSigner(identifierType, notifications);
         }
 
         public Builder withOrder(int order) {

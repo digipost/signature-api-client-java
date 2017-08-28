@@ -29,15 +29,21 @@ import no.digipost.signature.api.xml.XMLSignatureType;
 import no.digipost.signature.api.xml.XMLSigningOnBehalfOf;
 import no.digipost.signature.api.xml.XMLSms;
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.exceptions.SignerNotSpecifiedException;
 import no.digipost.signature.client.core.internal.MarshallableEnum;
 import no.digipost.signature.client.portal.Notifications;
 import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
+import no.motif.f.Fn0;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static no.digipost.signature.client.core.exceptions.SignerNotSpecifiedException.SIGNER_NOT_SPECIFIED;
+import static no.digipost.signature.client.core.internal.IdentifierType.EMAIL;
+import static no.digipost.signature.client.core.internal.IdentifierType.MOBILE_NUMBER;
 
 public class CreatePortalManifest extends ManifestCreator<PortalJob> {
 
@@ -45,11 +51,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
     Object buildXmlManifest(PortalJob job, Sender sender) {
         List<XMLPortalSigner> xmlSigners = new ArrayList<>();
         for (PortalSigner signer : job.getSigners()) {
-            XMLPortalSigner xmlPortalSigner = new XMLPortalSigner()
-                    .withPersonalIdentificationNumber(signer.getPersonalIdentificationNumber())
-                    .withOrder(signer.getOrder())
-                    .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
-                    .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
+            XMLPortalSigner xmlPortalSigner = generateSigner(signer);
 
             if (signer.getNotifications() != null) {
                 xmlPortalSigner.setNotifications(generateNotifications(signer.getNotifications()));
@@ -75,6 +77,20 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                         .withActivationTime(job.getActivationTime())
                         .withAvailableSeconds(job.getAvailableSeconds())
                 );
+    }
+
+    private XMLPortalSigner generateSigner(PortalSigner signer) {
+        XMLPortalSigner xmlSigner = new XMLPortalSigner()
+                .withOrder(signer.getOrder())
+                .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
+                .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
+
+        if (signer.isIdentifiedByPersonalIdentificationNumber()) {
+            xmlSigner.setPersonalIdentificationNumber(signer.getIdentifier().orElseThrow(SIGNER_NOT_SPECIFIED));
+        } else {
+            xmlSigner.setIdentifiedByContactInformation(new XMLEnabled());
+        }
+        return xmlSigner;
     }
 
     private XMLNotificationsUsingLookup generateNotificationsUsingLookup(NotificationsUsingLookup notificationsUsingLookup) {

@@ -19,10 +19,13 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.Confirmable;
+import no.motif.f.Fn0;
 
 import java.util.List;
 
 import static no.digipost.signature.client.portal.PortalJobStatus.NO_CHANGES;
+import static no.digipost.signature.client.portal.Signature.signatureFrom;
+import static no.motif.Iterate.on;
 
 /**
  * Indicates a job which has got a new {@link PortalJobStatus status}
@@ -93,6 +96,33 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
 
     public List<Signature> getSignatures() {
         return signatures;
+    }
+
+    /**
+     * Gets the signature from a given signer.
+     *
+     * @param signer an identifier referring to a signer of the job. It may be a personal identification number or
+     *               contact information, depending of how the {@link PortalSigner signer} was initially created
+     *               (using {@link PortalSigner#identifiedByPersonalIdentificationNumber(String, Notifications) personal identification number}<sup>1</sup>,
+     *               {@link PortalSigner#identifiedByPersonalIdentificationNumber(String, NotificationsUsingLookup) personal identification number}<sup>2</sup>,
+     *               {@link PortalSigner#identifiedByEmail(String) email address}, {@link PortalSigner#identifiedByMobileNumber(String) mobile number} or
+     *               {@link PortalSigner#identifiedByEmailAndMobileNumber(String, String) both email address and mobile number}).
+     *               <p>
+     *               <sup>1</sup>: with contact information provided.<br>
+     *               <sup>2</sup>: using contact information from a lookup service.
+     *               </p>
+     * @throws IllegalArgumentException if the job response doesn't contain a signature from this signer
+     */
+    public Signature getSignatureFrom(SignerIdentifier signer) {
+        return on(signatures)
+                .filter(signatureFrom(signer))
+                .head()
+                .orElseThrow(new Fn0<IllegalArgumentException>() {
+                    @Override
+                    public IllegalArgumentException $() {
+                        return new IllegalArgumentException("Unable to find signature from this signer");
+                    }
+                });
     }
 
     @Override

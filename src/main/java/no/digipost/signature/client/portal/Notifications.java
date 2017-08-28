@@ -68,4 +68,17 @@ public class Notifications {
             return target;
         }
     }
+
+    @Override
+    public String toString() {
+        if (emailAddress != null && mobileNumber != null) {
+            return "Notifications to " + emailAddress + " and " + mobileNumber;
+        } else if (emailAddress != null) {
+            return "Notification to " + emailAddress;
+        } else if (mobileNumber != null) {
+            return "Notification to " + mobileNumber;
+        } else {
+            return "No notifications";
+        }
+    }
 }

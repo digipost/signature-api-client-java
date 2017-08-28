@@ -70,6 +70,13 @@ public final class SignatureStatus {
      */
     public static final SignatureStatus NOT_APPLICABLE = new SignatureStatus("NOT_APPLICABLE");
 
+    /**
+     * The signer entered the wrong security code too many times. Only applicable for
+     * signers addressed by {@link PortalSigner#identifiedByEmail(String) e-mail address} or
+     * {@link PortalSigner#identifiedByMobileNumber(String) mobile number}.
+     */
+    public static final SignatureStatus BLOCKED = new SignatureStatus("BLOCKED");
+
 
     private static final List<SignatureStatus> KNOWN_STATUSES = asList(
             REJECTED,
@@ -79,7 +86,8 @@ public final class SignatureStatus {
             EXPIRED,
             WAITING,
             SIGNED,
-            NOT_APPLICABLE
+            NOT_APPLICABLE,
+            BLOCKED
     );
 
     private final String identifier;
