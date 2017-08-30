@@ -96,13 +96,11 @@ PortalClient client = ...; // As initialized earlier
 PortalJobStatusChanged statusChange = ...; // As returned when polling for status changes
 
 // Retrieve PAdES:
-
 if (statusChange.isPAdESAvailable()) {
     InputStream pAdESStream = client.getPAdES(statusChange.getpAdESUrl());
 }
 
 // Retrieve XAdES for all signers:
-
 for (Signature signature : statusChange.getSignatures()) {
     if (signature.is(SignatureStatus.SIGNED)) {
         InputStream xAdESStream = client.getXAdES(signature.getxAdESUrl());
@@ -110,7 +108,6 @@ for (Signature signature : statusChange.getSignatures()) {
 }
 
 // … or for one specific signer:
-
 Signature signature = statusChange.getSignatureFrom(
     SignerIdentifier.identifiedByPersonalIdentificationNumber("12345678910"));
 if (signature.is(SignatureStatus.SIGNED)) {
