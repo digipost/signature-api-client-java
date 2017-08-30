@@ -16,6 +16,7 @@
 package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.core.AuthenticationLevel;
+import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.internal.JobCustomizations;
@@ -41,6 +42,7 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     private Optional<Sender> sender = Singular.none();
     private Optional<StatusRetrievalMethod> statusRetrievalMethod = Singular.none();
     private Optional<AuthenticationLevel> requiredAuthentication = Singular.none();
+    private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Singular.none();
 
     private DirectJob(List<DirectSigner> signers, DirectDocument document, String completionUrl, String rejectionUrl, String errorUrl) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
@@ -83,6 +85,11 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     @Override
     public Optional<AuthenticationLevel> getRequiredAuthentication() {
         return requiredAuthentication;
+    }
+
+    @Override
+    public Optional<IdentifierInSignedDocuments> getIdentifierInSignedDocuments() {
+        return identifierInSignedDocuments;
     }
 
     public List<DirectSigner> getSigners() {
@@ -155,6 +162,12 @@ public class DirectJob implements SignatureJob, WithExitUrls {
         @Override
         public Builder requireAuthentication(AuthenticationLevel level) {
             target.requiredAuthentication = optional(level);
+            return this;
+        }
+
+        @Override
+        public Builder withIdentifierInSignedDocuments(IdentifierInSignedDocuments identifier) {
+            target.identifierInSignedDocuments = optional(identifier);
             return this;
         }
 

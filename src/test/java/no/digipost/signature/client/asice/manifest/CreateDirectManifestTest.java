@@ -16,6 +16,7 @@
 package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.direct.DirectDocument;
 import no.digipost.signature.client.direct.DirectJob;
@@ -36,7 +37,9 @@ public class CreateDirectManifestTest {
                 .fileType(Document.FileType.TXT)
                 .build();
 
-        DirectJob job = DirectJob.builder(document, ExitUrls.of("http://localhost/signed", "http://localhost/canceled", "http://localhost/failed"), DirectSigner.withPersonalIdentificationNumber("12345678910").build()).build();
+        DirectJob job = DirectJob.builder(document, ExitUrls.of("http://localhost/signed", "http://localhost/canceled", "http://localhost/failed"), DirectSigner.withPersonalIdentificationNumber("12345678910").build())
+                .withIdentifierInSignedDocuments(IdentifierInSignedDocuments.NAME)
+                .build();
         try {
             createManifest.createManifest(job, new Sender("123456789"));
         } catch (Exception e) {
