@@ -253,6 +253,7 @@
                             <exclude>.editorconfig</exclude>
                             <exclude>src/test/resources/**</exclude>
                             <exclude>**/version</exclude>
+                            <exclude>docs/**</exclude>
                         </excludes>
                     </configuration>
                 </plugin>
