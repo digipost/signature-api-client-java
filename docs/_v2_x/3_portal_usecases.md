@@ -48,6 +48,7 @@ You may identify the signature job's signers by personal identification number (
 
 Read more about identifying your signers in the [functional documentation](http://digipost.github.io/signature-api-specification/v1.0/#kontaktinfo) (Norwegian).
 
+> Note: Most domain object follow the builder pattern, accepting all required parameters in the factory method and with specific methods for each optional parameter. Keep this in mind when exploring the API.
 
 <h3 id="uc09">Get status changes</h3>
 
