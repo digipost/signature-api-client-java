@@ -19,6 +19,7 @@ import no.digipost.signature.api.xml.XMLAuthenticationLevel;
 import no.digipost.signature.api.xml.XMLDirectDocument;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobManifest;
 import no.digipost.signature.api.xml.XMLDirectSigner;
+import no.digipost.signature.api.xml.XMLIdentifierInSignedDocuments;
 import no.digipost.signature.api.xml.XMLSender;
 import no.digipost.signature.api.xml.XMLSignatureType;
 import no.digipost.signature.api.xml.XMLSigningOnBehalfOf;
@@ -59,6 +60,8 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
                         .withDescription(document.getMessage())
                         .withHref(document.getFileName())
                         .withMime(document.getMimeType())
-                );
+                )
+                .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(MarshallableEnum.To.<XMLIdentifierInSignedDocuments>xmlValue()).orNull())
+                ;
     }
 }

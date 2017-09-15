@@ -16,6 +16,7 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.AuthenticationLevel;
+import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.internal.JobCustomizations;
@@ -42,6 +43,7 @@ public class PortalJob implements SignatureJob {
     private Long availableSeconds;
     private Optional<Sender> sender = Singular.none();
     private Optional<AuthenticationLevel> requiredAuthentication = Singular.none();
+    private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Singular.none();
 
     private PortalJob(List<PortalSigner> signers, PortalDocument document) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
@@ -66,6 +68,11 @@ public class PortalJob implements SignatureJob {
     @Override
     public Optional<AuthenticationLevel> getRequiredAuthentication() {
         return requiredAuthentication;
+    }
+
+    @Override
+    public Optional<IdentifierInSignedDocuments> getIdentifierInSignedDocuments() {
+        return identifierInSignedDocuments;
     }
 
     public List<PortalSigner> getSigners() {
@@ -118,6 +125,12 @@ public class PortalJob implements SignatureJob {
         @Override
         public Builder requireAuthentication(AuthenticationLevel minimumLevel) {
             target.requiredAuthentication = optional(minimumLevel);
+            return this;
+        }
+
+        @Override
+        public Builder withIdentifierInSignedDocuments(IdentifierInSignedDocuments identifier) {
+            target.identifierInSignedDocuments = optional(identifier);
             return this;
         }
 

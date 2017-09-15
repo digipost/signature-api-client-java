@@ -19,6 +19,7 @@ import no.digipost.signature.api.xml.XMLAuthenticationLevel;
 import no.digipost.signature.api.xml.XMLAvailability;
 import no.digipost.signature.api.xml.XMLEmail;
 import no.digipost.signature.api.xml.XMLEnabled;
+import no.digipost.signature.api.xml.XMLIdentifierInSignedDocuments;
 import no.digipost.signature.api.xml.XMLNotifications;
 import no.digipost.signature.api.xml.XMLNotificationsUsingLookup;
 import no.digipost.signature.api.xml.XMLPortalDocument;
@@ -29,21 +30,17 @@ import no.digipost.signature.api.xml.XMLSignatureType;
 import no.digipost.signature.api.xml.XMLSigningOnBehalfOf;
 import no.digipost.signature.api.xml.XMLSms;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.exceptions.SignerNotSpecifiedException;
 import no.digipost.signature.client.core.internal.MarshallableEnum;
 import no.digipost.signature.client.portal.Notifications;
 import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
-import no.motif.f.Fn0;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static no.digipost.signature.client.core.exceptions.SignerNotSpecifiedException.SIGNER_NOT_SPECIFIED;
-import static no.digipost.signature.client.core.internal.IdentifierType.EMAIL;
-import static no.digipost.signature.client.core.internal.IdentifierType.MOBILE_NUMBER;
 
 public class CreatePortalManifest extends ManifestCreator<PortalJob> {
 
@@ -76,7 +73,9 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                 .withAvailability(new XMLAvailability()
                         .withActivationTime(job.getActivationTime())
                         .withAvailableSeconds(job.getAvailableSeconds())
-                );
+                )
+                .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(MarshallableEnum.To.<XMLIdentifierInSignedDocuments>xmlValue()).orNull())
+                ;
     }
 
     private XMLPortalSigner generateSigner(PortalSigner signer) {

@@ -90,7 +90,7 @@ public class CreateASiCETest {
 
     @Test
     public void create_portal_asice_and_write_to_disk() throws IOException {
-        PortalJob job = PortalJob.builder(PORTAL_DOCUMENT, PortalSigner.builder("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build())
+        PortalJob job = PortalJob.builder(PORTAL_DOCUMENT, PortalSigner.identifiedByPersonalIdentificationNumber("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build())
                 .withReference("portal job")
                 .withActivationTime(new Date())
                 .availableFor(30, DAYS)

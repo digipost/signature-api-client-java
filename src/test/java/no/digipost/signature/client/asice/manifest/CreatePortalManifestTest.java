@@ -16,6 +16,7 @@
 package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalDocument;
@@ -40,9 +41,10 @@ public class CreatePortalManifestTest {
                 .fileType(Document.FileType.TXT)
                 .build();
 
-        PortalJob job = PortalJob.builder(document, Collections.singletonList(PortalSigner.builder("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build()))
+        PortalJob job = PortalJob.builder(document, Collections.singletonList(PortalSigner.identifiedByPersonalIdentificationNumber("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build()))
                 .withActivationTime(new Date())
                 .availableFor(30, DAYS)
+                .withIdentifierInSignedDocuments(IdentifierInSignedDocuments.PERSONAL_IDENTIFICATION_NUMBER_AND_NAME)
                 .build();
         try {
             createManifest.createManifest(job, new Sender("123456789"));

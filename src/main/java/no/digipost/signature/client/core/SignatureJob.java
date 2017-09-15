@@ -27,4 +27,6 @@ public interface SignatureJob {
 
     Optional<AuthenticationLevel> getRequiredAuthentication();
 
+    Optional<IdentifierInSignedDocuments> getIdentifierInSignedDocuments();
+
 }
