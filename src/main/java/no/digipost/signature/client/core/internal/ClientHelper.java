@@ -48,7 +48,6 @@ import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_A
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
 import static no.digipost.signature.client.core.internal.Target.DIRECT;
 import static no.digipost.signature.client.core.internal.Target.PORTAL;
-import static no.digipost.signature.client.core.internal.http.ResponseStatus.Custom.TOO_MANY_REQUESTS;
 import static no.motif.Singular.optional;
 import static no.motif.Strings.nonblank;
 

@@ -44,12 +44,12 @@ This software includes third party software subject to the following licenses:
   ServiceLocator Default Implementation under CDDL + GPLv2 with classpath exception
   SLF4J API Module under MIT License
   SLF4J Simple Binding under MIT License
-  Spring AOP under The Apache Software License, Version 2.0
-  Spring Beans under The Apache Software License, Version 2.0
-  Spring Context under The Apache Software License, Version 2.0
-  Spring Core under The Apache Software License, Version 2.0
-  Spring Expression Language (SpEL) under The Apache Software License, Version 2.0
-  Spring Object/XML Marshalling under The Apache Software License, Version 2.0
-  Spring XML under The Apache Software License, Version 2.0
+  Spring AOP under Apache License, Version 2.0
+  Spring Beans under Apache License, Version 2.0
+  Spring Context under Apache License, Version 2.0
+  Spring Core under Apache License, Version 2.0
+  Spring Expression Language (SpEL) under Apache License, Version 2.0
+  Spring Object/XML Marshalling under Apache License, Version 2.0
+  spring-xml under Apache License, Version 2.0
 
 
