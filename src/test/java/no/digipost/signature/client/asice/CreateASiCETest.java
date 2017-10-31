@@ -39,9 +39,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
+import java.time.Clock;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -49,6 +50,7 @@ import java.util.zip.ZipInputStream;
 import static java.nio.file.Files.newDirectoryStream;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
+import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.TIMESTAMP_PATTERN;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.referenceFilenamePart;
 import static no.digipost.signature.client.direct.ExitUrls.singleExitUrl;
 import static org.hamcrest.Matchers.hasItem;
@@ -56,11 +58,13 @@ import static org.junit.Assert.assertThat;
 
 public class CreateASiCETest {
 
+    private static final Clock clock = Clock.systemDefaultZone();
+
     @BeforeClass
     public static void initTempFolder() throws URISyntaxException, IOException {
         dumpFolder = Paths.get(CreateASiCETest.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent()
                 .resolve(CreateASiCETest.class.getSimpleName())
-                .resolve(new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()));
+                .resolve(DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN).format(ZonedDateTime.now(clock)));
         Files.createDirectories(dumpFolder);
     }
 
@@ -77,7 +81,6 @@ public class CreateASiCETest {
             .build();
 
 
-
     @Test
     public void create_direct_asice_and_write_to_disk() throws IOException {
         DirectJob job = DirectJob.builder(DIRECT_DOCUMENT, singleExitUrl("https://job.well.done.org"), DirectSigner.withPersonalIdentificationNumber("12345678910").build())
@@ -91,11 +94,11 @@ public class CreateASiCETest {
     public void create_portal_asice_and_write_to_disk() throws IOException {
         PortalJob job = PortalJob.builder(PORTAL_DOCUMENT, PortalSigner.identifiedByPersonalIdentificationNumber("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build())
                 .withReference("portal job")
-                .withActivationTime(new Date())
+                .withActivationTime(clock.instant())
                 .availableFor(30, DAYS)
                 .build();
 
-        create_document_bundle_and_dump_to_disk(new CreatePortalManifest(), job);
+        create_document_bundle_and_dump_to_disk(new CreatePortalManifest(clock), job);
     }
 
     private <JOB extends SignatureJob> void create_document_bundle_and_dump_to_disk(ManifestCreator<JOB> manifestCreator, JOB job) throws IOException {

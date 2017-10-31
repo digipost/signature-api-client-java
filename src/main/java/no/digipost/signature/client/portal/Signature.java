@@ -19,7 +19,7 @@ import no.digipost.signature.api.xml.XMLNotifications;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.exceptions.SignatureException;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.function.Predicate;
 
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
@@ -28,11 +28,11 @@ public class Signature {
 
     private final Signer signer;
     private final SignatureStatus status;
-    private final Date statusDateTime;
+    private final Instant statusDateTime;
 
     private final XAdESReference xAdESReference;
 
-    public Signature(String personalIdentificationNumber, XMLNotifications identifier, SignatureStatus status, Date statusDateTime, XAdESReference xAdESReference) {
+    public Signature(String personalIdentificationNumber, XMLNotifications identifier, SignatureStatus status, Instant statusDateTime, XAdESReference xAdESReference) {
         this.signer = new Signer(personalIdentificationNumber, identifier);
         this.status = status;
         this.xAdESReference = xAdESReference;
@@ -68,7 +68,7 @@ public class Signature {
      * @return Point in time when the action (document was signed, signature job expired, etc.) leading to the
      * current {@link Signature#status} happened.
      */
-    public Date getStatusDateTime() {
+    public Instant getStatusDateTime() {
         return statusDateTime;
     }
 

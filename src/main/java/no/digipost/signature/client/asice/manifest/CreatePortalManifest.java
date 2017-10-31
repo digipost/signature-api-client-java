@@ -36,12 +36,20 @@ import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
 
+import java.time.Clock;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static no.digipost.signature.client.core.exceptions.SignerNotSpecifiedException.SIGNER_NOT_SPECIFIED;
 
 public class CreatePortalManifest extends ManifestCreator<PortalJob> {
+
+    private final Clock clock;
+
+    public CreatePortalManifest(Clock clock) {
+        this.clock = clock;
+    }
 
     @Override
     Object buildXmlManifest(PortalJob job, Sender sender) {
@@ -58,6 +66,9 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
         }
 
         PortalDocument document = job.getDocument();
+
+        ZonedDateTime activationTime = job.getActivationTime().map(activation -> activation.atZone(clock.getZone())).orElse(null);
+
         return new XMLPortalSignatureJobManifest()
                 .withSigners(xmlSigners)
                 .withRequiredAuthentication(job.getRequiredAuthentication().map(AuthenticationLevel::getXmlEnumValue).orElse(null))
@@ -70,7 +81,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                         .withMime(document.getMimeType())
                 )
                 .withAvailability(new XMLAvailability()
-                        .withActivationTime(job.getActivationTime())
+                        .withActivationTime(activationTime)
                         .withAvailableSeconds(job.getAvailableSeconds())
                 )
                 .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null))

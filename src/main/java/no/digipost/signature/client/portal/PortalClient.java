@@ -44,7 +44,7 @@ public class PortalClient {
 
     public PortalClient(ClientConfiguration config) {
         this.client = new ClientHelper(SignatureHttpClientFactory.create(config), config.getGlobalSender());
-        this.aSiCECreator = new CreateASiCE<>(new CreatePortalManifest(), config);
+        this.aSiCECreator = new CreateASiCE<>(new CreatePortalManifest(config.getClock()), config);
     }
 
 

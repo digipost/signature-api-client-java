@@ -30,6 +30,7 @@ import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
+import java.time.Clock;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -62,7 +63,7 @@ public class CreateSignatureTest {
                 file("manifest.xml", "manifest-innhold".getBytes(), "application/xml")
         );
 
-        createSignature = new CreateSignature();
+        createSignature = new CreateSignature(Clock.systemDefaultZone());
     }
 
     @Test

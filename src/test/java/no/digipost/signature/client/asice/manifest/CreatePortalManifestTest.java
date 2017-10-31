@@ -24,17 +24,19 @@ import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
 import org.junit.Test;
 
+import java.time.Clock;
 import java.util.Collections;
-import java.util.Date;
 
 import static java.util.concurrent.TimeUnit.DAYS;
 import static org.junit.Assert.fail;
 
 public class CreatePortalManifestTest {
 
+    private final Clock clock = Clock.systemDefaultZone();
+
     @Test
     public void accept_valid_manifest() {
-        CreatePortalManifest createManifest = new CreatePortalManifest();
+        CreatePortalManifest createManifest = new CreatePortalManifest(clock);
 
         PortalDocument document = PortalDocument.builder("Title", "file.txt", "hello".getBytes())
                 .message("Message")
@@ -42,7 +44,7 @@ public class CreatePortalManifestTest {
                 .build();
 
         PortalJob job = PortalJob.builder(document, Collections.singletonList(PortalSigner.identifiedByPersonalIdentificationNumber("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build()))
-                .withActivationTime(new Date())
+                .withActivationTime(clock.instant())
                 .availableFor(30, DAYS)
                 .withIdentifierInSignedDocuments(IdentifierInSignedDocuments.PERSONAL_IDENTIFICATION_NUMBER_AND_NAME)
                 .build();

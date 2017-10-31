@@ -51,6 +51,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -103,12 +104,14 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     private final Optional<Sender> sender;
     private final URI signatureServiceRoot;
     private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
+    private final Clock clock;
 
 
 
     private ClientConfiguration(
             KeyStoreConfig keyStoreConfig, Configurable<? extends Configuration> jaxrsConfig,
-            Optional<Sender> sender, URI serviceRoot, Iterable<String> certificatePaths, Iterable<DocumentBundleProcessor> documentBundleProcessors) {
+            Optional<Sender> sender, URI serviceRoot, Iterable<String> certificatePaths,
+            Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
 
         this.keyStoreConfig = keyStoreConfig;
         this.jaxrsConfig = jaxrsConfig;
@@ -116,6 +119,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         this.signatureServiceRoot = serviceRoot;
         this.certificatePaths = certificatePaths;
         this.documentBundleProcessors = documentBundleProcessors;
+        this.clock = clock;
     }
 
 
@@ -133,6 +137,11 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     @Override
     public Iterable<DocumentBundleProcessor> getDocumentBundleProcessors() {
         return documentBundleProcessors;
+    }
+
+    @Override
+    public Clock getClock() {
+        return clock;
     }
 
 
@@ -204,6 +213,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
         private Optional<LoggingFilter> loggingFilter = Optional.empty();
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
+        private Clock clock = Clock.systemDefaultZone();
 
 
         private Builder(KeyStoreConfig keyStoreConfig) {
@@ -309,6 +319,9 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * <p>
          * The files will be given names on the format
          * <pre>{@code timestamp-[reference_from_job-]asice.zip}</pre>
+         * The <em>timestamp</em> part may use a clock of your choosing, make sure to override the system clock with
+         * {@link #usingClock(Clock)} before calling this method if that is desired.
+         * <p>
          * The <em>reference_from_job</em> part is only included if the job is given such a reference using
          * {@link no.digipost.signature.client.direct.DirectJob.Builder#withReference(UUID) DirectJob.Builder.withReference(..)} or {@link no.digipost.signature.client.portal.PortalJob.Builder#withReference(UUID) PortalJob.Builder.withReference(..)}.
          *
@@ -316,7 +329,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          *                  creating new signature jobs will fail. Miserably.
          */
         public Builder enableDocumentBundleDiskDump(Path directory) {
-            return addDocumentBundleProcessor(new DumpDocumentBundleToDisk(directory));
+            return addDocumentBundleProcessor(new DumpDocumentBundleToDisk(directory, clock));
         }
 
 
@@ -354,6 +367,17 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             return this;
         }
 
+        /**
+         * Allows for overriding which {@link Clock} is used to convert between Java and XML,
+         * may be useful for e.g. automated tests.
+         * <p>
+         * Uses {@link Clock#systemDefaultZone() the best available system clock} if not specified.
+         */
+        public Builder usingClock(Clock clock) {
+            this.clock = clock;
+            return this;
+        }
+
         public ClientConfiguration build() {
             jaxrsConfig.property(ClientProperties.READ_TIMEOUT, socketTimeoutMs);
             jaxrsConfig.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutMs);
@@ -361,7 +385,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
             jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, createUserAgentString()));
             this.loggingFilter.ifPresent(jaxrsConfig::register);
-            return new ClientConfiguration(keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths, documentBundleProcessors);
+            return new ClientConfiguration(keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
         }
 
         String createUserAgentString() {

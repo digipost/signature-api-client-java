@@ -15,25 +15,20 @@
  */
 package no.digipost.signature.client.core.exceptions;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 
 public class TooEagerPollingException extends RuntimeException {
 
-    private final Date nextPermittedPollTime;
+    private final Instant nextPermittedPollTime;
 
     public TooEagerPollingException(String nextPermittedPollTime) {
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
-        try {
-            this.nextPermittedPollTime = formatter.parse(nextPermittedPollTime);
-        } catch (ParseException e) {
-            throw new RuntimeException();
-        }
+        this.nextPermittedPollTime = ZonedDateTime.parse(nextPermittedPollTime, ISO_DATE_TIME).toInstant();
     }
 
-    public Date getNextPermittedPollTime() {
+    public Instant getNextPermittedPollTime() {
         return nextPermittedPollTime;
     }
 }

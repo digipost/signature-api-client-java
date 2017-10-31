@@ -21,9 +21,9 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.internal.JobCustomizations;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,7 +37,7 @@ public class PortalJob implements SignatureJob {
     private final List<PortalSigner> signers;
     private final PortalDocument document;
     private String reference;
-    private Date activationTime;
+    private Optional<Instant> activationTime = Optional.empty();
     private Long availableSeconds;
     private Optional<Sender> sender = Optional.empty();
     private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();
@@ -77,7 +77,7 @@ public class PortalJob implements SignatureJob {
         return signers;
     }
 
-    public Date getActivationTime() {
+    public Optional<Instant> getActivationTime() {
         return activationTime;
     }
 
@@ -132,8 +132,8 @@ public class PortalJob implements SignatureJob {
             return this;
         }
 
-        public Builder withActivationTime(Date activationTime) {
-            target.activationTime = activationTime;
+        public Builder withActivationTime(Instant activationTime) {
+            target.activationTime = Optional.of(activationTime);
             return this;
         }
 

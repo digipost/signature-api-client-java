@@ -23,9 +23,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Clock;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -36,21 +36,23 @@ public class DumpDocumentBundleToDisk implements DocumentBundleProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(DumpDocumentBundleToDisk.class);
 
-    private static final String TIMESTAMP_PATTERN = "yyyyMMddHHmmssSSS";
+    static final String TIMESTAMP_PATTERN = "yyyyMMddHHmmssSSS";
 
     private final Path directory;
+    private final Clock clock;
 
-    public DumpDocumentBundleToDisk(Path directory) {
+    public DumpDocumentBundleToDisk(Path directory, Clock clock) {
         this.directory = directory;
+        this.clock = clock;
     }
 
 
     @Override
     public void process(SignatureJob job, InputStream documentBundle) throws IOException {
         if (isDirectory(directory)) {
-            DateFormat timestampFormat = new SimpleDateFormat(TIMESTAMP_PATTERN);
+            DateTimeFormatter timestampFormat = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN);
             Optional<String> reference = Optional.ofNullable(job.getReference());
-            String filename = timestampFormat.format(new Date()) + "-" + reference.map(referenceFilenamePart).orElse("") + "asice.zip";
+            String filename = timestampFormat.format(ZonedDateTime.now(clock)) + "-" + reference.map(referenceFilenamePart).orElse("") + "asice.zip";
             Path target = directory.resolve(filename);
             LOG.info("Dumping document bundle{}to {}", reference.map(ref -> format(" for job with reference '%s' ", ref)).orElse(" "), target);
             Files.copy(documentBundle, target);
@@ -60,7 +62,7 @@ public class DumpDocumentBundleToDisk implements DocumentBundleProcessor {
     }
 
     public static class InvalidDirectoryException extends IOException {
-        public InvalidDirectoryException(Path path) {
+        InvalidDirectoryException(Path path) {
             super("The path " + path + (!Files.exists(path) ? " does not exist" : " is not a valid directory"));
         }
     }
