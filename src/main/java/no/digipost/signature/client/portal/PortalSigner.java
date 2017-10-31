@@ -19,9 +19,8 @@ import no.digipost.signature.client.core.OnBehalfOf;
 import no.digipost.signature.client.core.SignatureType;
 import no.digipost.signature.client.core.internal.IdentifierType;
 import no.digipost.signature.client.core.internal.SignerCustomizations;
-import no.motif.Singular;
-import no.motif.single.A;
-import no.motif.single.Optional;
+
+import java.util.Optional;
 
 import static no.digipost.signature.client.core.OnBehalfOf.OTHER;
 import static no.digipost.signature.client.core.internal.IdentifierType.EMAIL;
@@ -29,7 +28,6 @@ import static no.digipost.signature.client.core.internal.IdentifierType.EMAIL_AN
 import static no.digipost.signature.client.core.internal.IdentifierType.MOBILE_NUMBER;
 import static no.digipost.signature.client.core.internal.IdentifierType.PERSONAL_IDENTIFICATION_NUMBER;
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
-import static no.motif.Singular.optional;
 
 public class PortalSigner {
 
@@ -40,17 +38,17 @@ public class PortalSigner {
     private NotificationsUsingLookup notificationsUsingLookup;
 
     private int order = 0;
-    private Optional<SignatureType> signatureType = Singular.none();
-    private Optional<OnBehalfOf> onBehalfOf = Singular.none();
+    private Optional<SignatureType> signatureType = Optional.empty();
+    private Optional<OnBehalfOf> onBehalfOf = Optional.empty();
 
     private PortalSigner(IdentifierType identifierType, Notifications notifications) {
-        this.identifier = Singular.none();
+        this.identifier = Optional.empty();
         this.identifierType = identifierType;
         this.notifications = notifications;
     }
 
     private PortalSigner(String personalIdentificationNumber, Notifications notifications, NotificationsUsingLookup notificationsUsingLookup) {
-        this.identifier = Singular.optional(personalIdentificationNumber);
+        this.identifier = Optional.of(personalIdentificationNumber);
         this.identifierType = PERSONAL_IDENTIFICATION_NUMBER;
         this.notifications = notifications;
         this.notificationsUsingLookup = notificationsUsingLookup;
@@ -150,18 +148,18 @@ public class PortalSigner {
 
         @Override
         public Builder withSignatureType(SignatureType type) {
-            target.signatureType = optional(type);
+            target.signatureType = Optional.of(type);
             return this;
         }
 
         @Override
         public Builder onBehalfOf(OnBehalfOf onBehalfOf) {
-            target.onBehalfOf = optional(onBehalfOf);
+            target.onBehalfOf = Optional.of(onBehalfOf);
             return this;
         }
 
         public PortalSigner build() {
-            if (target.onBehalfOf.isSome() && target.onBehalfOf.get() == OTHER && target.notificationsUsingLookup != null) {
+            if (target.onBehalfOf.isPresent() && target.onBehalfOf.get() == OTHER && target.notificationsUsingLookup != null) {
                 throw new IllegalStateException("Can't look up contact information for notifications when signing on behalf of a third party");
             }
             if (built) throw new IllegalStateException("Can't build twice");

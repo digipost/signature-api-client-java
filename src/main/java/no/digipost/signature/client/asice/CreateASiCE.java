@@ -24,12 +24,12 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.security.KeyStoreConfig;
-import no.motif.single.Optional;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static no.digipost.signature.client.core.exceptions.SenderNotSpecifiedException.SENDER_NOT_SPECIFIED;
 
@@ -52,8 +52,8 @@ public class CreateASiCE<JOB extends SignatureJob> {
 
     public DocumentBundle createASiCE(JOB job) {
         Sender sender = job.getSender()
-                .or(globalSender)
-                .orElseThrow(SENDER_NOT_SPECIFIED);
+                .orElse(globalSender
+                .orElseThrow(SENDER_NOT_SPECIFIED));
 
         Manifest manifest = manifestCreator.createManifest(job, sender);
 

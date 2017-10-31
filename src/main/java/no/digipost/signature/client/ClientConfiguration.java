@@ -28,8 +28,7 @@ import no.digipost.signature.client.core.internal.security.ProvidesCertificateRe
 import no.digipost.signature.client.core.internal.security.TrustStoreLoader;
 import no.digipost.signature.client.core.internal.xml.JaxbMessageReaderWriterProvider;
 import no.digipost.signature.client.security.KeyStoreConfig;
-import no.motif.f.Do;
-import no.motif.single.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.ssl.PrivateKeyDetails;
 import org.apache.http.ssl.PrivateKeyStrategy;
 import org.apache.http.ssl.SSLContexts;
@@ -44,7 +43,6 @@ import javax.net.ssl.SSLContext;
 import javax.ws.rs.core.Configurable;
 import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.HttpHeaders;
-
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.URI;
@@ -56,15 +54,14 @@ import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static java.util.Arrays.asList;
 import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
 import static no.digipost.signature.client.Certificates.TEST;
-import static no.digipost.signature.client.Certificates.getCertificatePaths;
 import static no.digipost.signature.client.ClientMetadata.VERSION;
-import static no.motif.Singular.*;
-import static no.motif.Strings.*;
 
 public final class ClientConfiguration implements ProvidesCertificateResourcePaths, HttpIntegrationConfiguration, ASiCEConfiguration {
 
@@ -201,11 +198,11 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
         private int socketTimeoutMs = DEFAULT_SOCKET_TIMEOUT_MS;
         private int connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS;
-        private Optional<String> customUserAgentPart = none();
+        private Optional<String> customUserAgentPart = Optional.empty();
         private URI serviceRoot = ServiceUri.PRODUCTION.uri;
-        private Optional<Sender> globalSender = none();
+        private Optional<Sender> globalSender = Optional.empty();
         private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
-        private Optional<LoggingFilter> loggingFilter = none();
+        private Optional<LoggingFilter> loggingFilter = Optional.empty();
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
 
 
@@ -251,7 +248,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             if (certificates == TEST) {
                 LOG.warn("Using test certificates in trust store. This should never be done for production environments.");
             }
-            return trustStore(the(certificates).split(getCertificatePaths));
+            return trustStore(certificates.certificatePaths);
         }
 
 
@@ -282,7 +279,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * behalf of multiple other organizations)
          */
         public Builder globalSender(Sender sender) {
-            this.globalSender = optional(sender);
+            this.globalSender = Optional.of(sender);
             return this;
         }
 
@@ -293,7 +290,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * @param userAgentCustomPart The custom part to include in the User-Agent HTTP header.
          */
         public Builder includeInUserAgent(String userAgentCustomPart) {
-            customUserAgentPart = optional(nonblank, userAgentCustomPart);
+            customUserAgentPart = Optional.of(userAgentCustomPart).filter(StringUtils::isNoneBlank);
             return this;
         }
 
@@ -302,7 +299,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * {@link ClientConfiguration#HTTP_REQUEST_RESPONSE_LOGGER_NAME}.
          */
         public Builder enableRequestAndResponseLogging() {
-            loggingFilter = the(new LoggingFilter(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), 16 * 1024)).asOptional();
+            loggingFilter = Optional.of(new LoggingFilter(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), 16 * 1024));
             return this;
         }
 
@@ -352,8 +349,8 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * @param customizer The operations to do on the JAX-RS {@link Configurable}, e.g.
          *                   {@link Configurable#register(Object) registering components}.
          */
-        public Builder customizeJaxRs(Do<? super Configurable<? extends Configuration>> customizer) {
-            customizer.with(jaxrsConfig);
+        public Builder customizeJaxRs(Consumer<? super Configurable<? extends Configuration>> customizer) {
+            customizer.accept(jaxrsConfig);
             return this;
         }
 
@@ -363,13 +360,12 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             jaxrsConfig.register(MultiPartFeature.class);
             jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
             jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, createUserAgentString()));
-            for (LoggingFilter loggingFilter : this.loggingFilter) jaxrsConfig.register(loggingFilter);
+            this.loggingFilter.ifPresent(jaxrsConfig::register);
             return new ClientConfiguration(keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths, documentBundleProcessors);
         }
 
         String createUserAgentString() {
-            return customUserAgentPart.map(inBetween("(", ")")).map(prepend(MANDATORY_USER_AGENT + " "))
-                                      .orElse(MANDATORY_USER_AGENT);
+            return MANDATORY_USER_AGENT + customUserAgentPart.map(ua -> String.format(" (%s)", ua)).orElse("");
         }
 
     }

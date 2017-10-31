@@ -51,7 +51,6 @@ import static java.util.concurrent.TimeUnit.DAYS;
 import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.referenceFilenamePart;
 import static no.digipost.signature.client.direct.ExitUrls.singleExitUrl;
-import static no.motif.Iterate.on;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
 
@@ -107,8 +106,8 @@ public class CreateASiCETest {
         aSiCECreator.createASiCE(job);
 
         Path asiceFile;
-        try (DirectoryStream<Path> dumpedFileStream = newDirectoryStream(dumpFolder, "*-" + referenceFilenamePart.$(job.getReference()) + "*.zip")) {
-            asiceFile = on(dumpedFileStream).eval().head().get();
+        try (DirectoryStream<Path> dumpedFileStream = newDirectoryStream(dumpFolder, "*-" + referenceFilenamePart.apply(job.getReference()) + "*.zip")) {
+            asiceFile = dumpedFileStream.iterator().next();
         }
 
         List<String> fileNames = new ArrayList<>();

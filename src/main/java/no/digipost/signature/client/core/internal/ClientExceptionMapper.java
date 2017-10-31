@@ -17,12 +17,10 @@ package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import no.digipost.signature.client.core.exceptions.SignatureException;
-import no.motif.Exceptions;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.ws.rs.ProcessingException;
-
 import java.util.concurrent.Callable;
 
 class ClientExceptionMapper {
@@ -43,12 +41,12 @@ class ClientExceptionMapper {
         } catch (ProcessingException e) {
             throw map(e);
         } catch (Exception e) {
-            throw Exceptions.asRuntimeException(e);
+            throw e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e.getClass().getName() + ": " + e.getMessage(), e);
         }
     }
 
 
-    RuntimeException map(ProcessingException e) {
+    private RuntimeException map(ProcessingException e) {
         if (e.getCause() instanceof SSLException) {
             String sslExceptionMessage = e.getCause().getMessage();
             if (sslExceptionMessage != null && sslExceptionMessage.contains("protocol_version")) {

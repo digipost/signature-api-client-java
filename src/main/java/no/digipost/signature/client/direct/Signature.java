@@ -16,9 +16,9 @@
 package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.core.XAdESReference;
-import no.motif.f.Predicate;
 
 import java.util.Date;
+import java.util.function.Predicate;
 
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
 
@@ -74,12 +74,7 @@ public class Signature {
     }
 
     static Predicate<Signature> signatureFrom(final String signer) {
-        return new Predicate<Signature>() {
-            @Override
-            public boolean $(Signature signature) {
-                return signature.isFrom(signer);
-            }
-        };
+        return signature -> signature.isFrom(signer);
     }
 
 

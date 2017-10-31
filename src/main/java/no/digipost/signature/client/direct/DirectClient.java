@@ -28,9 +28,9 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
-import no.motif.Singular;
 
 import java.io.InputStream;
+import java.util.Optional;
 
 import static no.digipost.signature.client.direct.DirectJobStatusResponse.NO_UPDATED_STATUS;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.fromJaxb;
@@ -106,7 +106,7 @@ public class DirectClient {
      *         never {@code null}.
      */
     public DirectJobStatusResponse getStatusChange(Sender sender) {
-        XMLDirectSignatureJobStatusResponse statusChange = client.getDirectStatusChange(Singular.optional(sender));
+        XMLDirectSignatureJobStatusResponse statusChange = client.getDirectStatusChange(Optional.ofNullable(sender));
         return statusChange == null ? NO_UPDATED_STATUS : fromJaxb(statusChange);
     }
 

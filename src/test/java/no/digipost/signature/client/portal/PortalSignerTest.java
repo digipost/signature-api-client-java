@@ -15,8 +15,9 @@
  */
 package no.digipost.signature.client.portal;
 
-import no.motif.Singular;
 import org.junit.Test;
+
+import java.util.Optional;
 
 import static no.digipost.signature.client.portal.PortalSigner.identifiedByEmail;
 import static no.digipost.signature.client.portal.PortalSigner.identifiedByEmailAndMobileNumber;
@@ -45,7 +46,7 @@ public class PortalSignerTest {
     public void get_email_custom_identifier() {
         PortalSigner portalSigner = identifiedByEmail("email@example.com").build();
 
-        assertThat(portalSigner.getIdentifier(), is(Singular.<String>none()));
+        assertThat(portalSigner.getIdentifier(), is(Optional.<String>empty()));
         assertThat(portalSigner.getNotifications().getEmailAddress(), is("email@example.com"));
         assertTrue(portalSigner.getNotifications().shouldSendEmail());
         assertFalse(portalSigner.isIdentifiedByPersonalIdentificationNumber());
@@ -55,7 +56,7 @@ public class PortalSignerTest {
     public void get_mobile_number_custom_identifier() {
         PortalSigner portalSigner = identifiedByMobileNumber("12345678").build();
 
-        assertThat(portalSigner.getIdentifier(), is(Singular.<String>none()));
+        assertThat(portalSigner.getIdentifier(), is(Optional.<String>empty()));
         assertThat(portalSigner.getNotifications().getMobileNumber(), is("12345678"));
         assertTrue(portalSigner.getNotifications().shouldSendSms());
         assertFalse(portalSigner.isIdentifiedByPersonalIdentificationNumber());
@@ -65,7 +66,7 @@ public class PortalSignerTest {
     public void get_email_and_mobile_number_custom_identifier() {
         PortalSigner portalSigner = identifiedByEmailAndMobileNumber("email@example.com", "12345678").build();
 
-        assertThat(portalSigner.getIdentifier(), is(Singular.<String>none()));
+        assertThat(portalSigner.getIdentifier(), is(Optional.<String>empty()));
 
         assertThat(portalSigner.getNotifications().getEmailAddress(), is("email@example.com"));
         assertTrue(portalSigner.getNotifications().shouldSendEmail());

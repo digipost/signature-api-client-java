@@ -18,9 +18,9 @@ package no.digipost.signature.client.portal;
 import no.digipost.signature.api.xml.XMLNotifications;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.exceptions.SignatureException;
-import no.motif.f.Predicate;
 
 import java.util.Date;
+import java.util.function.Predicate;
 
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
 
@@ -61,12 +61,7 @@ public class Signature {
     }
 
     static Predicate<Signature> signatureFrom(final SignerIdentifier signer) {
-        return new Predicate<Signature>() {
-            @Override
-            public boolean $(Signature signature) {
-                return signature.signer.isSameAs(signer);
-            }
-        };
+        return signature -> signature.signer.isSameAs(signer);
     }
 
     /**

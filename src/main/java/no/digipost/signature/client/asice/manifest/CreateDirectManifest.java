@@ -15,16 +15,15 @@
  */
 package no.digipost.signature.client.asice.manifest;
 
-import no.digipost.signature.api.xml.XMLAuthenticationLevel;
 import no.digipost.signature.api.xml.XMLDirectDocument;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobManifest;
 import no.digipost.signature.api.xml.XMLDirectSigner;
-import no.digipost.signature.api.xml.XMLIdentifierInSignedDocuments;
 import no.digipost.signature.api.xml.XMLSender;
-import no.digipost.signature.api.xml.XMLSignatureType;
-import no.digipost.signature.api.xml.XMLSigningOnBehalfOf;
+import no.digipost.signature.client.core.AuthenticationLevel;
+import no.digipost.signature.client.core.IdentifierInSignedDocuments;
+import no.digipost.signature.client.core.OnBehalfOf;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.internal.MarshallableEnum;
+import no.digipost.signature.client.core.SignatureType;
 import no.digipost.signature.client.direct.DirectDocument;
 import no.digipost.signature.client.direct.DirectJob;
 import no.digipost.signature.client.direct.DirectSigner;
@@ -41,8 +40,8 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
         List<XMLDirectSigner> signers = new ArrayList<>();
         for (DirectSigner signer : job.getSigners()) {
             XMLDirectSigner xmlSigner = new XMLDirectSigner()
-                    .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
-                    .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
+                    .withSignatureType(signer.getSignatureType().map(SignatureType::getXmlEnumValue).orElse(null))
+                    .withOnBehalfOf(signer.getOnBehalfOf().map(OnBehalfOf::getXmlEnumValue).orElse(null));
             if (signer.isIdentifiedByPersonalIdentificationNumber()) {
                 xmlSigner.setPersonalIdentificationNumber(signer.getPersonalIdentificationNumber());
             } else {
@@ -53,7 +52,7 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
 
         return new XMLDirectSignatureJobManifest()
                 .withSigners(signers)
-                .withRequiredAuthentication(job.getRequiredAuthentication().map(MarshallableEnum.To.<XMLAuthenticationLevel>xmlValue()).orNull())
+                .withRequiredAuthentication(job.getRequiredAuthentication().map(AuthenticationLevel::getXmlEnumValue).orElse(null))
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
                 .withDocument(new XMLDirectDocument()
                         .withTitle(document.getTitle())
@@ -61,7 +60,7 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
                         .withHref(document.getFileName())
                         .withMime(document.getMimeType())
                 )
-                .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(MarshallableEnum.To.<XMLIdentifierInSignedDocuments>xmlValue()).orNull())
+                .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null))
                 ;
     }
 }

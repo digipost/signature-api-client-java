@@ -15,11 +15,11 @@
  */
 package no.digipost.signature.client;
 
-import no.motif.f.Fn;
-
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-import static no.motif.Iterate.on;
+import static java.util.stream.Collectors.toList;
 
 public enum Certificates {
 
@@ -40,27 +40,19 @@ public enum Certificates {
     final List<String> certificatePaths;
 
     Certificates(String ... certificatePaths) {
-        this.certificatePaths = on(certificatePaths).map(FullCertificateClassPathUri.instance).collect();
+        this.certificatePaths = Stream.of(certificatePaths).map(FullCertificateClassPathUri.instance).collect(toList());
     }
 
-    static final Fn<Certificates, List<String>> getCertificatePaths = new Fn<Certificates, List<String>>() {
-        @Override
-        public List<String> $(Certificates certificates) {
-            return certificates.certificatePaths;
-        }
-    };
 }
 
 
-
-
-final class FullCertificateClassPathUri implements Fn<String, String> {
+final class FullCertificateClassPathUri implements Function<String, String> {
     static final FullCertificateClassPathUri instance = new FullCertificateClassPathUri();
 
     private static final String root = "/" + Certificates.class.getPackage().getName().replace('.', '/') + "/certificates/";
 
     @Override
-    public String $(String resourceName) {
+    public String apply(String resourceName) {
         return "classpath:" + root + resourceName;
     }
 }

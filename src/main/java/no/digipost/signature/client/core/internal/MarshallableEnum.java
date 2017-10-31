@@ -15,22 +15,8 @@
  */
 package no.digipost.signature.client.core.internal;
 
-import no.motif.f.Fn;
-
 public interface MarshallableEnum<XML_ENUM_TYPE> {
 
     XML_ENUM_TYPE getXmlEnumValue();
-
-    final class To {
-        public static <X> Fn<MarshallableEnum<X>, X> xmlValue() {
-            return new Fn<MarshallableEnum<X>, X>() {
-                @Override
-                public X $(MarshallableEnum<X> marshallableEnum) {
-                    return marshallableEnum.getXmlEnumValue();
-                }
-            };
-        }
-        private To() {}
-    }
 
 }

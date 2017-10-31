@@ -18,13 +18,11 @@ package no.digipost.signature.client.direct;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.internal.Confirmable;
-import no.motif.f.Fn0;
 
 import java.util.List;
 
 import static no.digipost.signature.client.direct.DirectJobStatus.NO_CHANGES;
 import static no.digipost.signature.client.direct.Signature.signatureFrom;
-import static no.motif.Iterate.on;
 
 
 public class DirectJobStatusResponse implements Confirmable {
@@ -99,15 +97,10 @@ public class DirectJobStatusResponse implements Confirmable {
      * @see #getSignatures()
      */
     public Signature getSignatureFrom(final String signer) {
-        return on(signatures)
+        return signatures.stream()
                 .filter(signatureFrom(signer))
-                .head()
-                .orElseThrow(new Fn0<IllegalArgumentException>() {
-                    @Override
-                    public IllegalArgumentException $() {
-                        return new IllegalArgumentException("Unable to find signature from this signer");
-                    }
-                });
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unable to find signature from this signer"));
     }
 
     @Override

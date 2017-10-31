@@ -18,11 +18,10 @@ package no.digipost.signature.client.direct;
 import no.digipost.signature.client.core.OnBehalfOf;
 import no.digipost.signature.client.core.SignatureType;
 import no.digipost.signature.client.core.internal.SignerCustomizations;
-import no.motif.Singular;
-import no.motif.single.Optional;
+
+import java.util.Optional;
 
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
-import static no.motif.Singular.optional;
 
 public class DirectSigner {
 
@@ -38,8 +37,8 @@ public class DirectSigner {
 
         private String personalIdentificationNumber;
         private String customIdentifier;
-        private Optional<SignatureType> signatureType = Singular.none();
-        private Optional<OnBehalfOf> onBehalfOf = Singular.none();
+        private Optional<SignatureType> signatureType = Optional.empty();
+        private Optional<OnBehalfOf> onBehalfOf = Optional.empty();
 
         private Builder(String personalIdentificationNumber, String customIdentifier) {
             this.personalIdentificationNumber = personalIdentificationNumber;
@@ -48,13 +47,13 @@ public class DirectSigner {
 
         @Override
         public Builder withSignatureType(SignatureType type) {
-            this.signatureType = optional(type);
+            this.signatureType = Optional.of(type);
             return this;
         }
 
         @Override
         public Builder onBehalfOf(OnBehalfOf onBehalfOf) {
-            this.onBehalfOf = optional(onBehalfOf);
+            this.onBehalfOf = Optional.of(onBehalfOf);
             return this;
         }
 

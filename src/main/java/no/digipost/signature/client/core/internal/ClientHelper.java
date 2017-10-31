@@ -15,13 +15,27 @@
  */
 package no.digipost.signature.client.core.internal;
 
-import no.digipost.signature.api.xml.*;
+import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
+import no.digipost.signature.api.xml.XMLDirectSignatureJobResponse;
+import no.digipost.signature.api.xml.XMLDirectSignatureJobStatusResponse;
+import no.digipost.signature.api.xml.XMLError;
+import no.digipost.signature.api.xml.XMLPortalSignatureJobRequest;
+import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
+import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.exceptions.*;
+import no.digipost.signature.client.core.exceptions.BrokerNotAuthorizedException;
+import no.digipost.signature.client.core.exceptions.CantQueryStatusException;
+import no.digipost.signature.client.core.exceptions.InvalidStatusQueryTokenException;
+import no.digipost.signature.client.core.exceptions.JobCannotBeCancelledException;
+import no.digipost.signature.client.core.exceptions.NotCancellableException;
+import no.digipost.signature.client.core.exceptions.RuntimeIOException;
+import no.digipost.signature.client.core.exceptions.SignatureException;
+import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
+import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
-import no.motif.single.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.slf4j.Logger;
@@ -32,24 +46,27 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.StatusType;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.TOO_MANY_REQUESTS;
 import static no.digipost.signature.client.core.exceptions.SenderNotSpecifiedException.SENDER_NOT_SPECIFIED;
 import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_AUTHORIZED;
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
 import static no.digipost.signature.client.core.internal.Target.DIRECT;
 import static no.digipost.signature.client.core.internal.Target.PORTAL;
-import static no.motif.Singular.optional;
-import static no.motif.Strings.nonblank;
 
 public class ClientHelper {
 
@@ -68,7 +85,7 @@ public class ClientHelper {
     }
 
     public XMLDirectSignatureJobResponse sendSignatureJobRequest(XMLDirectSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
-        final Sender actualSender = sender.or(globalSender).orElseThrow(SENDER_NOT_SPECIFIED);
+        final Sender actualSender = getActualSender(sender);
 
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         final BodyPart documentBundleBodyPart = new BodyPart(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM_TYPE);
@@ -83,7 +100,7 @@ public class ClientHelper {
     }
 
     public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(XMLPortalSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
-        final Sender actualSender = sender.or(globalSender).orElseThrow(SENDER_NOT_SPECIFIED);
+        final Sender actualSender = getActualSender(sender);
 
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         final BodyPart documentBundleBodyPart = new BodyPart(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM_TYPE);
@@ -175,7 +192,7 @@ public class ClientHelper {
         return call(new Callable<RESPONSE_CLASS>() {
             @Override
             public RESPONSE_CLASS call() {
-                Response response = httpClient.signatureServiceRoot().path(target.path(sender.or(globalSender).orElseThrow(SENDER_NOT_SPECIFIED)))
+                Response response = httpClient.signatureServiceRoot().path(target.path(getActualSender(sender)))
                         .request()
                         .accept(APPLICATION_XML_TYPE)
                         .get();
@@ -226,6 +243,10 @@ public class ClientHelper {
 
     private void call(Runnable action) {
         clientExceptionMapper.doWithMappedClientException(action);
+    }
+
+    private Sender getActualSender(Optional<Sender> sender) {
+        return sender.orElse(globalSender.orElseThrow(SENDER_NOT_SPECIFIED));
     }
 
     private class UsingBodyParts {
@@ -284,22 +305,22 @@ public class ClientHelper {
     }
 
     private static XMLError extractError(Response response) {
-        XMLError error = null;
-        Optional<String> responseContentType = optional(response.getHeaderString(HttpHeaders.CONTENT_TYPE));
-        if (responseContentType.isSome() && MediaType.valueOf(responseContentType.get()).equals(APPLICATION_XML_TYPE)) {
+        XMLError error;
+        Optional<String> responseContentType = Optional.ofNullable(response.getHeaderString(HttpHeaders.CONTENT_TYPE));
+        if (responseContentType.isPresent() && MediaType.valueOf(responseContentType.get()).equals(APPLICATION_XML_TYPE)) {
             try {
                 response.bufferEntity();
                 error = response.readEntity(XMLError.class);
             } catch (Exception e) {
                 throw new UnexpectedResponseException(
                         HttpHeaders.CONTENT_TYPE + " " + responseContentType.orElse("unknown") + ": " +
-                        optional(nonblank, response.readEntity(String.class)).orElse("<no content in response>"),
+                        Optional.ofNullable(response.readEntity(String.class)).filter(StringUtils::isNoneBlank).orElse("<no content in response>"),
                         e, ResponseStatus.resolve(response.getStatus()), OK);
             }
         } else {
             throw new UnexpectedResponseException(
                     HttpHeaders.CONTENT_TYPE + " " + responseContentType.orElse("unknown") + ": " +
-                    optional(nonblank, response.readEntity(String.class)).orElse("<no content in response>"),
+                    Optional.ofNullable(response.readEntity(String.class)).filter(StringUtils::isNoneBlank).orElse("<no content in response>"),
                     ResponseStatus.resolve(response.getStatus()), OK);
         }
         if (error == null) {
