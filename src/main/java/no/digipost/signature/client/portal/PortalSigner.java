@@ -54,22 +54,6 @@ public class PortalSigner {
         this.notificationsUsingLookup = notificationsUsingLookup;
     }
 
-    /**
-     * @deprecated See {@link #identifiedByPersonalIdentificationNumber(String, Notifications)}
-     */
-    @Deprecated
-    public static Builder builder(String personalIdentificationNumber, Notifications notifications) {
-        return new Builder(personalIdentificationNumber, notifications, null);
-    }
-
-    /**
-     * @deprecated See {@link #identifiedByPersonalIdentificationNumber(String, NotificationsUsingLookup)}
-     */
-    @Deprecated
-    public static Builder builder(String personalIdentificationNumber, NotificationsUsingLookup notificationsUsingLookup) {
-        return new Builder(personalIdentificationNumber, null, notificationsUsingLookup);
-    }
-
     public static Builder identifiedByPersonalIdentificationNumber(String personalIdentificationNumber, Notifications notifications) {
         return new Builder(personalIdentificationNumber, notifications, null);
     }
