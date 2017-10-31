@@ -64,7 +64,7 @@ public class SignerStatus {
         this.identifier = identifier;
     }
 
-    public static SignerStatus fromXmlType(String xmlSignerStatus) {
+    static SignerStatus fromXmlType(String xmlSignerStatus) {
         for (SignerStatus status : KNOWN_STATUSES) {
             if (status.is(xmlSignerStatus)) {
                 return status;

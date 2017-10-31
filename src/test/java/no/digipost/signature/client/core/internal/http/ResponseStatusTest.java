@@ -27,7 +27,6 @@ import org.junit.contrib.theories.Theory;
 import org.junit.runner.RunWith;
 
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.Response.StatusType;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -38,12 +37,12 @@ public class ResponseStatusTest {
 
     @Test
     public void resolveStandardHttpStatus() {
-        assertThat(ResponseStatus.resolve(200), is((StatusType) Status.OK));
+        assertThat(ResponseStatus.resolve(200), is(Status.OK));
     }
 
     @Test
     public void resolveCustomHttpStatus() {
-        assertThat(ResponseStatus.resolve(422), is((StatusType) Custom.UNPROCESSABLE_ENTITY));
+        assertThat(ResponseStatus.resolve(422), is(Custom.UNPROCESSABLE_ENTITY));
     }
 
     @Test

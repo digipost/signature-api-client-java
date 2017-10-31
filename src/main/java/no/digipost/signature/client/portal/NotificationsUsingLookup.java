@@ -23,7 +23,7 @@ public enum NotificationsUsingLookup {
     public final boolean shouldSendEmail;
     public final boolean shouldSendSms;
 
-    private NotificationsUsingLookup(boolean sendEmail, boolean sendSms) {
+    NotificationsUsingLookup(boolean sendEmail, boolean sendSms) {
         this.shouldSendEmail = sendEmail;
         this.shouldSendSms = sendSms;
     }

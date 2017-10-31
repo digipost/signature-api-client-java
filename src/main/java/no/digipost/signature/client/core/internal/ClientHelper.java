@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -51,7 +52,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
@@ -90,13 +91,8 @@ public class ClientHelper {
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         final BodyPart documentBundleBodyPart = new BodyPart(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM_TYPE);
 
-        return call(new Callable<XMLDirectSignatureJobResponse>() {
-            @Override
-            public XMLDirectSignatureJobResponse call() {
-                return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
-                        .postAsMultiPart(DIRECT.path(actualSender), XMLDirectSignatureJobResponse.class);
-            }
-        });
+        return call(() -> new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
+                .postAsMultiPart(DIRECT.path(actualSender), XMLDirectSignatureJobResponse.class));
     }
 
     public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(XMLPortalSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
@@ -105,77 +101,54 @@ public class ClientHelper {
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         final BodyPart documentBundleBodyPart = new BodyPart(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM_TYPE);
 
-        return call(new Callable<XMLPortalSignatureJobResponse>() {
-            @Override
-            public XMLPortalSignatureJobResponse call() {
-                return new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
-                        .postAsMultiPart(PORTAL.path(actualSender), XMLPortalSignatureJobResponse.class);
-            }
-        });
+        return call(() -> new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
+                .postAsMultiPart(PORTAL.path(actualSender), XMLPortalSignatureJobResponse.class));
     }
 
     public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(final String statusUrl) {
-        return call(new Callable<XMLDirectSignatureJobStatusResponse>() {
-            @Override
-            public XMLDirectSignatureJobStatusResponse call() {
-                Response response = httpClient.target(statusUrl)
-                        .request()
-                        .accept(APPLICATION_XML_TYPE)
-                        .get();
-                try {
-                    StatusType status = ResponseStatus.resolve(response.getStatus());
-                    if (status == OK) {
-                        return response.readEntity(XMLDirectSignatureJobStatusResponse.class);
-                    } else if (status == FORBIDDEN) {
-                        XMLError error = extractError(response);
-                        if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
-                            throw new InvalidStatusQueryTokenException(statusUrl, error.getErrorMessage());
-                        }
-                    } else if (status == NOT_FOUND) {
-                        XMLError error = extractError(response);
-                        if (SIGNING_CEREMONY_NOT_COMPLETED.sameAs(error.getErrorCode())) {
-                            throw new CantQueryStatusException(status, error.getErrorMessage());
-                        }
+        return call(() -> {
+            Invocation.Builder request = httpClient.target(statusUrl).request().accept(APPLICATION_XML_TYPE);
+
+            try (Response response = request.get()) {
+                StatusType status = ResponseStatus.resolve(response.getStatus());
+                if (status == OK) {
+                    return response.readEntity(XMLDirectSignatureJobStatusResponse.class);
+                } else if (status == FORBIDDEN) {
+                    XMLError error = extractError(response);
+                    if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
+                        throw new InvalidStatusQueryTokenException(statusUrl, error.getErrorMessage());
                     }
-                    throw exceptionForGeneralError(response);
-                } finally {
-                    response.close();
+                } else if (status == NOT_FOUND) {
+                    XMLError error = extractError(response);
+                    if (SIGNING_CEREMONY_NOT_COMPLETED.sameAs(error.getErrorCode())) {
+                        throw new CantQueryStatusException(status, error.getErrorMessage());
+                    }
                 }
+                throw exceptionForGeneralError(response);
             }
         });
     }
 
     public InputStream getSignedDocumentStream(final String uri) {
-        return call(new Callable<InputStream>() {
-            @Override
-            public InputStream call() {
-                return parseResponse(httpClient.target(uri).request().accept(APPLICATION_XML_TYPE, APPLICATION_OCTET_STREAM_TYPE).get(), InputStream.class);
-            }
-        });
+        return call(() -> parseResponse(httpClient.target(uri).request().accept(APPLICATION_XML_TYPE, APPLICATION_OCTET_STREAM_TYPE).get(), InputStream.class));
     }
 
     public void cancel(final Cancellable cancellable) {
-        call(new Runnable() {
-            @Override
-            public void run() {
-                if (cancellable.getCancellationUrl() != null) {
-                    String url = cancellable.getCancellationUrl().getUrl();
-                    Response response = postEmptyEntity(url);
-                    try {
-                        StatusType status = ResponseStatus.resolve(response.getStatus());
-                        if (status == OK) {
-                            return;
-                        } else if (status == CONFLICT) {
-                            XMLError error = extractError(response);
-                            throw new JobCannotBeCancelledException(status, error.getErrorCode(), error.getErrorMessage());
-                        }
-                        throw exceptionForGeneralError(response);
-                    } finally {
-                        response.close();
+        call(() -> {
+            if (cancellable.getCancellationUrl() != null) {
+                String url = cancellable.getCancellationUrl().getUrl();
+                try (Response response = postEmptyEntity(url)) {
+                    StatusType status = ResponseStatus.resolve(response.getStatus());
+                    if (status == OK) {
+                        return;
+                    } else if (status == CONFLICT) {
+                        XMLError error = extractError(response);
+                        throw new JobCannotBeCancelledException(status, error.getErrorCode(), error.getErrorMessage());
                     }
-                } else {
-                    throw new NotCancellableException();
+                    throw exceptionForGeneralError(response);
                 }
+            } else {
+                throw new NotCancellableException();
             }
         });
     }
@@ -189,56 +162,44 @@ public class ClientHelper {
     }
 
     private <RESPONSE_CLASS> RESPONSE_CLASS getStatusChange(final Optional<Sender> sender, final Target target, final Class<RESPONSE_CLASS> responseClass) {
-        return call(new Callable<RESPONSE_CLASS>() {
-            @Override
-            public RESPONSE_CLASS call() {
-                Response response = httpClient.signatureServiceRoot().path(target.path(getActualSender(sender)))
-                        .request()
-                        .accept(APPLICATION_XML_TYPE)
-                        .get();
-                try {
-                    StatusType status = ResponseStatus.resolve(response.getStatus());
-                    if (status == NO_CONTENT) {
-                        return null;
-                    } else if (status == OK) {
-                        return response.readEntity(responseClass);
-                    } else if (status == TOO_MANY_REQUESTS) {
-                        throw new TooEagerPollingException(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER));
-                    } else {
-                        throw exceptionForGeneralError(response);
-                    }
-                } finally {
-                    response.close();
+        return call(() -> {
+            Invocation.Builder request = httpClient.signatureServiceRoot().path(target.path(getActualSender(sender)))
+                    .request()
+                    .accept(APPLICATION_XML_TYPE);
+            try (Response response = request.get()) {
+                StatusType status = ResponseStatus.resolve(response.getStatus());
+                if (status == NO_CONTENT) {
+                    return null;
+                } else if (status == OK) {
+                    return response.readEntity(responseClass);
+                } else if (status == TOO_MANY_REQUESTS) {
+                    throw new TooEagerPollingException(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER));
+                } else {
+                    throw exceptionForGeneralError(response);
                 }
             }
         });
     }
 
     public void confirm(final Confirmable confirmable) {
-        call(new Runnable() {
-            @Override
-            public void run() {
-                if (confirmable.getConfirmationReference() != null) {
-                    String url = confirmable.getConfirmationReference().getConfirmationUrl();
-                    LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
-                    Response response = postEmptyEntity(url);
-                    try {
-                        StatusType status = ResponseStatus.resolve(response.getStatus());
-                        if (status != OK) {
-                            throw exceptionForGeneralError(response);
-                        }
-                    } finally {
-                        response.close();
+        call(() -> {
+            if (confirmable.getConfirmationReference() != null) {
+                String url = confirmable.getConfirmationReference().getConfirmationUrl();
+                LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
+                try (Response response = postEmptyEntity(url)) {
+                    StatusType status = ResponseStatus.resolve(response.getStatus());
+                    if (status != OK) {
+                        throw exceptionForGeneralError(response);
                     }
-                } else {
-                    LOG.info("Does not need to send confirmation for '{}'", confirmable);
                 }
+            } else {
+                LOG.info("Does not need to send confirmation for '{}'", confirmable);
             }
         });
     }
 
-    private <T> T call(Callable<T> producer) {
-        return clientExceptionMapper.doWithMappedClientException(producer);
+    private <T> T call(Supplier<T> supplier) {
+        return clientExceptionMapper.doWithMappedClientException(supplier);
     }
 
     private void call(Runnable action) {
@@ -263,15 +224,12 @@ public class ClientHelper {
                     multiPart.bodyPart(bodyPart);
                 }
 
-                Response response = httpClient.signatureServiceRoot().path(path)
+                Invocation.Builder request = httpClient.signatureServiceRoot().path(path)
                         .request()
                         .header(CONTENT_TYPE, multiPart.getMediaType())
-                        .accept(APPLICATION_XML_TYPE)
-                        .post(Entity.entity(multiPart, multiPart.getMediaType()));
-                try {
+                        .accept(APPLICATION_XML_TYPE);
+                try (Response response = request.post(Entity.entity(multiPart, multiPart.getMediaType()))) {
                     return parseResponse(response, responseType);
-                } finally {
-                    response.close();
                 }
             } catch (IOException e) {
                 throw new RuntimeIOException(e);

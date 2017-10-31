@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static java.util.stream.Collectors.toList;
+
 final class JaxbEntityMapping {
 
     static XMLDirectSignatureJobRequest toJaxb(DirectJob signatureJob) {
@@ -44,10 +46,9 @@ final class JaxbEntityMapping {
     }
 
     static DirectJobResponse fromJaxb(XMLDirectSignatureJobResponse xmlSignatureJobResponse) {
-        List<RedirectUrl> redirectUrls = new ArrayList<>();
-        for (XMLSignerSpecificUrl redirectUrl : xmlSignatureJobResponse.getRedirectUrls()) {
-            redirectUrls.add(new RedirectUrl(redirectUrl.getSigner(), redirectUrl.getValue()));
-        }
+        List<RedirectUrl> redirectUrls = xmlSignatureJobResponse.getRedirectUrls().stream()
+                .map(RedirectUrl::fromJaxb)
+                .collect(toList());
 
         return new DirectJobResponse(xmlSignatureJobResponse.getSignatureJobId(), redirectUrls, xmlSignatureJobResponse.getStatusUrl());
     }

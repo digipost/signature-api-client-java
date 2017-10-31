@@ -22,9 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
-public final class ClientMetadata {
+final class ClientMetadata {
 
-    public static final String VERSION;
+    static final String VERSION;
 
 
     static {
