@@ -42,16 +42,12 @@ public class ResponseStatus {
     public enum Custom implements StatusType {
 
         /**
-         * 422 Unprocesable Entity, see
+         * 422 Unprocessable Entity, see
          * <a href="https://tools.ietf.org/html/rfc4918#section-11.2">https://tools.ietf.org/html/rfc4918#section-11.2</a>
          */
         UNPROCESSABLE_ENTITY(422, "Unprocessable Entity"),
 
-        /**
-         * 429 Too Many Requests, see
-         * <a href="https://tools.ietf.org/html/rfc6585#page-3">https://tools.ietf.org/html/rfc6585#page-3</a>
-         */
-        TOO_MANY_REQUESTS(429, "Too Many Requests");
+        ;
 
         /**
          * Convert a numerical status code into the corresponding CustomStatus.
