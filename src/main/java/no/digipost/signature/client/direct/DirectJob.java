@@ -20,16 +20,14 @@ import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.internal.JobCustomizations;
-import no.motif.Singular;
-import no.motif.single.Optional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.unmodifiableList;
-import static no.motif.Singular.optional;
 
 public class DirectJob implements SignatureJob, WithExitUrls {
 
@@ -39,10 +37,10 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     private String completionUrl;
     private String rejectionUrl;
     private String errorUrl;
-    private Optional<Sender> sender = Singular.none();
-    private Optional<StatusRetrievalMethod> statusRetrievalMethod = Singular.none();
-    private Optional<AuthenticationLevel> requiredAuthentication = Singular.none();
-    private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Singular.none();
+    private Optional<Sender> sender = Optional.empty();
+    private Optional<StatusRetrievalMethod> statusRetrievalMethod = Optional.empty();
+    private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();
+    private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Optional.empty();
 
     private DirectJob(List<DirectSigner> signers, DirectDocument document, String completionUrl, String rejectionUrl, String errorUrl) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
@@ -155,24 +153,24 @@ public class DirectJob implements SignatureJob, WithExitUrls {
 
         @Override
         public Builder withSender(Sender sender) {
-            target.sender = Singular.optional(sender);
+            target.sender = Optional.of(sender);
             return this;
         }
 
         @Override
         public Builder requireAuthentication(AuthenticationLevel level) {
-            target.requiredAuthentication = optional(level);
+            target.requiredAuthentication = Optional.of(level);
             return this;
         }
 
         @Override
         public Builder withIdentifierInSignedDocuments(IdentifierInSignedDocuments identifier) {
-            target.identifierInSignedDocuments = optional(identifier);
+            target.identifierInSignedDocuments = Optional.of(identifier);
             return this;
         }
 
         public Builder retrieveStatusBy(StatusRetrievalMethod statusRetrievalMethod) {
-            target.statusRetrievalMethod = optional(statusRetrievalMethod);
+            target.statusRetrievalMethod = Optional.of(statusRetrievalMethod);
             return this;
         }
 

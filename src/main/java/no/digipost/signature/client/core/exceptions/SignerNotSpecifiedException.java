@@ -15,16 +15,11 @@
  */
 package no.digipost.signature.client.core.exceptions;
 
-import no.motif.f.Fn0;
+import java.util.function.Supplier;
 
 public class SignerNotSpecifiedException extends SignatureException {
 
-    public static final Fn0<SignatureException> SIGNER_NOT_SPECIFIED = new Fn0<SignatureException>() {
-        @Override
-        public SignatureException $() {
-            return new SignerNotSpecifiedException();
-        }
-    };
+    public static final Supplier<SignatureException> SIGNER_NOT_SPECIFIED = SignerNotSpecifiedException::new;
 
     private SignerNotSpecifiedException() {
         super("Signer's personal identification number must be specified.");

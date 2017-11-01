@@ -5,7 +5,7 @@
     <name>Posten signering - Java API Client Library</name>
     <groupId>no.digipost.signature</groupId>
     <artifactId>signature-api-client-java</artifactId>
-    <version>2.5-SNAPSHOT</version>
+    <version>3.1-SNAPSHOT</version>
 
     <parent>
         <groupId>no.digipost</groupId>
@@ -16,7 +16,7 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <signature.api.version>1.9</signature.api.version>
+        <signature.api.version>2.0</signature.api.version>
         <slf4j.version>1.7.21</slf4j.version>
     </properties>
 
@@ -126,9 +126,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.runeflobakk</groupId>
-            <artifactId>motif</artifactId>
-            <version>0.8</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.6</version>
         </dependency>
 
         <dependency>

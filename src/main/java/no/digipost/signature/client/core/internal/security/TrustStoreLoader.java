@@ -81,11 +81,11 @@ public class TrustStoreLoader {
 
     private static class ClassPathFileLoader implements ResourceLoader {
 
-        public static final String CLASSPATH_PATH_PREFIX = "classpath:";
+        static final String CLASSPATH_PATH_PREFIX = "classpath:";
 
         private final String certificatePath;
 
-        public ClassPathFileLoader(String certificateFolder) {
+        ClassPathFileLoader(String certificateFolder) {
             this.certificatePath = certificateFolder.substring(CLASSPATH_PATH_PREFIX.length());
         }
 
@@ -102,7 +102,7 @@ public class TrustStoreLoader {
     private static class FileLoader implements ResourceLoader {
         private final File path;
 
-        public FileLoader(String certificateFolder) {
+        FileLoader(String certificateFolder) {
             this.path = new File(certificateFolder);
         }
 

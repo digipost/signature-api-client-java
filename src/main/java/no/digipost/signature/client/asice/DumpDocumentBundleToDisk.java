@@ -16,8 +16,6 @@
 package no.digipost.signature.client.asice;
 
 import no.digipost.signature.client.core.SignatureJob;
-import no.motif.f.Fn;
-import no.motif.single.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,37 +23,38 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Clock;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+import java.util.function.Function;
 
+import static java.lang.String.format;
 import static java.nio.file.Files.isDirectory;
-import static no.motif.Base.first;
-import static no.motif.Singular.optional;
-import static no.motif.Strings.append;
-import static no.motif.Strings.inBetween;
 
 public class DumpDocumentBundleToDisk implements DocumentBundleProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(DumpDocumentBundleToDisk.class);
 
-    private static final String TIMESTAMP_PATTERN = "yyyyMMddHHmmssSSS";
+    static final String TIMESTAMP_PATTERN = "yyyyMMddHHmmssSSS";
 
     private final Path directory;
+    private final Clock clock;
 
-    public DumpDocumentBundleToDisk(Path directory) {
+    public DumpDocumentBundleToDisk(Path directory, Clock clock) {
         this.directory = directory;
+        this.clock = clock;
     }
 
 
     @Override
     public void process(SignatureJob job, InputStream documentBundle) throws IOException {
         if (isDirectory(directory)) {
-            DateFormat timestampFormat = new SimpleDateFormat(TIMESTAMP_PATTERN);
-            Optional<String> reference = optional(job.getReference());
-            String filename = timestampFormat.format(new Date()) + "-" + reference.map(referenceFilenamePart).orElse("") + "asice.zip";
+            DateTimeFormatter timestampFormat = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN);
+            Optional<String> reference = Optional.ofNullable(job.getReference());
+            String filename = timestampFormat.format(ZonedDateTime.now(clock)) + "-" + reference.map(referenceFilenamePart).orElse("") + "asice.zip";
             Path target = directory.resolve(filename);
-            LOG.info("Dumping document bundle{}to {}", reference.map(inBetween(" for job with reference '", "' ")).orElse(" "), target);
+            LOG.info("Dumping document bundle{}to {}", reference.map(ref -> format(" for job with reference '%s' ", ref)).orElse(" "), target);
             Files.copy(documentBundle, target);
         } else {
             throw new InvalidDirectoryException(directory);
@@ -63,16 +62,11 @@ public class DumpDocumentBundleToDisk implements DocumentBundleProcessor {
     }
 
     public static class InvalidDirectoryException extends IOException {
-        public InvalidDirectoryException(Path path) {
+        InvalidDirectoryException(Path path) {
             super("The path " + path + (!Files.exists(path) ? " does not exist" : " is not a valid directory"));
         }
     }
 
-    static final Fn<String, String> referenceFilenamePart = first(new Fn<String, String>() {
-        @Override
-        public String $(String reference) {
-            return reference.replace(' ', '_');
-        }
-    }).then(append("-"));
+    static final Function<String, String> referenceFilenamePart = reference -> reference.replace(' ', '_') + "-";
 
 }

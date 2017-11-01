@@ -19,13 +19,11 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.Confirmable;
-import no.motif.f.Fn0;
 
 import java.util.List;
 
 import static no.digipost.signature.client.portal.PortalJobStatus.NO_CHANGES;
 import static no.digipost.signature.client.portal.Signature.signatureFrom;
-import static no.motif.Iterate.on;
 
 /**
  * Indicates a job which has got a new {@link PortalJobStatus status}
@@ -114,15 +112,10 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
      * @throws IllegalArgumentException if the job response doesn't contain a signature from this signer
      */
     public Signature getSignatureFrom(SignerIdentifier signer) {
-        return on(signatures)
+        return signatures.stream()
                 .filter(signatureFrom(signer))
-                .head()
-                .orElseThrow(new Fn0<IllegalArgumentException>() {
-                    @Override
-                    public IllegalArgumentException $() {
-                        return new IllegalArgumentException("Unable to find signature from this signer");
-                    }
-                });
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unable to find signature from this signer"));
     }
 
     @Override

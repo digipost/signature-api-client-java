@@ -17,7 +17,9 @@ package no.digipost.signature.client.asice;
 
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.security.KeyStoreConfig;
-import no.motif.single.Optional;
+
+import java.time.Clock;
+import java.util.Optional;
 
 public interface ASiCEConfiguration {
 
@@ -26,5 +28,7 @@ public interface ASiCEConfiguration {
     Optional<Sender> getGlobalSender();
 
     Iterable<DocumentBundleProcessor> getDocumentBundleProcessors();
+
+    Clock getClock();
 
 }

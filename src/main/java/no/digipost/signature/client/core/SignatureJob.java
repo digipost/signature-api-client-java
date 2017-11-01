@@ -15,7 +15,7 @@
  */
 package no.digipost.signature.client.core;
 
-import no.motif.single.Optional;
+import java.util.Optional;
 
 public interface SignatureJob {
 

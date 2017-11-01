@@ -17,38 +17,31 @@ package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import no.digipost.signature.client.core.exceptions.SignatureException;
-import no.motif.Exceptions;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.ws.rs.ProcessingException;
-
-import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 class ClientExceptionMapper {
 
-    public void doWithMappedClientException(final Runnable action) {
-        doWithMappedClientException(new Callable<Void>() {
-            @Override
-            public Void call() {
-                action.run();
-                return null;
-            }
+    void doWithMappedClientException(Runnable action) {
+        doWithMappedClientException(() -> {
+            action.run();
+            return null;
         });
     }
 
-    public <T> T doWithMappedClientException(Callable<T> produceResult) {
+    <T> T doWithMappedClientException(Supplier<T> produceResult) {
         try {
-            return produceResult.call();
+            return produceResult.get();
         } catch (ProcessingException e) {
             throw map(e);
-        } catch (Exception e) {
-            throw Exceptions.asRuntimeException(e);
         }
     }
 
 
-    RuntimeException map(ProcessingException e) {
+    private RuntimeException map(ProcessingException e) {
         if (e.getCause() instanceof SSLException) {
             String sslExceptionMessage = e.getCause().getMessage();
             if (sslExceptionMessage != null && sslExceptionMessage.contains("protocol_version")) {

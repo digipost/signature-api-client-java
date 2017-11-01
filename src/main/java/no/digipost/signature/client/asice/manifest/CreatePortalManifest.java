@@ -15,34 +15,41 @@
  */
 package no.digipost.signature.client.asice.manifest;
 
-import no.digipost.signature.api.xml.XMLAuthenticationLevel;
 import no.digipost.signature.api.xml.XMLAvailability;
 import no.digipost.signature.api.xml.XMLEmail;
 import no.digipost.signature.api.xml.XMLEnabled;
-import no.digipost.signature.api.xml.XMLIdentifierInSignedDocuments;
 import no.digipost.signature.api.xml.XMLNotifications;
 import no.digipost.signature.api.xml.XMLNotificationsUsingLookup;
 import no.digipost.signature.api.xml.XMLPortalDocument;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobManifest;
 import no.digipost.signature.api.xml.XMLPortalSigner;
 import no.digipost.signature.api.xml.XMLSender;
-import no.digipost.signature.api.xml.XMLSignatureType;
-import no.digipost.signature.api.xml.XMLSigningOnBehalfOf;
 import no.digipost.signature.api.xml.XMLSms;
+import no.digipost.signature.client.core.AuthenticationLevel;
+import no.digipost.signature.client.core.IdentifierInSignedDocuments;
+import no.digipost.signature.client.core.OnBehalfOf;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.internal.MarshallableEnum;
+import no.digipost.signature.client.core.SignatureType;
 import no.digipost.signature.client.portal.Notifications;
 import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
 
+import java.time.Clock;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static no.digipost.signature.client.core.exceptions.SignerNotSpecifiedException.SIGNER_NOT_SPECIFIED;
 
 public class CreatePortalManifest extends ManifestCreator<PortalJob> {
+
+    private final Clock clock;
+
+    public CreatePortalManifest(Clock clock) {
+        this.clock = clock;
+    }
 
     @Override
     Object buildXmlManifest(PortalJob job, Sender sender) {
@@ -59,9 +66,12 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
         }
 
         PortalDocument document = job.getDocument();
+
+        ZonedDateTime activationTime = job.getActivationTime().map(activation -> activation.atZone(clock.getZone())).orElse(null);
+
         return new XMLPortalSignatureJobManifest()
                 .withSigners(xmlSigners)
-                .withRequiredAuthentication(job.getRequiredAuthentication().map(MarshallableEnum.To.<XMLAuthenticationLevel>xmlValue()).orNull())
+                .withRequiredAuthentication(job.getRequiredAuthentication().map(AuthenticationLevel::getXmlEnumValue).orElse(null))
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
                 .withDocument(new XMLPortalDocument()
                         .withTitle(document.getTitle())
@@ -71,18 +81,18 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                         .withMime(document.getMimeType())
                 )
                 .withAvailability(new XMLAvailability()
-                        .withActivationTime(job.getActivationTime())
+                        .withActivationTime(activationTime)
                         .withAvailableSeconds(job.getAvailableSeconds())
                 )
-                .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(MarshallableEnum.To.<XMLIdentifierInSignedDocuments>xmlValue()).orNull())
+                .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null))
                 ;
     }
 
     private XMLPortalSigner generateSigner(PortalSigner signer) {
         XMLPortalSigner xmlSigner = new XMLPortalSigner()
                 .withOrder(signer.getOrder())
-                .withSignatureType(signer.getSignatureType().map(MarshallableEnum.To.<XMLSignatureType>xmlValue()).orNull())
-                .withOnBehalfOf(signer.getOnBehalfOf().map(MarshallableEnum.To.<XMLSigningOnBehalfOf>xmlValue()).orNull());
+                .withSignatureType(signer.getSignatureType().map(SignatureType::getXmlEnumValue).orElse(null))
+                .withOnBehalfOf(signer.getOnBehalfOf().map(OnBehalfOf::getXmlEnumValue).orElse(null));
 
         if (signer.isIdentifiedByPersonalIdentificationNumber()) {
             xmlSigner.setPersonalIdentificationNumber(signer.getIdentifier().orElseThrow(SIGNER_NOT_SPECIFIED));

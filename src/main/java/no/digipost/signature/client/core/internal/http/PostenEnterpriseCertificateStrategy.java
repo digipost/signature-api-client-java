@@ -36,7 +36,6 @@ public class PostenEnterpriseCertificateStrategy implements TrustStrategy {
     private static final String SERIALNUMBER_POSTEN = "SERIALNUMBER=" + POSTEN_ORGANIZATION_NUMBER;
 
 
-    @Override
     /**
      * Verify that the server certificate is issued to Posten Norge AS.
      *
@@ -49,6 +48,7 @@ public class PostenEnterpriseCertificateStrategy implements TrustStrategy {
      *
      * @see org.apache.http.ssl.SSLContextBuilder.TrustManagerDelegate#checkServerTrusted(X509Certificate[], String)
      */
+    @Override
     public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         String subjectDN = chain[0].getSubjectDN().getName();
 

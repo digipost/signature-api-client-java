@@ -30,7 +30,7 @@ public enum AuthenticationLevel implements MarshallableEnum<XMLAuthenticationLev
         return xmlEnumValue;
     }
 
-    private AuthenticationLevel(XMLAuthenticationLevel xmlEnumValue) {
+    AuthenticationLevel(XMLAuthenticationLevel xmlEnumValue) {
         this.xmlEnumValue = xmlEnumValue;
     }
 

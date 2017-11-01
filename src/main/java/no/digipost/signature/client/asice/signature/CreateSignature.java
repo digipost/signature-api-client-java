@@ -64,6 +64,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.Certificate;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,9 +89,9 @@ public class CreateSignature {
     private final TransformerFactory transformerFactory;
     private final Schema schema;
 
-    public CreateSignature() {
+    public CreateSignature(Clock clock) {
 
-        createXAdESProperties = new CreateXAdESProperties();
+        createXAdESProperties = new CreateXAdESProperties(clock);
 
         transformerFactory = TransformerFactory.newInstance();
         try {

@@ -28,7 +28,7 @@ public enum SignatureType implements MarshallableEnum<XMLSignatureType> {
 
     private final XMLSignatureType xmlEnumValue;
 
-    private SignatureType(XMLSignatureType xmlEnumValue) {
+    SignatureType(XMLSignatureType xmlEnumValue) {
         this.xmlEnumValue = xmlEnumValue;
     }
 

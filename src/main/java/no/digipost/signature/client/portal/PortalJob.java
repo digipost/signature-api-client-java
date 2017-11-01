@@ -20,18 +20,16 @@ import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.internal.JobCustomizations;
-import no.motif.Singular;
-import no.motif.single.Optional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.unmodifiableList;
-import static no.motif.Singular.optional;
 
 
 public class PortalJob implements SignatureJob {
@@ -39,11 +37,11 @@ public class PortalJob implements SignatureJob {
     private final List<PortalSigner> signers;
     private final PortalDocument document;
     private String reference;
-    private Date activationTime;
+    private Optional<Instant> activationTime = Optional.empty();
     private Long availableSeconds;
-    private Optional<Sender> sender = Singular.none();
-    private Optional<AuthenticationLevel> requiredAuthentication = Singular.none();
-    private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Singular.none();
+    private Optional<Sender> sender = Optional.empty();
+    private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();
+    private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Optional.empty();
 
     private PortalJob(List<PortalSigner> signers, PortalDocument document) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
@@ -79,7 +77,7 @@ public class PortalJob implements SignatureJob {
         return signers;
     }
 
-    public Date getActivationTime() {
+    public Optional<Instant> getActivationTime() {
         return activationTime;
     }
 
@@ -118,24 +116,24 @@ public class PortalJob implements SignatureJob {
 
         @Override
         public Builder withSender(Sender sender) {
-            target.sender = optional(sender);
+            target.sender = Optional.of(sender);
             return this;
         }
 
         @Override
         public Builder requireAuthentication(AuthenticationLevel minimumLevel) {
-            target.requiredAuthentication = optional(minimumLevel);
+            target.requiredAuthentication = Optional.of(minimumLevel);
             return this;
         }
 
         @Override
         public Builder withIdentifierInSignedDocuments(IdentifierInSignedDocuments identifier) {
-            target.identifierInSignedDocuments = optional(identifier);
+            target.identifierInSignedDocuments = Optional.of(identifier);
             return this;
         }
 
-        public Builder withActivationTime(Date activationTime) {
-            target.activationTime = activationTime;
+        public Builder withActivationTime(Instant activationTime) {
+            target.activationTime = Optional.of(activationTime);
             return this;
         }
 

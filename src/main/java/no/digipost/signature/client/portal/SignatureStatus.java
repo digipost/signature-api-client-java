@@ -96,7 +96,7 @@ public final class SignatureStatus {
         this.identifier = identifier;
     }
 
-    public static SignatureStatus fromXmlType(XMLSignatureStatus xmlSignatureStatus) {
+    static SignatureStatus fromXmlType(XMLSignatureStatus xmlSignatureStatus) {
         String value = xmlSignatureStatus.getValue();
         for (SignatureStatus status : KNOWN_STATUSES) {
             if (status.is(value)) {

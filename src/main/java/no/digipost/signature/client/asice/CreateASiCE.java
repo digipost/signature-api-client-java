@@ -24,19 +24,19 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.security.KeyStoreConfig;
-import no.motif.single.Optional;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static no.digipost.signature.client.core.exceptions.SenderNotSpecifiedException.SENDER_NOT_SPECIFIED;
 
 public class CreateASiCE<JOB extends SignatureJob> {
 
     private final CreateZip createZip = new CreateZip();
-    private final CreateSignature createSignature = new CreateSignature();
+    private final CreateSignature createSignature;
 
     private final ManifestCreator<JOB> manifestCreator;
     private final Optional<Sender> globalSender;
@@ -48,12 +48,13 @@ public class CreateASiCE<JOB extends SignatureJob> {
         this.globalSender = clientConfiguration.getGlobalSender();
         this.keyStoreConfig = clientConfiguration.getKeyStoreConfig();
         this.documentBundleProcessors = clientConfiguration.getDocumentBundleProcessors();
+        this.createSignature = new CreateSignature(clientConfiguration.getClock());
     }
 
     public DocumentBundle createASiCE(JOB job) {
         Sender sender = job.getSender()
-                .or(globalSender)
-                .orElseThrow(SENDER_NOT_SPECIFIED);
+                .orElse(globalSender
+                .orElseThrow(SENDER_NOT_SPECIFIED));
 
         Manifest manifest = manifestCreator.createManifest(job, sender);
 

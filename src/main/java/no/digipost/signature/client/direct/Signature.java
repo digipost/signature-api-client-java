@@ -16,9 +16,9 @@
 package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.core.XAdESReference;
-import no.motif.f.Predicate;
 
-import java.util.Date;
+import java.time.Instant;
+import java.util.function.Predicate;
 
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
 
@@ -28,11 +28,11 @@ public class Signature {
     private final String signer;
 
     private final SignerStatus status;
-    private final Date statusDateTime;
+    private final Instant statusDateTime;
 
     private final XAdESReference xAdESReference;
 
-    public Signature(String signer, SignerStatus status, Date statusDateTime, XAdESReference xAdESReference) {
+    public Signature(String signer, SignerStatus status, Instant statusDateTime, XAdESReference xAdESReference) {
         this.signer = signer;
         this.status = status;
         this.statusDateTime = statusDateTime;
@@ -59,7 +59,7 @@ public class Signature {
      * @return Point in time when the action (document was signed, signature job expired, etc.) leading to the
      * current {@link Signature#status} happened.
      */
-    public Date getStatusDateTime() {
+    public Instant getStatusDateTime() {
         return statusDateTime;
     }
 
@@ -74,12 +74,7 @@ public class Signature {
     }
 
     static Predicate<Signature> signatureFrom(final String signer) {
-        return new Predicate<Signature>() {
-            @Override
-            public boolean $(Signature signature) {
-                return signature.isFrom(signer);
-            }
-        };
+        return signature -> signature.isFrom(signer);
     }
 
 
