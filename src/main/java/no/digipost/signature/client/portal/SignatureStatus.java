@@ -16,6 +16,7 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.api.xml.XMLSignatureStatus;
+import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 
 import java.util.List;
 import java.util.Objects;
@@ -77,6 +78,18 @@ public final class SignatureStatus {
      */
     public static final SignatureStatus BLOCKED = new SignatureStatus("BLOCKED");
 
+    /**
+     * Indicates that the service was unable to retrieve the signer's name.
+     * <p>
+     * This happens when the signer's name is permanently unavailable in the lookup service,
+     * creating and signing a new signature job with the same signer will yield the same result.
+     * <p>
+     * Only applicable for {@link no.digipost.signature.client.core.SignatureType#AUTHENTICATED_SIGNATURE authenticated signatures}
+     * where the sender requires signed documents to contain {@link IdentifierInSignedDocuments#NAME name}
+     * as {@link PortalJob.Builder#withIdentifierInSignedDocuments(IdentifierInSignedDocuments) the signer's identifier}.
+     */
+    public static final SignatureStatus SIGNERS_NAME_NOT_AVAILABLE = new SignatureStatus("SIGNERS_NAME_NOT_AVAILABLE");
+
 
     private static final List<SignatureStatus> KNOWN_STATUSES = asList(
             REJECTED,
@@ -87,7 +100,8 @@ public final class SignatureStatus {
             WAITING,
             SIGNED,
             NOT_APPLICABLE,
-            BLOCKED
+            BLOCKED,
+            SIGNERS_NAME_NOT_AVAILABLE
     );
 
     private final String identifier;
