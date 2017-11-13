@@ -15,6 +15,8 @@
  */
 package no.digipost.signature.client.direct;
 
+import no.digipost.signature.client.core.IdentifierInSignedDocuments;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -43,10 +45,31 @@ public class SignerStatus {
      * The signer has successfully signed the document.
      */
     public static final SignerStatus SIGNED = new SignerStatus("SIGNED");
+
     /**
      * An unexpected error occured during the signing ceremony.
      */
     public static final SignerStatus FAILED = new SignerStatus("FAILED");
+
+    /**
+     * The job has reached a state where the status of this signature is not applicable.
+     * This includes the case where a signer rejects to sign, and thus ending the job in a
+     * {@link DirectJobStatus#FAILED} state. Any remaining (previously {@link #WAITING})
+     * signatures are marked as {@link #NOT_APPLICABLE}.
+     */
+    public static final SignerStatus NOT_APPLICABLE = new SignerStatus("NOT_APPLICABLE");
+
+    /**
+     * Indicates that the service was unable to retrieve the signer's name.
+     * <p>
+     * This happens when the signer's name is permanently unavailable in the lookup service,
+     * creating and signing a new signature job with the same signer will yield the same result.
+     * <p>
+     * Only applicable for {@link no.digipost.signature.client.core.SignatureType#AUTHENTICATED_SIGNATURE authenticated signatures}
+     * where the sender requires signed documents to contain {@link IdentifierInSignedDocuments#NAME name}
+     * as {@link DirectJob.Builder#withIdentifierInSignedDocuments(IdentifierInSignedDocuments) the signer's identifier}.
+     */
+    public static final SignerStatus SIGNERS_NAME_NOT_AVAILABLE = new SignerStatus("SIGNERS_NAME_NOT_AVAILABLE");
 
 
     private static final List<SignerStatus> KNOWN_STATUSES = asList(
@@ -54,7 +77,9 @@ public class SignerStatus {
             EXPIRED,
             WAITING,
             SIGNED,
-            FAILED
+            FAILED,
+            NOT_APPLICABLE,
+            SIGNERS_NAME_NOT_AVAILABLE
     );
 
     private final String identifier;
