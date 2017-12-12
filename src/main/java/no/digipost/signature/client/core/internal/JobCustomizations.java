@@ -28,6 +28,7 @@ import java.util.UUID;
  */
 public interface JobCustomizations<B extends JobCustomizations<B>> {
 
+    B withQueue(String queue);
 
     /**
      * Set the sender for this specific signature job.

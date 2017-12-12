@@ -42,6 +42,7 @@ public class PortalJob implements SignatureJob {
     private Optional<Sender> sender = Optional.empty();
     private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();
     private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Optional.empty();
+    private String queue;
 
     private PortalJob(List<PortalSigner> signers, PortalDocument document) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
@@ -51,6 +52,11 @@ public class PortalJob implements SignatureJob {
     @Override
     public String getReference() {
         return reference;
+    }
+
+    @Override
+    public String getQueue() {
+        return queue;
     }
 
     @Override
@@ -101,6 +107,12 @@ public class PortalJob implements SignatureJob {
 
         private Builder(List<PortalSigner> signers, PortalDocument document) {
             target = new PortalJob(signers, document);
+        }
+
+        @Override
+        public Builder withQueue(String queue) {
+            target.queue = queue;
+            return this;
         }
 
         @Override
