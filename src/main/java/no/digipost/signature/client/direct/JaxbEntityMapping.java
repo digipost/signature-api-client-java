@@ -42,7 +42,8 @@ final class JaxbEntityMapping {
                         .withRejectionUrl(signatureJob.getRejectionUrl())
                         .withErrorUrl(signatureJob.getErrorUrl())
                 )
-                .withStatusRetrievalMethod(signatureJob.getStatusRetrievalMethod().map(StatusRetrievalMethod::getXmlEnumValue).orElse(null));
+                .withStatusRetrievalMethod(signatureJob.getStatusRetrievalMethod().map(StatusRetrievalMethod::getXmlEnumValue).orElse(null))
+                .withPollingQueue(signatureJob.getQueue());
     }
 
     static DirectJobResponse fromJaxb(XMLDirectSignatureJobResponse xmlSignatureJobResponse) {

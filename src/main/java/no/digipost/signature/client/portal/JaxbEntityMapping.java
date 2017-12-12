@@ -30,7 +30,8 @@ final class JaxbEntityMapping {
 
     static XMLPortalSignatureJobRequest toJaxb(PortalJob job) {
         return new XMLPortalSignatureJobRequest()
-                .withReference(job.getReference());
+                .withReference(job.getReference())
+                .withPollingQueue(job.getQueue());
     }
 
     static PortalJobResponse fromJaxb(XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse) {
