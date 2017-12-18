@@ -163,8 +163,10 @@ public class ClientHelper {
 
     private <RESPONSE_CLASS> RESPONSE_CLASS getStatusChange(final Optional<Sender> sender, final Target target, final Class<RESPONSE_CLASS> responseClass) {
         return call(() -> {
-            Invocation.Builder request = httpClient.signatureServiceRoot().path(target.path(getActualSender(sender)))
+            Sender actualSender = getActualSender(sender);
+            Invocation.Builder request = httpClient.signatureServiceRoot().path(target.path(actualSender))
                     .request()
+                    .header("polling_queue", actualSender.getPollingQueue())
                     .accept(APPLICATION_XML_TYPE);
             try (Response response = request.get()) {
                 StatusType status = ResponseStatus.resolve(response.getStatus());

@@ -15,25 +15,13 @@
  */
 package no.digipost.signature.client.core;
 
-public class Sender {
+public class PollingQueue {
 
-    private String organizationNumber;
-    private final PollingQueue pollingQueue;
+    public final static PollingQueue DEFAULT_QUEUE = new PollingQueue("");
 
-    public Sender(String organizationNumber) {
-        this(organizationNumber, PollingQueue.DEFAULT_QUEUE);
-    }
+    public final String value;
 
-    public Sender(String organizationNumber, PollingQueue pollingQueue) {
-        this.organizationNumber = organizationNumber;
-        this.pollingQueue = pollingQueue;
-    }
-
-    public String getOrganizationNumber() {
-        return organizationNumber;
-    }
-
-    public PollingQueue getPollingQueue() {
-        return pollingQueue;
+    public PollingQueue(String value) {
+        this.value = value;
     }
 }
