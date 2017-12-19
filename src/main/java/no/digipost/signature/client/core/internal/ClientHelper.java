@@ -64,6 +64,7 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.Status.TOO_MANY_REQUESTS;
 import static no.digipost.signature.client.core.exceptions.SenderNotSpecifiedException.SENDER_NOT_SPECIFIED;
+import static no.digipost.signature.client.core.internal.ActualSender.getActualSender;
 import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_AUTHORIZED;
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
 import static no.digipost.signature.client.core.internal.Target.DIRECT;
@@ -86,7 +87,7 @@ public class ClientHelper {
     }
 
     public XMLDirectSignatureJobResponse sendSignatureJobRequest(XMLDirectSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
-        final Sender actualSender = getActualSender(sender);
+        final Sender actualSender = getActualSender(sender, globalSender);
 
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         final BodyPart documentBundleBodyPart = new BodyPart(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM_TYPE);
@@ -96,7 +97,7 @@ public class ClientHelper {
     }
 
     public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(XMLPortalSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
-        final Sender actualSender = getActualSender(sender);
+        final Sender actualSender = getActualSender(sender, globalSender);
 
         final BodyPart signatureJobBodyPart = new BodyPart(signatureJobRequest, APPLICATION_XML_TYPE);
         final BodyPart documentBundleBodyPart = new BodyPart(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM_TYPE);
@@ -163,10 +164,10 @@ public class ClientHelper {
 
     private <RESPONSE_CLASS> RESPONSE_CLASS getStatusChange(final Optional<Sender> sender, final Target target, final Class<RESPONSE_CLASS> responseClass) {
         return call(() -> {
-            Sender actualSender = getActualSender(sender);
+            Sender actualSender = getActualSender(sender, globalSender);
             Invocation.Builder request = httpClient.signatureServiceRoot().path(target.path(actualSender))
                     .request()
-                    .header("polling_queue", actualSender.getPollingQueue())
+                    .header("polling_queue", actualSender.getPollingQueue().value)
                     .accept(APPLICATION_XML_TYPE);
             try (Response response = request.get()) {
                 StatusType status = ResponseStatus.resolve(response.getStatus());
@@ -206,10 +207,6 @@ public class ClientHelper {
 
     private void call(Runnable action) {
         clientExceptionMapper.doWithMappedClientException(action);
-    }
-
-    private Sender getActualSender(Optional<Sender> sender) {
-        return sender.orElse(globalSender.orElseThrow(SENDER_NOT_SPECIFIED));
     }
 
     private class UsingBodyParts {

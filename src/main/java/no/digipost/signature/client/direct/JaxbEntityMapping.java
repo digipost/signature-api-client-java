@@ -23,18 +23,24 @@ import no.digipost.signature.api.xml.XMLSignerSpecificUrl;
 import no.digipost.signature.api.xml.XMLSignerStatus;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
+import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
+import no.digipost.signature.client.core.internal.ActualSender;
 import no.digipost.signature.client.direct.RedirectUrls.RedirectUrl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
+import static no.digipost.signature.client.core.internal.ActualSender.getActualSender;
 
 final class JaxbEntityMapping {
 
-    static XMLDirectSignatureJobRequest toJaxb(DirectJob signatureJob) {
+    static XMLDirectSignatureJobRequest toJaxb(DirectJob signatureJob, Optional<Sender> globalSender) {
+        Sender actualSender = getActualSender(signatureJob.getSender(), globalSender);
+
         return new XMLDirectSignatureJobRequest()
                 .withReference(signatureJob.getReference())
                 .withExitUrls(new XMLExitUrls()
@@ -43,7 +49,7 @@ final class JaxbEntityMapping {
                         .withErrorUrl(signatureJob.getErrorUrl())
                 )
                 .withStatusRetrievalMethod(signatureJob.getStatusRetrievalMethod().map(StatusRetrievalMethod::getXmlEnumValue).orElse(null))
-                .withPollingQueue(signatureJob.getQueue());
+                .withPollingQueue(actualSender.getPollingQueue().value);
     }
 
     static DirectJobResponse fromJaxb(XMLDirectSignatureJobResponse xmlSignatureJobResponse) {

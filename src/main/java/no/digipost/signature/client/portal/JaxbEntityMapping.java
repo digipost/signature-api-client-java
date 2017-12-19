@@ -21,17 +21,24 @@ import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signature.api.xml.XMLSignature;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
+import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import static no.digipost.signature.client.core.exceptions.SenderNotSpecifiedException.SENDER_NOT_SPECIFIED;
+import static no.digipost.signature.client.core.internal.ActualSender.getActualSender;
 
 final class JaxbEntityMapping {
 
-    static XMLPortalSignatureJobRequest toJaxb(PortalJob job) {
+    static XMLPortalSignatureJobRequest toJaxb(PortalJob job, Optional<Sender> globalSender) {
+        Sender actualSender = getActualSender(job.getSender(), globalSender);
+
         return new XMLPortalSignatureJobRequest()
                 .withReference(job.getReference())
-                .withPollingQueue(job.getQueue());
+                .withPollingQueue(actualSender.getPollingQueue().value);
     }
 
     static PortalJobResponse fromJaxb(XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse) {

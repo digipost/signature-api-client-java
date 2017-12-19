@@ -41,7 +41,6 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     private Optional<StatusRetrievalMethod> statusRetrievalMethod = Optional.empty();
     private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();
     private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Optional.empty();
-    private String queue;
 
     private DirectJob(List<DirectSigner> signers, DirectDocument document, String completionUrl, String rejectionUrl, String errorUrl) {
         this.signers = unmodifiableList(new ArrayList<>(signers));
@@ -89,11 +88,6 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     @Override
     public Optional<IdentifierInSignedDocuments> getIdentifierInSignedDocuments() {
         return identifierInSignedDocuments;
-    }
-
-    @Override
-    public String getQueue() {
-        return queue;
     }
 
     public List<DirectSigner> getSigners() {
@@ -144,12 +138,6 @@ public class DirectJob implements SignatureJob, WithExitUrls {
 
         public Builder(List<DirectSigner> signers, DirectDocument document, String completionUrl, String rejectionUrl, String errorUrl) {
             target = new DirectJob(signers, document, completionUrl, rejectionUrl, errorUrl);
-        }
-
-        @Override
-        public Builder withQueue(String queue){
-            target.queue = queue;
-            return this;
         }
 
         @Override

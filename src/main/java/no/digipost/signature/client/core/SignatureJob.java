@@ -19,8 +19,6 @@ import java.util.Optional;
 
 public interface SignatureJob {
 
-    String getQueue();
-
     Document getDocument();
 
     Optional<Sender> getSender();
