@@ -17,7 +17,7 @@ package no.digipost.signature.client.core;
 
 public class Sender {
 
-    private String organizationNumber;
+    private final String organizationNumber;
     private final PollingQueue pollingQueue;
 
     public Sender(String organizationNumber) {

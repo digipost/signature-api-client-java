@@ -98,6 +98,7 @@ public class DirectJob implements SignatureJob, WithExitUrls {
         return statusRetrievalMethod;
     }
 
+
     /**
      * Create a new DirectJob.
      *
@@ -114,6 +115,7 @@ public class DirectJob implements SignatureJob, WithExitUrls {
         return builder(document, hasExitUrls, Arrays.asList(signers));
     }
 
+
     /**
      * Create a new DirectJob.
      *
@@ -129,7 +131,6 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     public static Builder builder(DirectDocument document, WithExitUrls hasExitUrls, List<DirectSigner> signers) {
         return new Builder(signers, document, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
     }
-
 
     public static class Builder implements JobCustomizations<Builder> {
 
