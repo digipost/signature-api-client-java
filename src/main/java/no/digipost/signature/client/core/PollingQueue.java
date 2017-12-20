@@ -19,15 +19,15 @@ import java.util.Objects;
 
 public class PollingQueue {
 
-    public final static PollingQueue DEFAULT_QUEUE = new PollingQueue("");
+    public final static PollingQueue DEFAULT_QUEUE = new PollingQueue(null);
 
     public final String value;
 
-    public PollingQueue(String value) {
+    private PollingQueue(String value) {
         this.value = value;
     }
 
-    public static PollingQueue of(String value){
+    public static PollingQueue of(String value) {
         return new PollingQueue(value);
     }
 
