@@ -75,6 +75,7 @@ public class ClientHelper {
     private static final Logger LOG = LoggerFactory.getLogger(ClientHelper.class);
 
     public static final String NEXT_PERMITTED_POLL_TIME_HEADER = "X-Next-permitted-poll-time";
+    private static final String POLLING_QUEUE_HEADER_KEY = "Polling-Queue";
 
     private final SignatureHttpClient httpClient;
     private final Optional<Sender> globalSender;
@@ -167,7 +168,7 @@ public class ClientHelper {
             Sender actualSender = getActualSender(sender, globalSender);
             Invocation.Builder request = httpClient.signatureServiceRoot().path(target.path(actualSender))
                     .request()
-                    .header("polling_queue", actualSender.getPollingQueue().value)
+                    .header(POLLING_QUEUE_HEADER_KEY, actualSender.getPollingQueue().value)
                     .accept(APPLICATION_XML_TYPE);
             try (Response response = request.get()) {
                 StatusType status = ResponseStatus.resolve(response.getStatus());
