@@ -63,7 +63,6 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.Status.TOO_MANY_REQUESTS;
-import static no.digipost.signature.client.core.exceptions.SenderNotSpecifiedException.SENDER_NOT_SPECIFIED;
 import static no.digipost.signature.client.core.internal.ActualSender.getActualSender;
 import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_AUTHORIZED;
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
@@ -75,7 +74,7 @@ public class ClientHelper {
     private static final Logger LOG = LoggerFactory.getLogger(ClientHelper.class);
 
     public static final String NEXT_PERMITTED_POLL_TIME_HEADER = "X-Next-permitted-poll-time";
-    private static final String POLLING_QUEUE_HEADER_KEY = "Polling-Queue";
+    private static final String POLLING_QUEUE_QUERY_PARAMETER = "polling_queue";
 
     private final SignatureHttpClient httpClient;
     private final Optional<Sender> globalSender;
@@ -167,8 +166,8 @@ public class ClientHelper {
         return call(() -> {
             Sender actualSender = getActualSender(sender, globalSender);
             Invocation.Builder request = httpClient.signatureServiceRoot().path(target.path(actualSender))
+                    .queryParam(POLLING_QUEUE_QUERY_PARAMETER, actualSender.getPollingQueue().value)
                     .request()
-                    .header(POLLING_QUEUE_HEADER_KEY, actualSender.getPollingQueue().value)
                     .accept(APPLICATION_XML_TYPE);
             try (Response response = request.get()) {
                 StatusType status = ResponseStatus.resolve(response.getStatus());
