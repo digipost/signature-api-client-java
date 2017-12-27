@@ -19,7 +19,7 @@ import java.util.Objects;
 
 public class PollingQueue {
 
-    public final static PollingQueue DEFAULT_QUEUE = new PollingQueue(null);
+    public final static PollingQueue DEFAULT = new PollingQueue(null);
 
     public final String value;
 

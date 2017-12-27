@@ -21,7 +21,7 @@ public class Sender {
     private final PollingQueue pollingQueue;
 
     public Sender(String organizationNumber) {
-        this(organizationNumber, PollingQueue.DEFAULT_QUEUE);
+        this(organizationNumber, PollingQueue.DEFAULT);
     }
 
     public Sender(String organizationNumber, PollingQueue pollingQueue) {
