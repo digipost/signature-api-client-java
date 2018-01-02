@@ -6,7 +6,7 @@ layout: default
 
 <h3 id="uc07">Create Client Configuration</h3>
 
-{% highlight java %}
+``` java
 
 KeyStoreConfig keyStoreConfig = KeyStoreConfig.fromKeyStore(keyStore,
         certificateAlias, keyStorePassword, privateKeyPassword);
@@ -15,7 +15,7 @@ ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreCo
         .globalSender(new Sender("123456789"))
         .build();
 
-{% endhighlight %}
+```
 
 > Note: For organizations acting as *brokers* on behalf of multiple *senders*, you may specify the sender's organization number on each signature job. The sender specified for a job will always take precedence over the `globalSender` in `ClientConfiguration`
 
@@ -23,7 +23,7 @@ ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreCo
 
 The following example shows how to create a document and send it to two signers.
 
-{% highlight java %}
+``` java
 
 ClientConfiguration clientConfiguration = ...; // As initialized earlier
 PortalClient client = new PortalClient(clientConfiguration);
@@ -42,7 +42,7 @@ PortalJob portalJob = PortalJob.builder(
 
 PortalJobResponse portalJobResponse = client.create(portalJob);
 
-{% endhighlight %}
+```
 
 You may identify the signature job's signers by personal identification number (`identifiedByPersonalIdentificationNumber(…)`) or contact information. When identifying by contact information, you may choose between instantiating a `PortalSigner` using `identifiedByEmail(…)`, `identifiedByMobileNumber(…)` or `identifiedByEmailAndMobileNumber(…, …)`.
 
@@ -56,7 +56,7 @@ All changes to signature jobs will be added to a queue from which you can poll f
 
 The following example shows how this can be handled:
 
-{% highlight java %}
+``` java
 
 PortalClient client = ...; // As initialized earlier
 
@@ -76,22 +76,22 @@ try {
     Instant nextPermittedPollTime = tooEagerPolling.getNextPermittedPollTime();
 }
 
-{% endhighlight %}
+```
 
 Retrieve a specific signer's status by calling the method `statusChange.getSignatureFrom(SignerIdentifier)`. The `SignerIdentifier` parameter must be created by using [one of the static method](https://javadoc.io/page/no.digipost.signature/signature-api-client-java/latest/no/digipost/signature/client/portal/SignerIdentifier.html) corresponding with the method you used when creating the signature job.
 
-{% highlight java %}
+``` java
 
 Signature signature = statusChange.getSignatureFrom(
     SignerIdentifier.identifiedByPersonalIdentificationNumber("12345678910"));
 
-{% endhighlight %}
+```
 
 <h3 id="uc10">Get signed documents</h3>
 
 When getting XAdES and PAdES for a `PortalJob`, remember that the XAdES is per signer, while there is only one PAdES. 
 
-{% highlight java %}
+``` java
 
 PortalClient client = ...; // As initialized earlier
 PortalJobStatusChanged statusChange = ...; // As returned when polling for status changes
@@ -115,17 +115,17 @@ if (signature.is(SignatureStatus.SIGNED)) {
     InputStream xAdESStream = client.getXAdES(signature.getxAdESUrl());
 }
 
-{% endhighlight %}
+```
 
 <h3 id="uc11">Confirm processed signature job</h3>
 
 To avoid this status change to return to the queue, you must confirm that it has been processed.
 
-{% highlight java %}
+``` java
 
 PortalClient client = ...; // As initialized earlier
 PortalJobStatusChanged statusChange = ...; // As returned when polling for status changes
 
 client.confirm(statusChange);
 
-{% endhighlight %}
+```
