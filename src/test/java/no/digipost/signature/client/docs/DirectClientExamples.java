@@ -20,9 +20,10 @@ import no.digipost.signature.client.security.KeyStoreConfig;
 
 import java.io.InputStream;
 
-public class DirectUsecases {
+@SuppressWarnings({"unused", "ConstantConditions", "StatementWithEmptyBody"})
+class DirectClientExamples {
 
-    public static void create_client_configuration() {
+    static void create_client_configuration() {
         InputStream keyStore = null; // Stream created from keyStore file
 
         KeyStoreConfig keyStoreConfig = KeyStoreConfig.fromKeyStore(keyStore,
@@ -33,7 +34,7 @@ public class DirectUsecases {
                 .build();
     }
 
-    public static void create_and_send_signature_job() {
+    static void create_and_send_signature_job() {
         ClientConfiguration clientConfiguration = null; // As initialized earlier
         DirectClient client = new DirectClient(clientConfiguration);
 
@@ -52,7 +53,7 @@ public class DirectUsecases {
         DirectJobResponse directJobResponse = client.create(directJob);
     }
 
-    public static void get_signature_job_status() {
+    static void get_signature_job_status() {
         DirectClient client = null; // As initialized earlier
         DirectJobResponse directJobResponse = null; // As returned when creating signature job
 
@@ -62,11 +63,11 @@ public class DirectUsecases {
                 client.getStatus(StatusReference.of(directJobResponse).withStatusQueryToken(statusQueryToken));
     }
 
-    static DirectDocument document = null;
-    static WithExitUrls exitUrls = null;
-    static DirectSigner signer = null;
+    private static DirectDocument document = null;
+    private static WithExitUrls exitUrls = null;
+    private static DirectSigner signer = null;
 
-    public static void create_job_and_status_by_polling() {
+    static void create_job_and_status_by_polling() {
         DirectClient client = null; // As initialized earlier
 
         DirectJob directJob = DirectJob.builder(document, exitUrls, signer)
@@ -80,14 +81,14 @@ public class DirectUsecases {
         if (statusChange.is(DirectJobStatus.NO_CHANGES)) {
             // Queue is empty. Must wait before polling again
         } else {
-            // Recieved status update, act according to status
+            // Received status update, act according to status
             DirectJobStatus status = statusChange.getStatus();
         }
 
         client.confirm(statusChange);
     }
 
-    public static void get_signed_documents() {
+    static void get_signed_documents() {
         DirectClient client = null; // As initialized earlier
         DirectJobStatusResponse directJobStatusResponse = null; // As returned when getting job status
 
@@ -102,14 +103,14 @@ public class DirectUsecases {
         }
     }
 
-    public static void confirm_processed_signature_job() {
+    static void confirm_processed_signature_job() {
         DirectClient client = null; // As initialized earlier
         DirectJobStatusResponse directJobStatusResponse = null; // As returned when getting job status
 
         client.confirm(directJobStatusResponse);
     }
 
-    public static void specifying_queues() {
+    static void specifying_queues() {
         DirectClient client = null; // As initialized earlier
         Sender sender = new Sender("000000000", PollingQueue.of("CustomPollingQueue"));
 

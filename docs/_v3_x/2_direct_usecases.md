@@ -84,7 +84,7 @@ DirectJobStatusResponse statusChange = client.getStatusChange();
 if (statusChange.is(DirectJobStatus.NO_CHANGES)) {
     // Queue is empty. Must wait before polling again
 } else {
-    // Recieved status update, act according to status
+    // Received status update, act according to status
     DirectJobStatus status = statusChange.getStatus();
 }
 
