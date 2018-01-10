@@ -40,15 +40,17 @@ public class DirectClient {
 
     private final ClientHelper client;
     private final CreateASiCE<DirectJob> aSiCECreator;
+    private final ClientConfiguration clientConfiguration;
 
     public DirectClient(ClientConfiguration config) {
+        this.clientConfiguration = config;
         this.client = new ClientHelper(SignatureHttpClientFactory.create(config), config.getGlobalSender());
         this.aSiCECreator = new CreateASiCE<>(new CreateDirectManifest(), config);
     }
 
     public DirectJobResponse create(DirectJob job) {
         DocumentBundle documentBundle = aSiCECreator.createASiCE(job);
-        XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(job);
+        XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(job, clientConfiguration.getGlobalSender());
 
         XMLDirectSignatureJobResponse xmlSignatureJobResponse = client.sendSignatureJobRequest(signatureJobRequest, documentBundle, job.getSender());
         return fromJaxb(xmlSignatureJobResponse);

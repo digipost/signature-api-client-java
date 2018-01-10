@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core;
+package no.digipost.signature.client.core.internal;
 
-public class Sender {
+import no.digipost.signature.client.core.Sender;
 
-    private final String organizationNumber;
-    private final PollingQueue pollingQueue;
+import java.util.Optional;
 
-    public Sender(String organizationNumber) {
-        this(organizationNumber, PollingQueue.DEFAULT);
-    }
+import static no.digipost.signature.client.core.exceptions.SenderNotSpecifiedException.SENDER_NOT_SPECIFIED;
 
-    public Sender(String organizationNumber, PollingQueue pollingQueue) {
-        this.organizationNumber = organizationNumber;
-        this.pollingQueue = pollingQueue;
-    }
-
-    public String getOrganizationNumber() {
-        return organizationNumber;
-    }
-
-    public PollingQueue getPollingQueue() {
-        return pollingQueue;
+public class ActualSender {
+    public static Sender getActualSender(Optional<Sender> messageSpecificSender, Optional<Sender> globalSender) {
+        return messageSpecificSender.orElse(globalSender.orElseThrow(SENDER_NOT_SPECIFIED));
     }
 }

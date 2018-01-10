@@ -15,25 +15,34 @@
  */
 package no.digipost.signature.client.core;
 
-public class Sender {
+import java.util.Objects;
 
-    private final String organizationNumber;
-    private final PollingQueue pollingQueue;
+public class PollingQueue {
 
-    public Sender(String organizationNumber) {
-        this(organizationNumber, PollingQueue.DEFAULT);
+    public final static PollingQueue DEFAULT = new PollingQueue(null);
+
+    public final String value;
+
+    private PollingQueue(String value) {
+        this.value = value;
     }
 
-    public Sender(String organizationNumber, PollingQueue pollingQueue) {
-        this.organizationNumber = organizationNumber;
-        this.pollingQueue = pollingQueue;
+    public static PollingQueue of(String value) {
+        return new PollingQueue(value);
     }
 
-    public String getOrganizationNumber() {
-        return organizationNumber;
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof PollingQueue) {
+            PollingQueue that = (PollingQueue) obj;
+            return Objects.equals(this.value, that.value);
+        }
+        return false;
     }
 
-    public PollingQueue getPollingQueue() {
-        return pollingQueue;
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
+
 }

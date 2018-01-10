@@ -41,8 +41,10 @@ public class PortalClient {
 
     private final ClientHelper client;
     private final CreateASiCE<PortalJob> aSiCECreator;
+    private final ClientConfiguration clientConfiguration;
 
     public PortalClient(ClientConfiguration config) {
+        this.clientConfiguration = config;
         this.client = new ClientHelper(SignatureHttpClientFactory.create(config), config.getGlobalSender());
         this.aSiCECreator = new CreateASiCE<>(new CreatePortalManifest(config.getClock()), config);
     }
@@ -50,7 +52,7 @@ public class PortalClient {
 
     public PortalJobResponse create(PortalJob job) {
         DocumentBundle documentBundle = aSiCECreator.createASiCE(job);
-        XMLPortalSignatureJobRequest signatureJobRequest = toJaxb(job);
+        XMLPortalSignatureJobRequest signatureJobRequest = toJaxb(job, clientConfiguration.getGlobalSender());
 
         XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse = client.sendPortalSignatureJobRequest(signatureJobRequest, documentBundle, job.getSender());
         return fromJaxb(xmlPortalSignatureJobResponse);
