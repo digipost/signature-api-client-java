@@ -54,7 +54,7 @@ Read more about identifying your signers in the [functional documentation](http:
 
 ### Get status changes
 
-All changes to signature jobs will be added to a queue from which you can poll for status updates. If the queue is empty (i.e. no jobs have changed status since last poll), you are not allowed to poll again for a defined period. Refer to the [API specification](https://github.com/digipost/signature-api-specification/blob/master/README.md#hvor-ofte-skal-du-polle) to see how long this period is.
+All changes to signature jobs will be added to a queue from which you can poll for status updates. If the queue is empty (i.e. no jobs have changed status since last poll), you are not allowed to poll again for a defined period. Refer to the [API specification](https://github.com/digipost/signature-api-specification/blob/master/integrasjon/asynkron.md#hvor-ofte-skal-du-polle) to see how long this period is.
 
 The following example shows how this can be handled:
 
