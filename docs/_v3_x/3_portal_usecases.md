@@ -48,7 +48,7 @@ PortalJobResponse portalJobResponse = client.create(portalJob);
 
 You may identify the signature job's signers by personal identification number (`identifiedByPersonalIdentificationNumber(…)`) or contact information. When identifying by contact information, you may choose between instantiating a `PortalSigner` using `identifiedByEmail(…)`, `identifiedByMobileNumber(…)` or `identifiedByEmailAndMobileNumber(…, …)`.
 
-Read more about identifying your signers in the [functional documentation](http://digipost.github.io/signature-api-specification/v1.0/#kontaktinfo) (Norwegian).
+Read more about identifying your signers in the [functional documentation](http://digipost.github.io/signature-api-specification/v1.0/#identifikator-kontaktinfo) (Norwegian).
 
 > Note: Most domain object follow the builder pattern, accepting all required parameters in the factory method and with specific methods for each optional parameter. Keep this in mind when exploring the API.
 
