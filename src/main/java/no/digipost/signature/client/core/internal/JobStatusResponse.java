@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package no.digipost.signature.client.core.exceptions;
+package no.digipost.signature.client.core.internal;
 
 import java.time.Instant;
 
-public class TooEagerPollingException extends RuntimeException {
+public class JobStatusResponse<JOB_STATUS> {
 
+    private final JOB_STATUS status;
     private final Instant nextPermittedPollTime;
 
-    public TooEagerPollingException(Instant nextPermittedPollTime) {
+    JobStatusResponse(JOB_STATUS status, Instant nextPermittedPollTime) {
+        this.status = status;
         this.nextPermittedPollTime = nextPermittedPollTime;
+    }
+
+    public JOB_STATUS getStatusResponse() {
+        return status;
+    }
+
+    public boolean gotStatusChange() {
+        return status != null;
     }
 
     public Instant getNextPermittedPollTime() {

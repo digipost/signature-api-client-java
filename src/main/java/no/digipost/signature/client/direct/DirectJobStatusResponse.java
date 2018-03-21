@@ -19,6 +19,7 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.internal.Confirmable;
 
+import java.time.Instant;
 import java.util.List;
 
 import static no.digipost.signature.client.direct.DirectJobStatus.NO_CHANGES;
@@ -31,34 +32,36 @@ public class DirectJobStatusResponse implements Confirmable {
      * This instance indicates that there has been no status updates since the last poll request for
      * {@link DirectJobStatusResponse}. Its status is {@link DirectJobStatus#NO_CHANGES NO_CHANGES}.
      */
-    public static final DirectJobStatusResponse NO_UPDATED_STATUS = new DirectJobStatusResponse(null, NO_CHANGES, null, null, null) {
-        @Override
-        public long getSignatureJobId() {
-            throw new IllegalStateException(
-                    "There were " + this + ", and querying the job ID is a programming error. " +
-                            "Use the method is(" + DirectJobStatusResponse.class.getSimpleName() + "." + NO_CHANGES.name() + ") " +
-                            "to check if there were any status change before attempting to get any further information.");
+    static DirectJobStatusResponse noUpdatedStatus(Instant nextPermittedPollTime) {
+        return new DirectJobStatusResponse(null, NO_CHANGES, null, null, null, nextPermittedPollTime) {
+            @Override public long getSignatureJobId() {
+                throw new IllegalStateException(
+                        "There were " + this + ", and querying the job ID is a programming error. " +
+                        "Use the method is(" + DirectJobStatusResponse.class.getSimpleName() + "." + NO_CHANGES.name() + ") " +
+                        "to check if there were any status change before attempting to get any further information.");
+            }
+
+            @Override public String toString() {
+                return "no direct jobs with updated status";
+            }
         };
 
-        @Override
-        public String toString() {
-            return "no direct jobs with updated status";
-        }
-    };
-
+    }
 
     private final Long signatureJobId;
     private final DirectJobStatus status;
     private final ConfirmationReference confirmationReference;
     private final List<Signature> signatures;
     private final PAdESReference pAdESReference;
+    private final Instant nextPermittedPollTime;
 
-    public DirectJobStatusResponse(Long signatureJobId, DirectJobStatus signatureJobStatus, ConfirmationReference confirmationUrl, List<Signature> signatures, PAdESReference pAdESReference) {
+    public DirectJobStatusResponse(Long signatureJobId, DirectJobStatus signatureJobStatus, ConfirmationReference confirmationUrl, List<Signature> signatures, PAdESReference pAdESReference, Instant nextPermittedPollTime) {
         this.signatureJobId = signatureJobId;
         this.status = signatureJobStatus;
         this.confirmationReference = confirmationUrl;
         this.signatures = signatures;
         this.pAdESReference = pAdESReference;
+        this.nextPermittedPollTime = nextPermittedPollTime;
     }
 
     public long getSignatureJobId() {
@@ -101,6 +104,23 @@ public class DirectJobStatusResponse implements Confirmable {
                 .filter(signatureFrom(signer))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unable to find signature from this signer"));
+    }
+
+    /**
+     * Gets the point in time where you are allowed to {@link DirectClient#getStatusChange() get status changes}.
+     * <p>
+     * Only applicable for jobs with {@link DirectJob.Builder#retrieveStatusBy(StatusRetrievalMethod) status retrieval method}
+     * set to {@link StatusRetrievalMethod#POLLING POLLING}.
+     *
+     * @throws IllegalStateException for jobs with {@link DirectJob.Builder#retrieveStatusBy(StatusRetrievalMethod) status retrieval method}
+     * <b>not</b> set to {@link StatusRetrievalMethod#POLLING POLLING}.
+     */
+    public Instant getNextPermittedPollTime() {
+        if (nextPermittedPollTime == null) {
+            throw new IllegalStateException("Retrieving the next permitted poll time for " + this + " is a programming error. " +
+                    "This is only allowed for jobs with status retrieval method set to '" + StatusRetrievalMethod.POLLING.name() + "'.");
+        }
+        return nextPermittedPollTime;
     }
 
     @Override

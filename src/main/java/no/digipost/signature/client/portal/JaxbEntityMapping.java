@@ -23,12 +23,12 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
+import no.digipost.signature.client.core.internal.JobStatusResponse;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static no.digipost.signature.client.core.exceptions.SenderNotSpecifiedException.SENDER_NOT_SPECIFIED;
 import static no.digipost.signature.client.core.internal.ActualSender.getActualSender;
 
 final class JaxbEntityMapping {
@@ -46,7 +46,8 @@ final class JaxbEntityMapping {
     }
 
 
-    static PortalJobStatusChanged fromJaxb(XMLPortalSignatureJobStatusChangeResponse statusChange) {
+    static PortalJobStatusChanged fromJaxb(JobStatusResponse<XMLPortalSignatureJobStatusChangeResponse> statusChangeResponse) {
+        XMLPortalSignatureJobStatusChangeResponse statusChange = statusChangeResponse.getStatusResponse();
         List<Signature> signatures = new ArrayList<>();
         for (XMLSignature xmlSignature : statusChange.getSignatures().getSignatures()) {
             signatures.add(new Signature(
@@ -64,7 +65,7 @@ final class JaxbEntityMapping {
                 ConfirmationReference.of(statusChange.getConfirmationUrl()),
                 CancellationUrl.of(statusChange.getCancellationUrl()),
                 PAdESReference.of(statusChange.getSignatures().getPadesUrl()),
-                signatures
-        );
+                signatures,
+                statusChangeResponse.getNextPermittedPollTime());
     }
 }
