@@ -16,6 +16,7 @@ This software includes third party software subject to the following licenses:
   Apache HttpClient under Apache License, Version 2.0
   Apache HttpCore under Apache License, Version 2.0
   EqualsVerifier under The Apache Software License, Version 2.0
+  generics-resolver under The MIT License
   Hamcrest Core under New BSD License
   Hamcrest library under New BSD License
   HK2 API module under CDDL + GPLv2 with classpath exception
@@ -26,7 +27,7 @@ This software includes third party software subject to the following licenses:
   javax.inject:1 as OSGi bundle under CDDL + GPLv2 with classpath exception
   javax.ws.rs-api under CDDL 1.1 or GPL2 w/ CPE
   JAXB2 Basics - Runtime under BSD-Style License
-  JCL 1.1.1 implemented over SLF4J under MIT License
+  JCL 1.2 implemented over SLF4J under MIT License
   jersey-core-client under CDDL+GPL License
   jersey-core-common under CDDL+GPL License
   jersey-media-multipart under CDDL+GPL License
