@@ -48,13 +48,13 @@ PortalJobResponse portalJobResponse = client.create(portalJob);
 
 You may identify the signature job's signers by personal identification number (`identifiedByPersonalIdentificationNumber(…)`) or contact information. When identifying by contact information, you may choose between instantiating a `PortalSigner` using `identifiedByEmail(…)`, `identifiedByMobileNumber(…)` or `identifiedByEmailAndMobileNumber(…, …)`.
 
-Read more about identifying your signers in the [functional documentation](http://digipost.github.io/signature-api-specification/v1.0/#kontaktinfo) (Norwegian).
+Read more about identifying your signers in the [functional documentation](http://digipost.github.io/signature-api-specification/v1.0/#identifikator-kontaktinfo) (Norwegian).
 
 > Note: Most domain object follow the builder pattern, accepting all required parameters in the factory method and with specific methods for each optional parameter. Keep this in mind when exploring the API.
 
 ### Get status changes
 
-All changes to signature jobs will be added to a queue from which you can poll for status updates. If the queue is empty (i.e. no jobs have changed status since last poll), you are not allowed to poll again for a defined period. Refer to the [API specification](https://github.com/digipost/signature-api-specification/blob/master/README.md#hvor-ofte-skal-du-polle) to see how long this period is.
+All changes to signature jobs will be added to a queue from which you can poll for status updates. If the queue is empty (i.e. no jobs have changed status since last poll), you are not allowed to poll again for a defined period. Refer to the [API specification](https://github.com/digipost/signature-api-specification/blob/master/integrasjon/asynkron.md#hvor-ofte-skal-du-polle) to see how long this period is.
 
 The following example shows how this can be handled:
 
