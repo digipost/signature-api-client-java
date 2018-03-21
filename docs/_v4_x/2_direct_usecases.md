@@ -83,14 +83,25 @@ DirectJobStatusResponse statusChange = client.getStatusChange();
 
 if (statusChange.is(DirectJobStatus.NO_CHANGES)) {
     // Queue is empty. Must wait before polling again
+    Instant nextPermittedPollTime = statusChange.getNextPermittedPollTime();
 } else {
     // Received status update, act according to status
     DirectJobStatus status = statusChange.getStatus();
+    Instant nextPermittedPollTime = statusChange.getNextPermittedPollTime();
+}
+
+// Polling immediately after retrieving NO_CHANGES:
+try {
+    client.getStatusChange();
+} catch (TooEagerPollingException tooEagerPolling) {
+    Instant nextPermittedPollTime = tooEagerPolling.getNextPermittedPollTime();
 }
 
 client.confirm(statusChange);
 
 ```
+
+As illustrated above, you should always query either the `statusChange` or the `TooEagerPollingException` to find out when you are allowed to poll for statuses next time.
 
 <h3 id="uc05">Get signed documents</h3>
 

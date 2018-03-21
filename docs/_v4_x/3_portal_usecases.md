@@ -66,9 +66,11 @@ PortalJobStatusChanged statusChange = client.getStatusChange();
 
 if (statusChange.is(PortalJobStatus.NO_CHANGES)) {
     // Queue is empty. Must wait before polling again
+    Instant nextPermittedPollTime = statusChange.getNextPermittedPollTime();
 } else {
     // Recieved status update, act according to status
     PortalJobStatus signatureJobStatus = statusChange.getStatus();
+    Instant nextPermittedPollTime = statusChange.getNextPermittedPollTime();
 }
 
 // Polling immediately after retrieving NO_CHANGES:
@@ -80,7 +82,9 @@ try {
 
 ```
 
-Retrieve a specific signer's status by calling the method `statusChange.getSignatureFrom(SignerIdentifier)`. The `SignerIdentifier` parameter must be created by using [one of the static method](https://javadoc.io/page/no.digipost.signature/signature-api-client-java/latest/no/digipost/signature/client/portal/SignerIdentifier.html) corresponding with the method you used when creating the signature job.
+As illustrated above, you should always query either the `statusChange` or the `TooEagerPollingException` to find out when you are allowed to poll for statuses next time. 
+
+Retrieve a specific signer's status by calling the method `statusChange.getSignatureFrom(SignerIdentifier)`. The `SignerIdentifier` parameter must be created by using [one of the static methods](https://javadoc.io/page/no.digipost.signature/signature-api-client-java/latest/no/digipost/signature/client/portal/SignerIdentifier.html) corresponding with the method you used when creating the signature job.
 
 ``` java
 
