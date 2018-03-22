@@ -34,6 +34,7 @@ import no.digipost.signature.client.direct.WithExitUrls;
 import no.digipost.signature.client.security.KeyStoreConfig;
 
 import java.io.InputStream;
+import java.time.Instant;
 
 @SuppressWarnings({"unused", "ConstantConditions", "StatementWithEmptyBody"})
 class DirectClientUseCases {
@@ -95,9 +96,11 @@ class DirectClientUseCases {
 
         if (statusChange.is(DirectJobStatus.NO_CHANGES)) {
             // Queue is empty. Must wait before polling again
+            Instant nextPermittedPollTime = statusChange.getNextPermittedPollTime();
         } else {
             // Received status update, act according to status
             DirectJobStatus status = statusChange.getStatus();
+            Instant nextPermittedPollTime = statusChange.getNextPermittedPollTime();
         }
 
         client.confirm(statusChange);

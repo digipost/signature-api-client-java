@@ -20,6 +20,7 @@ import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.Confirmable;
 
+import java.time.Instant;
 import java.util.List;
 
 import static no.digipost.signature.client.portal.PortalJobStatus.NO_CHANGES;
@@ -41,20 +42,20 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
      * This instance indicates that there has been no status updates since the last poll request for
      * {@link PortalJobStatusChanged}. Its status is {@link PortalJobStatus#NO_CHANGES NO_CHANGES}.
      */
-    public static final PortalJobStatusChanged NO_UPDATED_STATUS = new PortalJobStatusChanged(null, NO_CHANGES, null, null, null, null) {
-        @Override
-        public long getSignatureJobId() {
-            throw new IllegalStateException(
-                    "There were " + this + ", and querying the job ID is a programming error. " +
-                    "Use the method is(" + PortalJobStatus.class.getSimpleName() + "." + NO_CHANGES.name() + ") " +
-                    "to check if there were any status change before attempting to get any further information.");
-        };
+    static PortalJobStatusChanged noUpdatedStatus(Instant nextPermittedPollTime) {
+        return new PortalJobStatusChanged(null, NO_CHANGES, null, null, null, null, nextPermittedPollTime) {
+            @Override public long getSignatureJobId() {
+                throw new IllegalStateException(
+                        "There were " + this + ", and querying the job ID is a programming error. " +
+                        "Use the method is(" + PortalJobStatus.class.getSimpleName() + "." + NO_CHANGES.name() + ") " +
+                        "to check if there were any status change before attempting to get any further information.");
+            }
 
-        @Override
-        public String toString() {
-            return "no portal jobs with updated status";
-        }
-    };
+            @Override public String toString() {
+                return "no portal jobs with updated status";
+            }
+        };
+    }
 
     private final Long signatureJobId;
     private final PortalJobStatus status;
@@ -62,14 +63,16 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
     private final ConfirmationReference confirmationReference;
     private final CancellationUrl cancellationUrl;
     private final List<Signature> signatures;
+    private final Instant nextPermittedPollTime;
 
-    PortalJobStatusChanged(Long signatureJobId, PortalJobStatus status, ConfirmationReference confirmationReference, CancellationUrl cancellationUrl, PAdESReference pAdESReference, List<Signature> signatures) {
+    PortalJobStatusChanged(Long signatureJobId, PortalJobStatus status, ConfirmationReference confirmationReference, CancellationUrl cancellationUrl, PAdESReference pAdESReference, List<Signature> signatures, Instant nextPermittedPollTime) {
         this.signatureJobId = signatureJobId;
         this.status = status;
         this.cancellationUrl = cancellationUrl;
         this.pAdESReference = pAdESReference;
         this.confirmationReference = confirmationReference;
         this.signatures = signatures;
+        this.nextPermittedPollTime = nextPermittedPollTime;
     }
 
     public long getSignatureJobId() {
@@ -116,6 +119,10 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
                 .filter(signatureFrom(signer))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unable to find signature from this signer"));
+    }
+
+    public Instant getNextPermittedPollTime() {
+        return nextPermittedPollTime;
     }
 
     @Override

@@ -15,15 +15,14 @@
  */
 package no.digipost.signature.client.core.internal.http;
 
-import com.pholser.junit.quickcheck.ForAll;
+import com.pholser.junit.quickcheck.Property;
 import com.pholser.junit.quickcheck.generator.InRange;
+import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import no.digipost.signature.client.core.internal.http.ResponseStatus.Custom;
 import no.digipost.signature.client.core.internal.http.ResponseStatus.Unknown;
 import org.junit.Test;
-import org.junit.contrib.theories.Theories;
-import org.junit.contrib.theories.Theory;
 import org.junit.runner.RunWith;
 
 import javax.ws.rs.core.Response.Status;
@@ -32,7 +31,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
-@RunWith(Theories.class)
+@RunWith(JUnitQuickcheck.class)
 public class ResponseStatusTest {
 
     @Test
@@ -50,8 +49,8 @@ public class ResponseStatusTest {
         assertThat(ResponseStatus.resolve(478), is(ResponseStatus.unknown(478)));
     }
 
-    @Theory
-    public void correctEqualsHashCodeForAnyResolvedStatus(@ForAll @InRange(minInt=0, maxInt=1000) int anyStatusCode) {
+    @Property
+    public void correctEqualsHashCodeForAnyResolvedStatus(@InRange(minInt=0, maxInt=1000) int anyStatusCode) {
         assertThat(ResponseStatus.resolve(anyStatusCode), is(ResponseStatus.resolve(anyStatusCode)));
         assertThat(ResponseStatus.resolve(anyStatusCode), not(ResponseStatus.resolve(anyStatusCode + 1)));
     }

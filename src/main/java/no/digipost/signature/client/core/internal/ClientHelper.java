@@ -49,11 +49,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.StatusType;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
@@ -154,15 +157,15 @@ public class ClientHelper {
         });
     }
 
-    public XMLPortalSignatureJobStatusChangeResponse getPortalStatusChange(Optional<Sender> sender) {
+    public JobStatusResponse<XMLPortalSignatureJobStatusChangeResponse> getPortalStatusChange(Optional<Sender> sender) {
         return getStatusChange(sender, PORTAL, XMLPortalSignatureJobStatusChangeResponse.class);
     }
 
-    public XMLDirectSignatureJobStatusResponse getDirectStatusChange(Optional<Sender> sender) {
+    public JobStatusResponse<XMLDirectSignatureJobStatusResponse> getDirectStatusChange(Optional<Sender> sender) {
         return getStatusChange(sender, DIRECT, XMLDirectSignatureJobStatusResponse.class);
     }
 
-    private <RESPONSE_CLASS> RESPONSE_CLASS getStatusChange(final Optional<Sender> sender, final Target target, final Class<RESPONSE_CLASS> responseClass) {
+    private <RESPONSE_CLASS> JobStatusResponse<RESPONSE_CLASS> getStatusChange(final Optional<Sender> sender, final Target target, final Class<RESPONSE_CLASS> responseClass) {
         return call(() -> {
             Sender actualSender = getActualSender(sender, globalSender);
             Invocation.Builder request = httpClient.signatureServiceRoot().path(target.path(actualSender))
@@ -172,16 +175,20 @@ public class ClientHelper {
             try (Response response = request.get()) {
                 StatusType status = ResponseStatus.resolve(response.getStatus());
                 if (status == NO_CONTENT) {
-                    return null;
+                    return new JobStatusResponse<>(null, getNextPermittedPollTime(response));
                 } else if (status == OK) {
-                    return response.readEntity(responseClass);
+                    return new JobStatusResponse<>(response.readEntity(responseClass), getNextPermittedPollTime(response));
                 } else if (status == TOO_MANY_REQUESTS) {
-                    throw new TooEagerPollingException(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER));
+                    throw new TooEagerPollingException();
                 } else {
                     throw exceptionForGeneralError(response);
                 }
             }
         });
+    }
+
+    private static Instant getNextPermittedPollTime(Response response) {
+        return ZonedDateTime.parse(response.getHeaderString(NEXT_PERMITTED_POLL_TIME_HEADER), ISO_DATE_TIME).toInstant();
     }
 
     public void confirm(final Confirmable confirmable) {

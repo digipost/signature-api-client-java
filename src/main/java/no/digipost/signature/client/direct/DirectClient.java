@@ -27,12 +27,13 @@ import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
+import no.digipost.signature.client.core.internal.JobStatusResponse;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
 
 import java.io.InputStream;
 import java.util.Optional;
 
-import static no.digipost.signature.client.direct.DirectJobStatusResponse.NO_UPDATED_STATUS;
+import static no.digipost.signature.client.direct.DirectJobStatusResponse.noUpdatedStatus;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.toJaxb;
 
@@ -70,7 +71,7 @@ public class DirectClient {
      */
     public DirectJobStatusResponse getStatus(StatusReference statusReference) {
         XMLDirectSignatureJobStatusResponse xmlSignatureJobStatusResponse = client.sendSignatureJobStatusRequest(statusReference.getStatusUrl());
-        return fromJaxb(xmlSignatureJobStatusResponse);
+        return fromJaxb(xmlSignatureJobStatusResponse, null);
     }
 
     /**
@@ -85,7 +86,7 @@ public class DirectClient {
      * Only jobs with {@link DirectJob.Builder#retrieveStatusBy(StatusRetrievalMethod) status retrieval method} set
      * to {@link StatusRetrievalMethod#POLLING POLLING} will be returned.
      *
-     * @return the changed status for a job, or {@link DirectJobStatusResponse#NO_UPDATED_STATUS NO_UPDATED_STATUS},
+     * @return the changed status for a job, or an instance indicating {@link DirectJobStatus#NO_CHANGES no changes},
      *         never {@code null}.
      */
     public DirectJobStatusResponse getStatusChange() {
@@ -104,12 +105,16 @@ public class DirectClient {
      * Only jobs with {@link DirectJob.Builder#retrieveStatusBy(StatusRetrievalMethod) status retrieval method} set
      * to {@link StatusRetrievalMethod#POLLING POLLING} will be returned.
      *
-     * @return the changed status for a job, or {@link DirectJobStatusResponse#NO_UPDATED_STATUS NO_UPDATED_STATUS},
+     * @return the changed status for a job, or an instance indicating {@link DirectJobStatus#NO_CHANGES no changes},
      *         never {@code null}.
      */
     public DirectJobStatusResponse getStatusChange(Sender sender) {
-        XMLDirectSignatureJobStatusResponse statusChange = client.getDirectStatusChange(Optional.ofNullable(sender));
-        return statusChange == null ? NO_UPDATED_STATUS : fromJaxb(statusChange);
+        JobStatusResponse<XMLDirectSignatureJobStatusResponse> statusChangeResponse = client.getDirectStatusChange(Optional.ofNullable(sender));
+        if (statusChangeResponse.gotStatusChange()) {
+            return fromJaxb(statusChangeResponse.getStatusResponse(), statusChangeResponse.getNextPermittedPollTime());
+        } else {
+            return noUpdatedStatus(statusChangeResponse.getNextPermittedPollTime());
+        }
     }
 
 

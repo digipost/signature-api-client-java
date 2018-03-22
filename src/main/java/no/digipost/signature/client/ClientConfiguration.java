@@ -34,7 +34,7 @@ import org.apache.http.ssl.PrivateKeyStrategy;
 import org.apache.http.ssl.SSLContexts;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.filter.LoggingFilter;
+import org.glassfish.jersey.logging.LoggingFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,7 +211,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         private URI serviceRoot = ServiceUri.PRODUCTION.uri;
         private Optional<Sender> globalSender = Optional.empty();
         private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
-        private Optional<LoggingFilter> loggingFilter = Optional.empty();
+        private Optional<LoggingFeature> loggingFeature = Optional.empty();
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
         private Clock clock = Clock.systemDefaultZone();
 
@@ -309,7 +309,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * {@link ClientConfiguration#HTTP_REQUEST_RESPONSE_LOGGER_NAME}.
          */
         public Builder enableRequestAndResponseLogging() {
-            loggingFilter = Optional.of(new LoggingFilter(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), 16 * 1024));
+            loggingFeature = Optional.of(new LoggingFeature(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), 16 * 1024));
             return this;
         }
 
@@ -384,7 +384,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             jaxrsConfig.register(MultiPartFeature.class);
             jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
             jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, createUserAgentString()));
-            this.loggingFilter.ifPresent(jaxrsConfig::register);
+            this.loggingFeature.ifPresent(jaxrsConfig::register);
             return new ClientConfiguration(keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
         }
 

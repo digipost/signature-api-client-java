@@ -15,10 +15,9 @@
  */
 package no.digipost.signature.client.core.internal;
 
-import com.pholser.junit.quickcheck.ForAll;
+import com.pholser.junit.quickcheck.Property;
+import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
 import org.junit.Test;
-import org.junit.contrib.theories.Theories;
-import org.junit.contrib.theories.Theory;
 import org.junit.runner.RunWith;
 
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
@@ -27,16 +26,16 @@ import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-@RunWith(Theories.class)
+@RunWith(JUnitQuickcheck.class)
 public class PersonalIdentificationNumbersTest {
 
-    @Theory
-    public void maskingNeverThrowsException(@ForAll String randomString) {
+    @Property
+    public void maskingNeverThrowsException(String randomString) {
         assertThat(mask(randomString), isA(String.class));
     }
 
-    @Theory
-    public void alwaysReturnsStringWithSameLengthAsGiven(@ForAll String randomString) {
+    @Property
+    public void alwaysReturnsStringWithSameLengthAsGiven(String randomString) {
         assertThat(mask(randomString).length(), is(randomString.length()));
     }
 

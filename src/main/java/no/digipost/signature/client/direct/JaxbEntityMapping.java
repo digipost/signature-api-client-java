@@ -25,9 +25,9 @@ import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
-import no.digipost.signature.client.core.internal.ActualSender;
 import no.digipost.signature.client.direct.RedirectUrls.RedirectUrl;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +60,7 @@ final class JaxbEntityMapping {
         return new DirectJobResponse(xmlSignatureJobResponse.getSignatureJobId(), redirectUrls, xmlSignatureJobResponse.getStatusUrl());
     }
 
-    static DirectJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse) {
+    static DirectJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse, Instant nextPermittedPollTime) {
         List<Signature> signatures = new ArrayList<>();
         for (XMLSignerStatus signerStatus : statusResponse.getStatuses()) {
             String xAdESUrl = statusResponse.getXadesUrls().stream()
@@ -82,7 +82,8 @@ final class JaxbEntityMapping {
                 DirectJobStatus.fromXmlType(statusResponse.getSignatureJobStatus()),
                 ConfirmationReference.of(statusResponse.getConfirmationUrl()),
                 signatures,
-                PAdESReference.of(statusResponse.getPadesUrl()));
+                PAdESReference.of(statusResponse.getPadesUrl()),
+                nextPermittedPollTime);
     }
 
     private static Predicate<XMLSignerSpecificUrl> forSigner(final String signer) {

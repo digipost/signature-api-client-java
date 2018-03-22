@@ -18,7 +18,6 @@ package no.digipost.signature.client.docs;
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.PollingQueue;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.portal.Notifications;
 import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalClient;
@@ -76,17 +75,13 @@ class PortalClientUseCases {
 
         if (statusChange.is(PortalJobStatus.NO_CHANGES)) {
             // Queue is empty. Must wait before polling again
+            Instant nextPermittedPollTime = statusChange.getNextPermittedPollTime();
         } else {
             // Recieved status update, act according to status
             PortalJobStatus signatureJobStatus = statusChange.getStatus();
+            Instant nextPermittedPollTime = statusChange.getNextPermittedPollTime();
         }
 
-        // Polling immediately after retrieving NO_CHANGES:
-        try {
-            client.getStatusChange();
-        } catch (TooEagerPollingException tooEagerPolling) {
-            Instant nextPermittedPollTime = tooEagerPolling.getNextPermittedPollTime();
-        }
     }
 
     static void get_signer_status(){
