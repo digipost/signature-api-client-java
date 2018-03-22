@@ -47,6 +47,7 @@ This software includes third party software subject to the following licenses:
   SLF4J Simple Binding under MIT License
   Spring AOP under Apache License, Version 2.0
   Spring Beans under Apache License, Version 2.0
+  Spring Commons Logging Bridge under Apache License, Version 2.0
   Spring Context under Apache License, Version 2.0
   Spring Core under Apache License, Version 2.0
   Spring Expression Language (SpEL) under Apache License, Version 2.0
