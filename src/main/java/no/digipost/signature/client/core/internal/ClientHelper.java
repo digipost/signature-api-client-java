@@ -179,7 +179,7 @@ public class ClientHelper {
                 } else if (status == OK) {
                     return new JobStatusResponse<>(response.readEntity(responseClass), getNextPermittedPollTime(response));
                 } else if (status == TOO_MANY_REQUESTS) {
-                    throw new TooEagerPollingException(getNextPermittedPollTime(response));
+                    throw new TooEagerPollingException();
                 } else {
                     throw exceptionForGeneralError(response);
                 }

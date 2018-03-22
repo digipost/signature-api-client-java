@@ -15,17 +15,11 @@
  */
 package no.digipost.signature.client.core.exceptions;
 
-import java.time.Instant;
-
 public class TooEagerPollingException extends RuntimeException {
 
-    private final Instant nextPermittedPollTime;
-
-    public TooEagerPollingException(Instant nextPermittedPollTime) {
-        this.nextPermittedPollTime = nextPermittedPollTime;
-    }
-
-    public Instant getNextPermittedPollTime() {
-        return nextPermittedPollTime;
+    public TooEagerPollingException() {
+        super("Polling for status updates was blocked because you recently retrieved a response indicating empty queue. " +
+                "Next permitted poll time should be retrieved by querying 'getNextPermittedPollTime()' from the previous response. " +
+                "Polling too soon after an empty queue response is a programming error.");
     }
 }

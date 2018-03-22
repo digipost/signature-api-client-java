@@ -56,7 +56,7 @@ Read more about identifying your signers in the [functional documentation](http:
 
 All changes to signature jobs will be added to a queue from which you can poll for status updates. If the queue is empty (i.e. no jobs have changed status since last poll), you are not allowed to poll again for a defined period. Refer to the [API specification](https://github.com/digipost/signature-api-specification/blob/master/integrasjon/asynkron.md#hvor-ofte-skal-du-polle) to see how long this period is.
 
-The following example shows how this can be handled:
+The following example shows how this should be handled, by querying the `statusChange` to find out when you are allowed to poll for statuses next time:
 
 ``` java
 
@@ -73,16 +73,7 @@ if (statusChange.is(PortalJobStatus.NO_CHANGES)) {
     Instant nextPermittedPollTime = statusChange.getNextPermittedPollTime();
 }
 
-// Polling immediately after retrieving NO_CHANGES:
-try {
-    client.getStatusChange();
-} catch (TooEagerPollingException tooEagerPolling) {
-    Instant nextPermittedPollTime = tooEagerPolling.getNextPermittedPollTime();
-}
-
 ```
-
-As illustrated above, you should always query either the `statusChange` or the `TooEagerPollingException` to find out when you are allowed to poll for statuses next time. 
 
 Retrieve a specific signer's status by calling the method `statusChange.getSignatureFrom(SignerIdentifier)`. The `SignerIdentifier` parameter must be created by using [one of the static methods](https://javadoc.io/page/no.digipost.signature/signature-api-client-java/latest/no/digipost/signature/client/portal/SignerIdentifier.html) corresponding with the method you used when creating the signature job.
 
