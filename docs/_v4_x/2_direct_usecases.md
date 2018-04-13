@@ -157,3 +157,15 @@ if (statusChange.is(DirectJobStatus.NO_CHANGES)) {
 client.confirm(statusChange);
 
 ```
+
+
+<h3 id="delete-documents-direct">Delete documents</h3>
+
+After receiving a status change, the documents can be deleted as follows:
+
+``` java 
+DirectClient client = null; // As initialized earlier
+DirectJobStatusResponse directJobStatusResponse = null; // As returned when getting job status
+
+client.deleteDocuments(directJobStatusResponse.getDeleteDocumentsUrl());
+```
