@@ -19,10 +19,7 @@ import no.digipost.signature.api.xml.XMLPortalSignatureJobRequest;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signature.api.xml.XMLSignature;
-import no.digipost.signature.client.core.ConfirmationReference;
-import no.digipost.signature.client.core.PAdESReference;
-import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.XAdESReference;
+import no.digipost.signature.client.core.*;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
 
 import java.util.ArrayList;
@@ -64,6 +61,7 @@ final class JaxbEntityMapping {
                 statusChange.getSignatureJobId(), PortalJobStatus.fromXmlType(statusChange.getStatus()),
                 ConfirmationReference.of(statusChange.getConfirmationUrl()),
                 CancellationUrl.of(statusChange.getCancellationUrl()),
+                DeleteDocumentsUrl.of(statusChange.getDeleteDocumentsUrl()),
                 PAdESReference.of(statusChange.getSignatures().getPadesUrl()),
                 signatures,
                 statusChangeResponse.getNextPermittedPollTime());

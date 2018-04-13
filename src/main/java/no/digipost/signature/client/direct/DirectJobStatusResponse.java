@@ -18,6 +18,7 @@ package no.digipost.signature.client.direct;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.internal.Confirmable;
+import no.digipost.signature.client.core.DeleteDocumentsUrl;
 
 import java.time.Instant;
 import java.util.List;
@@ -33,7 +34,7 @@ public class DirectJobStatusResponse implements Confirmable {
      * {@link DirectJobStatusResponse}. Its status is {@link DirectJobStatus#NO_CHANGES NO_CHANGES}.
      */
     static DirectJobStatusResponse noUpdatedStatus(Instant nextPermittedPollTime) {
-        return new DirectJobStatusResponse(null, NO_CHANGES, null, null, null, nextPermittedPollTime) {
+        return new DirectJobStatusResponse(null, NO_CHANGES, null, null, null, null, nextPermittedPollTime) {
             @Override public long getSignatureJobId() {
                 throw new IllegalStateException(
                         "There were " + this + ", and querying the job ID is a programming error. " +
@@ -51,14 +52,16 @@ public class DirectJobStatusResponse implements Confirmable {
     private final Long signatureJobId;
     private final DirectJobStatus status;
     private final ConfirmationReference confirmationReference;
+    private final DeleteDocumentsUrl deleteDocumentsUrl;
     private final List<Signature> signatures;
     private final PAdESReference pAdESReference;
     private final Instant nextPermittedPollTime;
 
-    public DirectJobStatusResponse(Long signatureJobId, DirectJobStatus signatureJobStatus, ConfirmationReference confirmationUrl, List<Signature> signatures, PAdESReference pAdESReference, Instant nextPermittedPollTime) {
+    public DirectJobStatusResponse(Long signatureJobId, DirectJobStatus signatureJobStatus, ConfirmationReference confirmationUrl, DeleteDocumentsUrl deleteDocumentsUrl, List<Signature> signatures, PAdESReference pAdESReference, Instant nextPermittedPollTime) {
         this.signatureJobId = signatureJobId;
         this.status = signatureJobStatus;
         this.confirmationReference = confirmationUrl;
+        this.deleteDocumentsUrl = deleteDocumentsUrl;
         this.signatures = signatures;
         this.pAdESReference = pAdESReference;
         this.nextPermittedPollTime = nextPermittedPollTime;
@@ -126,6 +129,10 @@ public class DirectJobStatusResponse implements Confirmable {
     @Override
     public ConfirmationReference getConfirmationReference() {
         return confirmationReference;
+    }
+
+    public DeleteDocumentsUrl getDeleteDocumentsUrl() {
+        return deleteDocumentsUrl;
     }
 
     @Override

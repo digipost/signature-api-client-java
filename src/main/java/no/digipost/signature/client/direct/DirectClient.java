@@ -29,6 +29,7 @@ import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
+import no.digipost.signature.client.core.DeleteDocumentsUrl;
 
 import java.io.InputStream;
 import java.util.Optional;
@@ -144,5 +145,8 @@ public class DirectClient {
         return client.getSignedDocumentStream(pAdESReference.getpAdESUrl());
     }
 
+    public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {
+        client.deleteDocuments(deleteDocumentsUrl);
+    }
 
 }

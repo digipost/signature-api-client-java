@@ -24,17 +24,10 @@ import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.exceptions.BrokerNotAuthorizedException;
-import no.digipost.signature.client.core.exceptions.CantQueryStatusException;
-import no.digipost.signature.client.core.exceptions.InvalidStatusQueryTokenException;
-import no.digipost.signature.client.core.exceptions.JobCannotBeCancelledException;
-import no.digipost.signature.client.core.exceptions.NotCancellableException;
-import no.digipost.signature.client.core.exceptions.RuntimeIOException;
-import no.digipost.signature.client.core.exceptions.SignatureException;
-import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
-import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
+import no.digipost.signature.client.core.exceptions.*;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
+import no.digipost.signature.client.core.DeleteDocumentsUrl;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
@@ -216,6 +209,24 @@ public class ClientHelper {
         clientExceptionMapper.doWithMappedClientException(action);
     }
 
+    public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {
+        call(() -> {
+            if (deleteDocumentsUrl != null) {
+                String url = deleteDocumentsUrl.getUrl();
+                try (Response response = delete(url)) {
+                    StatusType status = ResponseStatus.resolve(response.getStatus());
+                    if (status == OK) {
+                        return;
+                    }
+                    throw exceptionForGeneralError(response);
+                }
+            } else {
+                throw new DocumentsNotDeletableException();
+            }
+        });
+
+    }
+
     private class UsingBodyParts {
 
         private final List<BodyPart> parts;
@@ -249,6 +260,13 @@ public class ClientHelper {
                 .accept(APPLICATION_XML_TYPE)
                 .header("Content-Length", 0)
                 .post(Entity.entity(null, APPLICATION_XML_TYPE));
+    }
+
+    private Response delete(String uri) {
+        return httpClient.target(uri)
+                .request()
+                .accept(APPLICATION_XML_TYPE)
+                .delete();
     }
 
     private <T> T parseResponse(Response response, Class<T> responseType) {
