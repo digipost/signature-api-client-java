@@ -18,6 +18,8 @@ package no.digipost.signature.client.docs;
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.PollingQueue;
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.direct.DirectClient;
+import no.digipost.signature.client.direct.DirectJobStatusResponse;
 import no.digipost.signature.client.portal.Notifications;
 import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalClient;
@@ -146,4 +148,10 @@ class PortalClientUseCases {
         PortalJobStatusChanged statusChange = client.getStatusChange(sender);
     }
 
+    static void delete_documents() {
+        PortalClient client = null; // As initialized earlier
+        PortalJobStatusChanged statusChange = null; // As returned when polling for status changes
+
+        client.deleteDocuments(statusChange.getDeleteDocumentsUrl());
+    }
 }

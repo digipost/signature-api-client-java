@@ -26,6 +26,7 @@ import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.direct.RedirectUrls.RedirectUrl;
+import no.digipost.signature.client.core.DeleteDocumentsUrl;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -81,6 +82,7 @@ final class JaxbEntityMapping {
                 statusResponse.getSignatureJobId(),
                 DirectJobStatus.fromXmlType(statusResponse.getSignatureJobStatus()),
                 ConfirmationReference.of(statusResponse.getConfirmationUrl()),
+                DeleteDocumentsUrl.of(statusResponse.getDeleteDocumentsUrl()),
                 signatures,
                 PAdESReference.of(statusResponse.getPadesUrl()),
                 nextPermittedPollTime);

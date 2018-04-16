@@ -22,10 +22,7 @@ import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.CreateASiCE;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.asice.manifest.CreatePortalManifest;
-import no.digipost.signature.client.core.ConfirmationReference;
-import no.digipost.signature.client.core.PAdESReference;
-import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.XAdESReference;
+import no.digipost.signature.client.core.*;
 import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
@@ -122,6 +119,10 @@ public class PortalClient {
 
     public InputStream getPAdES(PAdESReference pAdESReference) {
         return client.getSignedDocumentStream(pAdESReference.getpAdESUrl());
+    }
+
+    public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {
+        client.deleteDocuments(deleteDocumentsUrl);
     }
 
 }

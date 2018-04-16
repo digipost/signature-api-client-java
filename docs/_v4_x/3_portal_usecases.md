@@ -160,3 +160,14 @@ PortalJobResponse portalJobResponse = client.create(portalJob);
 PortalJobStatusChanged statusChange = client.getStatusChange(sender);
 
 ```
+
+<h3 id="delete-documents-portal">Delete documents</h3>
+
+After receiving a status change, the documents can be deleted as follows:
+
+``` java 
+PortalClient client = null; // As initialized earlier
+PortalJobStatusChanged statusChange = null; // As returned when polling for status changes
+
+client.deleteDocuments(statusChange.getDeleteDocumentsUrl());
+```

@@ -150,4 +150,11 @@ class DirectClientUseCases {
         client.confirm(statusChange);
     }
 
+    static void delete_documents() {
+        DirectClient client = null; // As initialized earlier
+        DirectJobStatusResponse directJobStatusResponse = null; // As returned when getting job status
+
+        client.deleteDocuments(directJobStatusResponse.getDeleteDocumentsUrl());
+    }
+
 }
