@@ -16,7 +16,7 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <signature.api.version>2.2</signature.api.version>
+        <signature.api.version>2.3</signature.api.version>
         <slf4j.version>1.7.25</slf4j.version>
     </properties>
 
