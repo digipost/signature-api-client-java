@@ -44,7 +44,7 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
      * {@link PortalJobStatusChanged}. Its status is {@link PortalJobStatus#NO_CHANGES NO_CHANGES}.
      */
     static PortalJobStatusChanged noUpdatedStatus(Instant nextPermittedPollTime) {
-        return new PortalJobStatusChanged(null, NO_CHANGES, null, null, null, null, null, nextPermittedPollTime) {
+        return new PortalJobStatusChanged(null, null, NO_CHANGES, null, null, null, null, null, nextPermittedPollTime) {
             @Override public long getSignatureJobId() {
                 throw new IllegalStateException(
                         "There were " + this + ", and querying the job ID is a programming error. " +
@@ -59,6 +59,7 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
     }
 
     private final Long signatureJobId;
+    private final String reference;
     private final PortalJobStatus status;
     private final DeleteDocumentsUrl deleteDocumentsUrl;
     private final PAdESReference pAdESReference;
@@ -67,8 +68,9 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
     private final List<Signature> signatures;
     private final Instant nextPermittedPollTime;
 
-    PortalJobStatusChanged(Long signatureJobId, PortalJobStatus status, ConfirmationReference confirmationReference, CancellationUrl cancellationUrl, DeleteDocumentsUrl deleteDocumentsUrl, PAdESReference pAdESReference, List<Signature> signatures, Instant nextPermittedPollTime) {
+    PortalJobStatusChanged(Long signatureJobId, String reference, PortalJobStatus status, ConfirmationReference confirmationReference, CancellationUrl cancellationUrl, DeleteDocumentsUrl deleteDocumentsUrl, PAdESReference pAdESReference, List<Signature> signatures, Instant nextPermittedPollTime) {
         this.signatureJobId = signatureJobId;
+        this.reference = reference;
         this.status = status;
         this.cancellationUrl = cancellationUrl;
         this.deleteDocumentsUrl = deleteDocumentsUrl;
@@ -80,6 +82,14 @@ public class PortalJobStatusChanged implements Confirmable, Cancellable {
 
     public long getSignatureJobId() {
         return signatureJobId;
+    }
+
+    /**
+     * @return the signature job's custom reference as specified upon
+     * {@link PortalJob.Builder#withReference(String) creation}. May be {@code null}.
+     */
+    public String getReference() {
+        return reference;
     }
 
     public PortalJobStatus getStatus() {

@@ -58,7 +58,12 @@ final class JaxbEntityMapping {
                 .map(RedirectUrl::fromJaxb)
                 .collect(toList());
 
-        return new DirectJobResponse(xmlSignatureJobResponse.getSignatureJobId(), redirectUrls, xmlSignatureJobResponse.getStatusUrl());
+        return new DirectJobResponse(
+                xmlSignatureJobResponse.getSignatureJobId(),
+                xmlSignatureJobResponse.getReference(),
+                redirectUrls,
+                xmlSignatureJobResponse.getStatusUrl()
+        );
     }
 
     static DirectJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse, Instant nextPermittedPollTime) {
@@ -80,6 +85,7 @@ final class JaxbEntityMapping {
 
         return new DirectJobStatusResponse(
                 statusResponse.getSignatureJobId(),
+                statusResponse.getReference(),
                 DirectJobStatus.fromXmlType(statusResponse.getSignatureJobStatus()),
                 ConfirmationReference.of(statusResponse.getConfirmationUrl()),
                 DeleteDocumentsUrl.of(statusResponse.getDeleteDocumentsUrl()),

@@ -39,7 +39,11 @@ final class JaxbEntityMapping {
     }
 
     static PortalJobResponse fromJaxb(XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse) {
-        return new PortalJobResponse(xmlPortalSignatureJobResponse.getSignatureJobId(), CancellationUrl.of(xmlPortalSignatureJobResponse.getCancellationUrl()));
+        return new PortalJobResponse(
+                xmlPortalSignatureJobResponse.getSignatureJobId(),
+                xmlPortalSignatureJobResponse.getReference(),
+                CancellationUrl.of(xmlPortalSignatureJobResponse.getCancellationUrl())
+        );
     }
 
 
@@ -58,7 +62,9 @@ final class JaxbEntityMapping {
 
 
         return new PortalJobStatusChanged(
-                statusChange.getSignatureJobId(), PortalJobStatus.fromXmlType(statusChange.getStatus()),
+                statusChange.getSignatureJobId(),
+                statusChange.getReference(),
+                PortalJobStatus.fromXmlType(statusChange.getStatus()),
                 ConfirmationReference.of(statusChange.getConfirmationUrl()),
                 CancellationUrl.of(statusChange.getCancellationUrl()),
                 DeleteDocumentsUrl.of(statusChange.getDeleteDocumentsUrl()),
