@@ -4,6 +4,8 @@ import no.digipost.signature.client.security.KeyStoreConfig;
 
 public class TestCertificates {
 
+    private static final String password = "yJPvczYAoirFfC9M";
+
     /**
      * Create Java Keystore from .p12-fil
      * <p>
@@ -29,14 +31,14 @@ public class TestCertificates {
     public static KeyStoreConfig getJavaKeyStore() {
         return KeyStoreConfig.fromOrganizationCertificate(
                 TestCertificates.class.getResourceAsStream("/bring-expired-certificate-for-testing.p12"),
-                "yJPvczYAoirFfC9M"
+                password
         );
     }
 
     public static KeyStoreConfig getOrganizationCertificateKeyStore() {
         return KeyStoreConfig.fromJavaKeyStore(
                 TestCertificates.class.getResourceAsStream("/bring-expired-keystore-for-testing.jks"),
-                "digipost testintegrasjon for digital post", "yJPvczYAoirFfC9M", "yJPvczYAoirFfC9M"
+                "digipost testintegrasjon for digital post", password, password
         );
     }
 
