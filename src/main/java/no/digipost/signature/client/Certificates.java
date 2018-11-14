@@ -42,7 +42,6 @@ public enum Certificates {
     Certificates(String ... certificatePaths) {
         this.certificatePaths = Stream.of(certificatePaths).map(FullCertificateClassPathUri.instance).collect(toList());
     }
-
 }
 
 
