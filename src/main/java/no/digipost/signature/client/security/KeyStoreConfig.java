@@ -96,17 +96,26 @@ public class KeyStoreConfig {
     }
 
     /**
+     * @deprecated as of 4.3, please use {@link #fromJavaKeyStore(InputStream, String, String, String)}(same functionality, different name), or load directly from organization
+     * certificate using {{@link #fromOrganizationCertificate(InputStream, String)}}
+     */
+    @Deprecated
+    public static KeyStoreConfig fromKeyStore(final InputStream javaKeyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
+        return fromJavaKeyStore(javaKeyStore, alias, keyStorePassword, privatekeyPassword);
+    }
+
+    /**
      * Create a {@link KeyStoreConfig} from a Java Key Store containing an Organization Certificate (Virksomhetssertifikat).
-     * @param javaKeyStore A stream of the certificate in JCEKS format.
-     * @param alias The alias of the organization certificate in the key store.
-     * @param keyStorePassword The password for the key store itself.
+     *
+     * @param javaKeyStore       A stream of the certificate in JCEKS format.
+     * @param alias              The alias of the organization certificate in the key store.
+     * @param keyStorePassword   The password for the key store itself.
      * @param privatekeyPassword The password for the private key of the organization certificate within the key store.
      * @return The config, containing the certificate, the private key and the certificate chain.
      */
-
     public static KeyStoreConfig fromJavaKeyStore(final InputStream javaKeyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
         try {
-            if(javaKeyStore == null){
+            if (javaKeyStore == null) {
                 throw new KeyException("Failed to initialize key store, because the key store stream is null. Please specify a stream with data.");
             }
 
@@ -121,9 +130,10 @@ public class KeyStoreConfig {
     }
 
     /**
-     * Create a {@link KeyStoreConfig} from an Organization Certificate (Virksomhetssertifikat)
+     * Create a {@link KeyStoreConfig} from an Organization Certificate (Virksomhetssertifikat).
+     *
      * @param organizationCertificate A stream of the certificate in PKCS12 format. The file should have .p12-file ending.
-     * @param privatekeyPassword The password for the private key of the organization certificate.
+     * @param privatekeyPassword      The password for the private key of the organization certificate.
      * @return The config, containing the certificate, the private key and the certificate chain.
      */
     public static KeyStoreConfig fromOrganizationCertificate(final InputStream organizationCertificate, final String privatekeyPassword) {
