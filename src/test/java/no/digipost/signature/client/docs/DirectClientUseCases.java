@@ -16,6 +16,7 @@
 package no.digipost.signature.client.docs;
 
 import no.digipost.signature.client.ClientConfiguration;
+import no.digipost.signature.client.TestCertificates;
 import no.digipost.signature.client.core.PollingQueue;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.direct.DirectClient;
@@ -40,10 +41,7 @@ import java.time.Instant;
 class DirectClientUseCases {
 
     static void create_client_configuration() {
-        InputStream keyStore = null; // Stream created from keyStore file
-
-        KeyStoreConfig keyStoreConfig = KeyStoreConfig.fromKeyStore(keyStore,
-                "certificateAlias", "keyStorePassword", "privateKeyPassword");
+        KeyStoreConfig keyStoreConfig = TestCertificates.getJavaKeyStore();
 
         ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreConfig)
                 .globalSender(new Sender("123456789"))
