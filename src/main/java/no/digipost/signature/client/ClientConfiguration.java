@@ -122,8 +122,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         this.clock = clock;
     }
 
-
-
     @Override
     public KeyStoreConfig getKeyStoreConfig() {
         return keyStoreConfig;

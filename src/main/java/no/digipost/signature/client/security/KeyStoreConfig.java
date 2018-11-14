@@ -21,11 +21,22 @@ import no.digipost.signature.client.core.exceptions.KeyException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.*;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Enumeration;
 
 public class KeyStoreConfig {
+
+    private enum KeyStoreType {
+        PKCS12,
+        JCEKS
+    }
 
     public final KeyStore keyStore;
     public final String alias;
@@ -83,16 +94,46 @@ public class KeyStoreConfig {
         }
     }
 
-    public static KeyStoreConfig fromKeyStore(final InputStream keyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
+    /**
+     * Create a {@link KeyStoreConfig} from a Java Key Store containing an Organization Certificate (Virksomhetssertifikat).
+     * @param javaKeyStore A stream of the certificate in JCEKS format.
+     * @param alias The alias of the organization certificate in the key store.
+     * @param keyStorePassword The password for the key store itself.
+     * @param privatekeyPassword The password for the private key of the organization certificate within the key store.
+     * @return The config, containing the certificate, the private key and the certificate chain.
+     */
+
+    public static KeyStoreConfig fromJavaKeyStore(final InputStream javaKeyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
         try {
-            KeyStore ks = KeyStore.getInstance("JCEKS");
-            ks.load(keyStore, keyStorePassword.toCharArray());
+            KeyStore ks = KeyStore.getInstance(KeyStoreType.JCEKS.name());
+            ks.load(javaKeyStore, keyStorePassword.toCharArray());
             return new KeyStoreConfig(ks, alias, keyStorePassword, privatekeyPassword);
         } catch (FileNotFoundException e) {
-            throw new KeyException("Failed to initialize key store. Are you sure the file exists?", e);
+            throw new KeyException("Failed to initialize key store, because the file is not found. Are you sure the file exists at specified location?", e);
         } catch (KeyStoreException | NoSuchAlgorithmException | IOException | java.security.cert.CertificateException e) {
             throw new KeyException("Failed to initialize key store", e);
         }
+    }
+
+    /**
+     * Create a {@link KeyStoreConfig} from an Organization Certificate (Virksomhetssertifikat)
+     * @param organizationCertificate A stream of the certificate in PKCS12 format. The file should have .p12-file ending.
+     * @param privatekeyPassword The password for the private key of the organization certificate.
+     * @return The config, containing the certificate, the private key and the certificate chain.
+     */
+    public static KeyStoreConfig fromOrganizationCertificate(final InputStream organizationCertificate, final String privatekeyPassword) {
+        try {
+            KeyStore ks = KeyStore.getInstance(KeyStoreType.PKCS12.name());
+            ks.load(organizationCertificate, privatekeyPassword.toCharArray());
+            Enumeration aliases = ks.aliases();
+            String keyName = (String) aliases.nextElement();
+            return new KeyStoreConfig(ks, keyName, privatekeyPassword, privatekeyPassword);
+        } catch (FileNotFoundException e) {
+            throw new KeyException("Failed to initialize organization certificate, because the file is not found. Are you sure the file exists at specified location?", e);
+        } catch (KeyStoreException | NoSuchAlgorithmException | IOException | java.security.cert.CertificateException e) {
+            throw new KeyException("Failed to initialize key store", e);
+        }
+
     }
 
     private void verifyCorrectAliasCasing(Certificate certificate) {
