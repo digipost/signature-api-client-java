@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *          http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,6 +30,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
+import java.util.NoSuchElementException;
 
 public class KeyStoreConfig {
 
@@ -105,6 +106,10 @@ public class KeyStoreConfig {
 
     public static KeyStoreConfig fromJavaKeyStore(final InputStream javaKeyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
         try {
+            if(javaKeyStore == null){
+                throw new KeyException("Failed to initialize key store, because the key store stream is null. Please specify a stream with data.");
+            }
+
             KeyStore ks = KeyStore.getInstance(KeyStoreType.JCEKS.name());
             ks.load(javaKeyStore, keyStorePassword.toCharArray());
             return new KeyStoreConfig(ks, alias, keyStorePassword, privatekeyPassword);
@@ -132,8 +137,9 @@ public class KeyStoreConfig {
             throw new KeyException("Failed to initialize organization certificate, because the file is not found. Are you sure the file exists at specified location?", e);
         } catch (KeyStoreException | NoSuchAlgorithmException | IOException | java.security.cert.CertificateException e) {
             throw new KeyException("Failed to initialize key store", e);
+        } catch (NoSuchElementException e) {
+            throw new KeyException("Could not find any aliases in the key store. Are you sure this is an organization certificate in PKCS12 format?");
         }
-
     }
 
     private void verifyCorrectAliasCasing(Certificate certificate) {
