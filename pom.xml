@@ -300,7 +300,21 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>1.4.1</version>
+                    <version>3.0.0-M2</version>
+                    <configuration>
+                        <rules>
+                            <bannedDependencies>
+                                <excludes>
+                                    <exclude>commons-logging</exclude>
+                                </excludes>
+                                <searchTransitive>true</searchTransitive>
+                            </bannedDependencies>
+                            <requireMavenVersion>
+                                <version>3.0</version>
+                            </requireMavenVersion>
+                        </rules>
+                    </configuration>
+
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -382,7 +396,7 @@
             </plugin>
         </plugins>
     </build>
-    
+
     <scm>
         <connection>scm:git:git@github.com:digipost/signature-api-client-java.git</connection>
         <developerConnection>scm:git:git@github.com:digipost/signature-api-client-java.git</developerConnection>
