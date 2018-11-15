@@ -1,18 +1,3 @@
-/**
- * Copyright (C) Posten Norge AS
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
@@ -23,11 +8,20 @@ import no.digipost.signature.api.xml.XMLPortalSignatureJobRequest;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signature.client.asice.DocumentBundle;
+import no.digipost.signature.client.core.DeleteDocumentsUrl;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.exceptions.*;
+import no.digipost.signature.client.core.exceptions.BrokerNotAuthorizedException;
+import no.digipost.signature.client.core.exceptions.CantQueryStatusException;
+import no.digipost.signature.client.core.exceptions.DocumentsNotDeletableException;
+import no.digipost.signature.client.core.exceptions.InvalidStatusQueryTokenException;
+import no.digipost.signature.client.core.exceptions.JobCannotBeCancelledException;
+import no.digipost.signature.client.core.exceptions.NotCancellableException;
+import no.digipost.signature.client.core.exceptions.RuntimeIOException;
+import no.digipost.signature.client.core.exceptions.SignatureException;
+import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
+import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
-import no.digipost.signature.client.core.DeleteDocumentsUrl;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
