@@ -28,7 +28,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
-import java.util.NoSuchElementException;
 
 public class KeyStoreConfig {
 
@@ -121,15 +120,19 @@ public class KeyStoreConfig {
      */
     public static KeyStoreConfig fromOrganizationCertificate(final InputStream organizationCertificateStream, final String privatekeyPassword) {
         KeyStore ks = KeyStoreType.PKCS12.loadKeyStore(organizationCertificateStream, privatekeyPassword);
+        Enumeration<String> aliases;
         try {
-            Enumeration aliases = ks.aliases();
-            String keyName = (String) aliases.nextElement();
-            return new KeyStoreConfig(ks, keyName, privatekeyPassword, privatekeyPassword);
+            aliases = ks.aliases();
         } catch (KeyStoreException e) {
-            throw new KeyException("Failed to initialize key store", e);
-        } catch (NoSuchElementException e) {
-            throw new KeyException("Could not find any aliases in the key store. Are you sure this is an organization certificate in PKCS12 format?");
+            throw new KeyException(
+                    "Could not retrieve aliases from the key store, because " + e.getClass().getSimpleName() + ": " +
+                    "'" + e.getMessage() + "'. Are you sure this is an organization certificate in PKCS12 format?", e);
         }
+        if (!aliases.hasMoreElements()) {
+            throw new KeyException("The keystore contains no aliases, i.e. is empty! Are you sure this is an organization certificate in PKCS12 format?");
+        }
+        String keyName = aliases.nextElement();
+        return new KeyStoreConfig(ks, keyName, privatekeyPassword, privatekeyPassword);
     }
 
     private void verifyCorrectAliasCasing(Certificate certificate) {
