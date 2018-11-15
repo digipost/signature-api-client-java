@@ -382,29 +382,7 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>doclint-java8-disable</id>
-            <activation>
-                <jdk>[1.8,</jdk>
-            </activation>
-
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <artifactId>maven-javadoc-plugin</artifactId>
-                            <configuration>
-                                <additionalparam>-Xdoclint:-missing</additionalparam>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
-        </profile>
-    </profiles>
-
+    
     <scm>
         <connection>scm:git:git@github.com:digipost/signature-api-client-java.git</connection>
         <developerConnection>scm:git:git@github.com:digipost/signature-api-client-java.git</developerConnection>
