@@ -31,7 +31,7 @@ public class PostenEnterpriseCertificateStrategy implements TrustStrategy {
      * Always returns false to make sure http client will run the Java certificate verification process, which
      * will verify the certificate against the trust store, making sure that it's actually issued by a trusted CA.
      *
-     * @see org.apache.http.ssl.SSLContextBuilder.TrustManagerDelegate#checkServerTrusted(X509Certificate[], String)
+     * @see javax.net.ssl.X509TrustManager#checkServerTrusted(X509Certificate[], String)
      */
     @Override
     public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
