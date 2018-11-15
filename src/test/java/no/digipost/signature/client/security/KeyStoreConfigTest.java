@@ -32,7 +32,7 @@ public class KeyStoreConfigTest {
     @Test
     public void throws_exception_when_loading_organization_certificate_from_empty_stream() {
         expectedException.expect(KeyException.class);
-        expectedException.expectMessage("Could not find any aliases in the key store");
+        expectedException.expectMessage("Please specify a stream with data");
         KeyStoreConfig.fromOrganizationCertificate(null, "password;");
     }
 
