@@ -313,7 +313,11 @@
                                 <searchTransitive>true</searchTransitive>
                             </bannedDependencies>
                             <requireMavenVersion>
-                                <version>3.0</version>
+                                <!-- Maven 3.3.1 is needed for .mvn/maven.config to work
+                                     https://maven.apache.org/docs/3.3.1/release-notes.html
+                                     For more info on why we use it, see the super-POM:
+                                     https://github.com/digipost/digipost-open-super-pom#build-source-and-javadoc-artifacts-->
+                                <version>3.3.1</version>
                             </requireMavenVersion>
                         </rules>
                     </configuration>
