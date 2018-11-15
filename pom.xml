@@ -243,32 +243,6 @@
                     <version>3.6.0</version>
                 </plugin>
                 <plugin>
-                    <groupId>com.mycila</groupId>
-                    <artifactId>license-maven-plugin</artifactId>
-                    <version>3.0</version>
-                    <configuration>
-                        <header>src/main/license-header.txt</header>
-                        <strictCheck>true</strictCheck>
-                        <excludes>
-                            <exclude>**/LICENSE*</exclude>
-                            <exclude>**/NOTICE</exclude>
-                            <exclude>src/main/notice/NOTICE.template</exclude>
-                            <exclude>**/*.xml</exclude>
-                            <exclude>**/*.dtd</exclude>
-                            <exclude>**/*.xsd</exclude>
-                            <exclude>**/*.xjb</exclude>
-                            <exclude>**/*.txt</exclude>
-                            <exclude>**/*.jce</exclude>
-                            <exclude>**/*.cer</exclude>
-                            <exclude>**/*.pem</exclude>
-                            <exclude>.editorconfig</exclude>
-                            <exclude>src/test/resources/**</exclude>
-                            <exclude>**/version</exclude>
-                            <exclude>docs/**</exclude>
-                        </excludes>
-                    </configuration>
-                </plugin>
-                <plugin>
                     <groupId>com.github.siom79.japicmp</groupId>
                     <artifactId>japicmp-maven-plugin</artifactId>
                     <version>0.9.3</version>
