@@ -30,7 +30,7 @@ DirectJobResponse directJobResponse = client.create(directJob);
 
 > Note: Most domain object follow the builder pattern, accepting all required parameters in the factory method and with specific methods for each optional parameter. Keep this in mind when exploring the API.
 
-<h3 id="uc03">Get signature job status</h3>
+### Get signature job status
 
 The signing process is a synchrounous operation in the direct use case. There is no need to poll for changes to a signature job, as the status is well known to the sender of the job. As soon as the signer completes, rejects or an error occurs, the user is redirected to the respective URLs set in `ExitUrls`. A `status_query_token` parameter has been added to the url, use this when requesting a status change.
 
@@ -46,7 +46,7 @@ DirectJobStatusResponse directJobStatusResponse =
 
 ```
 
-<h3 id="uc4">Create job and get status by polling</h3> 
+### Create job and get status by polling 
 
 If you, for any reason, are unable to retrieve status by using the status query token specified above, you may poll the service for any changes done to your organization’s jobs. If the queue is empty, additional polling will give an exception.
 
@@ -79,7 +79,8 @@ client.confirm(statusChange);
 
 As illustrated above, you should always query the `statusChange` to find out when you are allowed to poll for statuses next time.
 
-<h3 id="uc05">Get signed documents</h3>
+[comment]: <> (Using h3 with specific id to diff from the auto genereted one for portal use cases.)
+<h3 id="direct-get-signed-documents">Get signed documents</h3>
 
 ``` java
 
@@ -98,7 +99,8 @@ for (Signature signature : directJobStatusResponse.getSignatures()) {
 
 ```
 
-<h3 id="uc06">Confirm processed signature job</h3>
+[comment]: <> (Using h3 with specific id to diff from the auto genereted one for portal use cases.)
+<h3 id="direct-confirm-processed-signature-job">Confirm processed signature job</h3>
 
 ``` java
 DirectClient client = null; // As initialized earlier
@@ -110,7 +112,6 @@ client.confirm(directJobStatusResponse);
 
 
 [comment]: <> (Using h3 with specific id to diff from the auto genereted one for portal use cases.)
-
 <h3 id="specifying-direct-queues">Specifying queues</h3>
 
 Specifies the queue that jobs and status changes for a signature job will occur in for signature jobs where `StatusRetrievalMethod == POLLING` This is a feature aimed at organizations where it makes sense to retrieve status changes from several queues. This may be if the organization has more than one division, and each division has an application that create signature jobs through the API and want to retrieve status changes independent of the other division's actions.
@@ -141,8 +142,8 @@ client.confirm(statusChange);
 
 ```
 
-
-<h3 id="delete-documents-direct">Delete documents</h3>
+[comment]: <> (Using h3 with specific id to diff from the auto genereted one for portal use cases.)
+<h3 id="direct-delete-documents">Delete documents</h3>
 
 After receiving a status change, the documents can be deleted as follows:
 
