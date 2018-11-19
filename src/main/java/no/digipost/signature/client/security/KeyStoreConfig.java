@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *          http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,12 +18,16 @@ package no.digipost.signature.client.security;
 import no.digipost.signature.client.core.exceptions.CertificateException;
 import no.digipost.signature.client.core.exceptions.KeyException;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.*;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Enumeration;
 
 public class KeyStoreConfig {
 
@@ -71,7 +75,7 @@ public class KeyStoreConfig {
         try {
             Key key = keyStore.getKey(alias, privatekeyPassword.toCharArray());
             if (!(key instanceof PrivateKey)) {
-                throw new KeyException("Failed to retrieve private key from key store. Expected a PriveteKey, got " + key.getClass().getCanonicalName());
+                throw new KeyException("Failed to retrieve private key from key store. Expected a PrivateKey, got " + key.getClass().getCanonicalName());
             }
             return (PrivateKey) key;
         } catch (KeyStoreException e) {
@@ -83,16 +87,52 @@ public class KeyStoreConfig {
         }
     }
 
-    public static KeyStoreConfig fromKeyStore(final InputStream keyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
+    /**
+     * @deprecated as of 4.3, please use {@link #fromJavaKeyStore(InputStream, String, String, String)}(same functionality, different name), or load directly from organization
+     * certificate using {{@link #fromOrganizationCertificate(InputStream, String)}}
+     */
+    @Deprecated
+    public static KeyStoreConfig fromKeyStore(final InputStream javaKeyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
+        return fromJavaKeyStore(javaKeyStore, alias, keyStorePassword, privatekeyPassword);
+    }
+
+    /**
+     * Create a {@link KeyStoreConfig} from a Java Key Store containing an Organization Certificate (Virksomhetssertifikat).
+     *
+     * @param javaKeyStore       A stream of the certificate in JCEKS format.
+     * @param alias              The alias of the organization certificate in the key store.
+     * @param keyStorePassword   The password for the key store itself.
+     * @param privatekeyPassword The password for the private key of the organization certificate within the key store.
+     * @return The config, containing the certificate, the private key and the certificate chain.
+     */
+    public static KeyStoreConfig fromJavaKeyStore(final InputStream javaKeyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
+        KeyStore ks = KeyStoreType.JCEKS.loadKeyStore(javaKeyStore, keyStorePassword);
+        return new KeyStoreConfig(ks, alias, keyStorePassword, privatekeyPassword);
+
+    }
+
+    /**
+     * Create a {@link KeyStoreConfig} from an Organization Certificate (Virksomhetssertifikat).
+     *
+     * @param organizationCertificateStream A stream of the certificate in PKCS12 format. The file should have .p12-file ending.
+     * @param privatekeyPassword            The password for the private key of the organization certificate.
+     * @return The config, containing the certificate, the private key and the certificate chain.
+     */
+    public static KeyStoreConfig fromOrganizationCertificate(final InputStream organizationCertificateStream, final String privatekeyPassword) {
+        KeyStore ks = KeyStoreType.PKCS12.loadKeyStore(organizationCertificateStream, privatekeyPassword);
+        Enumeration<String> aliases;
         try {
-            KeyStore ks = KeyStore.getInstance("JCEKS");
-            ks.load(keyStore, keyStorePassword.toCharArray());
-            return new KeyStoreConfig(ks, alias, keyStorePassword, privatekeyPassword);
-        } catch (FileNotFoundException e) {
-            throw new KeyException("Failed to initialize key store. Are you sure the file exists?", e);
-        } catch (KeyStoreException | NoSuchAlgorithmException | IOException | java.security.cert.CertificateException e) {
-            throw new KeyException("Failed to initialize key store", e);
+            aliases = ks.aliases();
+        } catch (KeyStoreException e) {
+            throw new KeyException(
+                    "Could not retrieve aliases from the key store, because " + e.getClass().getSimpleName() + ": " +
+                    "'" + e.getMessage() + "'. Are you sure this is an organization certificate in PKCS12 format?", e);
         }
+        if (!aliases.hasMoreElements()) {
+            throw new KeyException("The keystore contains no aliases, i.e. is empty! Are you sure this is an organization certificate in PKCS12 format?");
+        }
+        String keyName = aliases.nextElement();
+        return new KeyStoreConfig(ks, keyName, privatekeyPassword, privatekeyPassword);
     }
 
     private void verifyCorrectAliasCasing(Certificate certificate) {

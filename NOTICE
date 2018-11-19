@@ -8,38 +8,30 @@ Licensed under Apache 2 - http://www.apache.org/licenses/LICENSE-2.0.html
 
 This software includes third party software subject to the following licenses:
 
-  Antlr 3 Runtime under BSD License
   Apache Commons Codec under Apache License, Version 2.0
-  Apache Commons IO under Apache License, Version 2.0
   Apache Commons Lang under Apache License, Version 2.0
   Apache HttpClient under Apache License, Version 2.0
   Apache HttpCore under Apache License, Version 2.0
-  EqualsVerifier under The Apache Software License, Version 2.0
-  generics-resolver under The MIT License
-  Hamcrest Core under New BSD License
-  Hamcrest library under New BSD License
-  javaruntype under The Apache Software License, Version 2.0
-  Javassist under MPL 1.1 or LGPL 2.1 or Apache License 2.0
+  Extended StAX API under Dual license consisting of the CDDL v1.1 and GPL v2
+  fastinfoset under Apache License, Version 2.0
+  istack common utility code runtime under CDDL 1.1 or GPL2 w/ CPE
+  JavaBeans Activation Framework API jar under CDDL/GPLv2+CE
   javax.annotation API under CDDL + GPLv2 with classpath exception
   javax.inject:1 as OSGi bundle under CDDL + GPLv2 with classpath exception
   javax.ws.rs-api under CDDL 1.1 or GPL2 w/ CPE
+  JAXB Runtime under CDDL+GPL License
+  jaxb-api under CDDL 1.1 or GPL2 w/ CPE
   JAXB2 Basics - Runtime under BSD-Style License
   JCL 1.2 implemented over SLF4J under MIT License
   jersey-core-client under CDDL 1.1 or GPL2 w/ CPE
   jersey-core-common under CDDL 1.1 or GPL2 w/ CPE
   jersey-media-multipart under CDDL 1.1 or GPL2 w/ CPE
-  JUnit under Eclipse Public License 1.0
-  junit-quickcheck-core under The MIT License
-  junit-quickcheck-generators under The MIT License
-  junit-theories under Eclipse Public License v 1.0
   MIME streaming extension under CDDL 1.1 or GPL2 w/ CPE
-  OGNL - Object Graph Navigation Library under The Apache Software License, Version 2.0
   OSGi resource locator bundle - used by various API providers that rely on META-INF/services mechanism to locate providers. under CDDL + GPLv2 with classpath exception
   Posten signering - API JAXB Classes under The Apache Software License, Version 2.0
   Posten signering - API Schema under The Apache Software License, Version 2.0
   Posten signering - Java API Client Library under The Apache Software License, Version 2.0
   SLF4J API Module under MIT License
-  SLF4J Simple Binding under MIT License
   Spring AOP under Apache License, Version 2.0
   Spring Beans under Apache License, Version 2.0
   Spring Commons Logging Bridge under Apache License, Version 2.0
@@ -48,5 +40,6 @@ This software includes third party software subject to the following licenses:
   Spring Expression Language (SpEL) under Apache License, Version 2.0
   Spring Object/XML Marshalling under Apache License, Version 2.0
   spring-xml under Apache License, Version 2.0
+  TXW2 Runtime under CDDL+GPL License
 
 
