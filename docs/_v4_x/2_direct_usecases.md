@@ -4,25 +4,8 @@ title: Direct use cases
 layout: default
 ---
 
-<h3 id="uc01">Create client configuration</h3>
-
-
-``` java 
-
-InputStream keyStore = null; // Stream created from keyStore file
-
-KeyStoreConfig keyStoreConfig = KeyStoreConfig.fromKeyStore(keyStore,
-        "certificateAlias", "keyStorePassword", "privateKeyPassword");
-
-ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreConfig)
-        .globalSender(new Sender("123456789"))
-        .build();
-
-```
-
-> Note: For organizations acting as *brokers* on behalf of multiple *senders*, you may specify the sender's organization number on each signature job. The sender specified for a job will always take precedence over the `globalSender` in `ClientConfiguration`
-
-<h3 id="uc02">Create and send signature job</h3>
+[comment]: <> (Using h3 with specific id to diff from the auto genereted one for portal use cases.)
+<h3 id="direct-create-and-send-signature-job">Create and send signature job</h3>
 
 ``` java
 

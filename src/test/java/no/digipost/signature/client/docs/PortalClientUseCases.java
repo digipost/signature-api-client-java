@@ -1,7 +1,6 @@
 package no.digipost.signature.client.docs;
 
 import no.digipost.signature.client.ClientConfiguration;
-import no.digipost.signature.client.TestCertificates;
 import no.digipost.signature.client.core.PollingQueue;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.portal.Notifications;
@@ -16,7 +15,6 @@ import no.digipost.signature.client.portal.PortalSigner;
 import no.digipost.signature.client.portal.Signature;
 import no.digipost.signature.client.portal.SignatureStatus;
 import no.digipost.signature.client.portal.SignerIdentifier;
-import no.digipost.signature.client.security.KeyStoreConfig;
 
 import java.io.InputStream;
 import java.time.Instant;
@@ -24,15 +22,7 @@ import java.time.Instant;
 @SuppressWarnings({"unused", "ConstantConditions", "StatementWithEmptyBody"})
 class PortalClientUseCases {
 
-    static void create_client_configuration(){
-        KeyStoreConfig keyStoreConfig = TestCertificates.getJavaKeyStore(); // Stream created from keyStore file
-
-        ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreConfig)
-                .globalSender(new Sender("123456789"))
-                .build();
-    }
-
-    static void create_and_send_signature_job(){
+    static void create_and_send_signature_job() {
         ClientConfiguration clientConfiguration = null; // As initialized earlier
         PortalClient client = new PortalClient(clientConfiguration);
 
@@ -51,7 +41,7 @@ class PortalClientUseCases {
         PortalJobResponse portalJobResponse = client.create(portalJob);
     }
 
-    static void get_status_changes(){
+    static void get_status_changes() {
         PortalClient client = null; // As initialized earlier
 
         PortalJobStatusChanged statusChange = client.getStatusChange();
@@ -67,7 +57,7 @@ class PortalClientUseCases {
 
     }
 
-    static void get_signer_status(){
+    static void get_signer_status() {
         PortalJobStatusChanged statusChange = null; // As returned when polling for status changes
 
         Signature signature = statusChange.getSignatureFrom(
@@ -75,7 +65,7 @@ class PortalClientUseCases {
         );
     }
 
-    static void get_signed_documents(){
+    static void get_signed_documents() {
         PortalClient client = null; // As initialized earlier
         PortalJobStatusChanged statusChange = null; // As returned when polling for status changes
 
@@ -99,7 +89,7 @@ class PortalClientUseCases {
         }
     }
 
-    static void confirm_processed_signature_job(){
+    static void confirm_processed_signature_job() {
         PortalClient client = null; // As initialized earlier
         PortalJobStatusChanged statusChange = null; // As returned when polling for status changes
 

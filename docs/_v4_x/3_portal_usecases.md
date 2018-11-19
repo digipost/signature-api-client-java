@@ -4,21 +4,6 @@ title: Portal use cases
 layout: default
 ---
 
-### Create Client Configuration
-
-``` java
-
-InputStream keyStore = null; // Stream created from keyStore file
-
-KeyStoreConfig keyStoreConfig = KeyStoreConfig.fromKeyStore(keyStore,
-        "certificateAlias", "keyStorePassword", "privateKeyPassword");
-
-ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreConfig)
-        .globalSender(new Sender("123456789"))
-        .build();
-
-```
-
 > Note: For organizations acting as *brokers* on behalf of multiple *senders*, you may specify the sender's organization number on each signature job. The sender specified for a job will always take precedence over the `globalSender` in `ClientConfiguration`
 
 ### Create and send signature job
