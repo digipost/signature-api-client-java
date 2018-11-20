@@ -1,32 +1,10 @@
-# Posten Signering – Java Klientbibliotek
+# Posten Signering – Java client Library
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.digipost.signature/signature-api-client-java/badge.svg)](https://maven-badges.herokuapp.com/maven-central/no.digipost.signature/signature-api-client-java)
 
-Dette repoet inneholder klientbibliotek implementert i Java som kan benyttes for å integrere mot Posten Signering.
+This repo is the Java client library for integrating with Posten signering. Please see [signature-api-client-dotnet](https://github.com/digipost/signature-api-client-dotnet) for the C# version.
 
-Nærmere dokumentasjon av APIet og detaljer rundt bruk kan finnes i repoet [Signature-API-Specification](https://github.com/digipost/signature-api-specification)
+## 📕 Documentation
 
+Integration guide can be found at[digipost.github.io](http://digipost.github.io/signature-api-client-java).
 
-
----
-
-
-## Bruke biblioteket
-
-
-### Maven-avhengighet
-
-Klientbiblioteket er releaset til [![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.digipost.signature/signature-api-client-java/badge.svg)](https://maven-badges.herokuapp.com/maven-central/no.digipost.signature/signature-api-client-java). For å avhenge av biblioteket, legg til følgende i `pom.xml`:
-
-```xml
-<dependency>
-    <groupId>no.digipost.signature</groupId>
-    <artifactId>signature-api-client-java</artifactId>
-    <version>4.3</version>
-</dependency>
-```
-
-### Java-API
-
-Dokumentasjon: [http://digipost.github.io/signature-api-client-java](http://digipost.github.io/signature-api-client-java)
-
-Javadoc: [javadoc.io/doc/no.digipost.signature/signature-api-client-java](http://www.javadoc.io/doc/no.digipost.signature/signature-api-client-java)
-
+For a detailed API specification, please see [Signature-API-Specification](https://github.com/digipost/signature-api-specification).
