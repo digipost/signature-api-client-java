@@ -6,26 +6,33 @@ import no.digipost.signature.client.ServiceUri;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.security.KeyStoreConfig;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({"ConstantConditions", "unused", "UnusedAssignment"})
 public class InitialSetup {
 
-    static void read_certificate_organization_certificate() throws FileNotFoundException {
-        InputStream certificateStream = new FileInputStream("/Path/To/Certificate.p12");
-        KeyStoreConfig keyStoreConfig = KeyStoreConfig.fromOrganizationCertificate(certificateStream, "passwordToCertificate");
+    static void read_certificate_organization_certificate() throws IOException {
+        KeyStoreConfig keyStoreConfig;
+        try (InputStream certificateStream = Files.newInputStream(Paths.get("/path/to/certificate.p12"))) {
+            keyStoreConfig = KeyStoreConfig.fromOrganizationCertificate(
+                    certificateStream, "CertificatePassword"
+            );
+        }
     }
 
-    static void read_certificate_java_key_store() throws FileNotFoundException {
-        InputStream certificateStream = new FileInputStream("/Path/To/JavaKeyStore.jks");
-        KeyStoreConfig keyStoreConfig = KeyStoreConfig.fromJavaKeyStore(
-                certificateStream,
-                "AliasOfOrganizationCertificate",
-                "passwordToKeyStore",
-                "passwordToCertificate"
-        );
+    static void read_certificate_java_key_store() throws IOException {
+        KeyStoreConfig keyStoreConfig;
+        try (InputStream certificateStream = Files.newInputStream(Paths.get("/path/to/javakeystore.jks"))) {
+            keyStoreConfig = KeyStoreConfig.fromJavaKeyStore(
+                    certificateStream,
+                    "OrganizationCertificateAlias",
+                    "KeyStorePassword",
+                    "CertificatePassword"
+            );
+        }
     }
 
     static void create_client_configuration() {

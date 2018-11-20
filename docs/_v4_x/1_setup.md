@@ -28,20 +28,26 @@ The first step is to load the organization certificate (virksomhetssertifikat) t
 
 
 ``` java
-InputStream certificateStream = new FileInputStream("/Path/To/Certificate.p12");
-KeyStoreConfig keyStoreConfig = KeyStoreConfig.fromOrganizationCertificate(certificateStream, "passwordToCertificate");
+KeyStoreConfig keyStoreConfig;
+try (InputStream certificateStream = Files.newInputStream(Paths.get("/path/to/certificate.p12"))) {
+    keyStoreConfig = KeyStoreConfig.fromOrganizationCertificate(
+            certificateStream, "CertificatePassword"
+    );
+}
 ```
 
 If you have a Java Key Store file containing the organization certificate, it can be loaded in the following way:
 
 ``` java
-InputStream certificateStream = new FileInputStream("/Path/To/JavaKeyStore.jks");
-KeyStoreConfig keyStoreConfig = KeyStoreConfig.fromJavaKeyStore(
-        certificateStream,
-        "AliasOfOrganizationCertificate",
-        "passwordToKeyStore",
-        "passwordToCertificate"
-);
+KeyStoreConfig keyStoreConfig;
+try (InputStream certificateStream = Files.newInputStream(Paths.get("/path/to/javakeystore.jks"))) {
+    keyStoreConfig = KeyStoreConfig.fromJavaKeyStore(
+            certificateStream,
+            "OrganizationCertificateAlias",
+            "KeyStorePassword",
+            "CertificatePassword"
+    );
+}
 ```
 
 When the certificate has been loaded correctly, a `ClientConfiguration` can be initialized. A _trust store_ and _service Uri_ needs to be set to properly connect. Please change the trust store and service Uri in the following example when connecting to our production environment.  
