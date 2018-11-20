@@ -20,7 +20,7 @@ Klientbiblioteket er releaset til [![Maven Central](https://maven-badges.herokua
 <dependency>
     <groupId>no.digipost.signature</groupId>
     <artifactId>signature-api-client-java</artifactId>
-    <version>4.2</version>
+    <version>4.3</version>
 </dependency>
 ```
 
@@ -30,23 +30,3 @@ Dokumentasjon: [http://digipost.github.io/signature-api-client-java](http://digi
 
 Javadoc: [javadoc.io/doc/no.digipost.signature/signature-api-client-java](http://www.javadoc.io/doc/no.digipost.signature/signature-api-client-java)
 
-### Bygge og kjøre tester
-
-Legg inn filen `src/test/java/no/digipost/signering/client/TestKonfigurasjon.java` og fyll med følgende innhold:
-
-```java
-package no.digipost.signering.client;
-
-import no.digipost.signering.client.internal.KeyStoreConfig;
-
-public class TestKonfigurasjon {
-
-    public static final KeyStoreConfig CLIENT_KEYSTORE = KeyStoreConfig.fromKeyStore(
-            <inputstream med keystore>,
-            "<alias>",
-            "<keystore passord>",
-            "<key inni keystore passord>"
-    );
-
-}
-```

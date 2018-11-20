@@ -75,7 +75,7 @@ analytics:
 # DON'T MODIFY
 highlight: rouge
 
-gems:
+plugins:
   - jekyll-redirect-from
 
 exclude: ['README.md', 'Gemfile.lock', 'Gemfile']

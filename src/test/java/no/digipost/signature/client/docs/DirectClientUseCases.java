@@ -1,7 +1,6 @@
 package no.digipost.signature.client.docs;
 
 import no.digipost.signature.client.ClientConfiguration;
-import no.digipost.signature.client.TestCertificates;
 import no.digipost.signature.client.core.PollingQueue;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.direct.DirectClient;
@@ -17,21 +16,12 @@ import no.digipost.signature.client.direct.SignerStatus;
 import no.digipost.signature.client.direct.StatusReference;
 import no.digipost.signature.client.direct.StatusRetrievalMethod;
 import no.digipost.signature.client.direct.WithExitUrls;
-import no.digipost.signature.client.security.KeyStoreConfig;
 
 import java.io.InputStream;
 import java.time.Instant;
 
 @SuppressWarnings({"unused", "ConstantConditions", "StatementWithEmptyBody"})
 class DirectClientUseCases {
-
-    static void create_client_configuration() {
-        KeyStoreConfig keyStoreConfig = TestCertificates.getJavaKeyStore();
-
-        ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreConfig)
-                .globalSender(new Sender("123456789"))
-                .build();
-    }
 
     static void create_and_send_signature_job() {
         ClientConfiguration clientConfiguration = null; // As initialized earlier
