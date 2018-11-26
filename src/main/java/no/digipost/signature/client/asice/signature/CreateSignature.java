@@ -17,6 +17,8 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import javax.xml.crypto.MarshalException;
+import javax.xml.crypto.NodeSetData;
+import javax.xml.crypto.URIDereferencer;
 import javax.xml.crypto.dom.DOMStructure;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
 import javax.xml.crypto.dsig.DigestMethod;
@@ -34,12 +36,15 @@ import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
 import javax.xml.crypto.dsig.keyinfo.X509Data;
 import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
 import javax.xml.crypto.dsig.spec.TransformParameterSpec;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.validation.Schema;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -52,8 +57,8 @@ import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.codec.digest.DigestUtils.sha256;
 
@@ -65,17 +70,20 @@ public class CreateSignature {
     private final String asicNamespace = "http://uri.etsi.org/2918/v1.2.1#";
     private final String signedPropertiesType = "http://uri.etsi.org/01903#SignedProperties";
 
+
     private final DigestMethod sha256DigestMethod;
     private final CanonicalizationMethod canonicalizationMethod;
     private final Transform canonicalXmlTransform;
+    private final DocumentBuilderFactory documentBuilderFactory;
 
-    private final CreateXAdESProperties createXAdESProperties;
+    private final CreateXAdESArtifacts createXAdESArtifacts;
     private final TransformerFactory transformerFactory;
     private final Schema schema;
 
+
     public CreateSignature(Clock clock) {
 
-        createXAdESProperties = new CreateXAdESProperties(clock);
+        createXAdESArtifacts = new CreateXAdESArtifacts(clock);
 
         transformerFactory = TransformerFactory.newInstance();
         try {
@@ -83,6 +91,8 @@ public class CreateSignature {
             sha256DigestMethod = xmlSignatureFactory.newDigestMethod(DigestMethod.SHA256, null);
             canonicalizationMethod = xmlSignatureFactory.newCanonicalizationMethod(C14V1, (C14NMethodParameterSpec) null);
             canonicalXmlTransform = xmlSignatureFactory.newTransform(C14V1, (TransformParameterSpec) null);
+            documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            documentBuilderFactory.setNamespaceAware(true);
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
             throw new ConfigurationException("Failed to initialize XML-signing", e);
         }
@@ -102,44 +112,52 @@ public class CreateSignature {
         XMLSignatureFactory xmlSignatureFactory = getSignatureFactory();
         SignatureMethod signatureMethod = getSignatureMethod(xmlSignatureFactory);
 
+        // Generate XAdES document to sign, information about the key used for signing and information about what's signed
+        XAdESArtifacts xadesArtifacts = createXAdESArtifacts.createArtifactsToSign(attachedFiles, keyStoreConfig.getCertificate());
+
         // Create signature references for all files
         List<Reference> references = references(xmlSignatureFactory, attachedFiles);
 
         // Create signature reference for XAdES properties
         references.add(xmlSignatureFactory.newReference(
-                "#SignedProperties",
+                xadesArtifacts.signerPropertiesReferenceUri,
                 sha256DigestMethod,
                 singletonList(canonicalXmlTransform),
                 signedPropertiesType,
                 null
-        ));
-
-        // Generate XAdES document to sign, information about the key used for signing and information about what's signed
-        Document document = createXAdESProperties.createPropertiesToSign(attachedFiles, keyStoreConfig.getCertificate());
+                ));
 
         KeyInfo keyInfo = keyInfo(xmlSignatureFactory, keyStoreConfig.getCertificateChain());
         SignedInfo signedInfo = xmlSignatureFactory.newSignedInfo(canonicalizationMethod, signatureMethod, references);
 
         // Define signature over XAdES document
-        XMLObject xmlObject = xmlSignatureFactory.newXMLObject(singletonList(new DOMStructure(document.getDocumentElement())), null, null, null);
+        XMLObject xmlObject = xmlSignatureFactory.newXMLObject(singletonList(new DOMStructure(xadesArtifacts.document.getDocumentElement())), null, null, null);
         XMLSignature xmlSignature = xmlSignatureFactory.newXMLSignature(signedInfo, keyInfo, singletonList(xmlObject), "Signature", null);
-
+        Document signedDocument = newEmptyXmlDocument();
+        DOMSignContext signContext = new DOMSignContext(keyStoreConfig.getPrivateKey(), signedDocument);
+        URIDereferencer defaultUriDereferencer = xmlSignatureFactory.getURIDereferencer();
+        signContext.setURIDereferencer((uriReference, context) -> {
+            if (xadesArtifacts.signerPropertiesReferenceUri.equals(uriReference.getURI())) {
+                return (NodeSetData) () -> singleton(xadesArtifacts.signableProperties).iterator();
+            }
+            return defaultUriDereferencer.dereference(uriReference, context);
+        });
         try {
-            xmlSignature.sign(new DOMSignContext(keyStoreConfig.getPrivateKey(), document));
+            xmlSignature.sign(signContext);
         } catch (MarshalException e) {
             throw new XmlConfigurationException("failed to read ASiC-E XML for signing", e);
         } catch (XMLSignatureException e) {
             throw new XmlConfigurationException("Failed to sign ASiC-E element.", e);
         }
 
-        wrapSignatureInXADeSEnvelope(document);
+        wrapSignatureInXADeSEnvelope(signedDocument);
 
         ByteArrayOutputStream outputStream;
         try {
             outputStream = new ByteArrayOutputStream();
             Transformer transformer = transformerFactory.newTransformer();
-            schema.newValidator().validate(new DOMSource(document));
-            transformer.transform(new DOMSource(document), new StreamResult(outputStream));
+            schema.newValidator().validate(new DOMSource(signedDocument));
+            transformer.transform(new DOMSource(signedDocument), new StreamResult(outputStream));
         } catch (TransformerException e) {
             throw new ConfigurationException("Unable to serialize XML.", e);
         } catch (SAXException e) {
@@ -148,6 +166,14 @@ public class CreateSignature {
             throw new RuntimeIOException(e);
         }
         return new Signature(outputStream.toByteArray());
+    }
+
+    private Document newEmptyXmlDocument() {
+        try {
+            return documentBuilderFactory.newDocumentBuilder().newDocument();
+        } catch (ParserConfigurationException e) {
+            throw new XmlConfigurationException("Unable to create new Document. " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
+        }
     }
 
     private SignatureMethod getSignatureMethod(final XMLSignatureFactory xmlSignatureFactory) {
@@ -162,14 +188,13 @@ public class CreateSignature {
         List<Reference> result = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             try {
-                String signatureElementId = format("ID_%s", i);
+                String signatureElementId = "ID_" + i;
                 String uri = URLEncoder.encode(files.get(i).getFileName(), "UTF-8");
                 Reference reference = xmlSignatureFactory.newReference(uri, sha256DigestMethod, null, null, signatureElementId, sha256(files.get(i).getBytes()));
                 result.add(reference);
             } catch(UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
-
         }
         return result;
     }
