@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.xml.transform.stream.StreamSource;
+
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.time.Clock;
@@ -47,7 +48,7 @@ public class CreateSignatureTest {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         noekkelpar = TestKonfigurasjon.CLIENT_KEYSTORE;
         files = asList(
                 file("dokument.pdf", "hoveddokument-innhold".getBytes(), "application/pdf"),

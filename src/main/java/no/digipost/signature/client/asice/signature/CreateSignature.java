@@ -13,7 +13,6 @@ import org.springframework.xml.validation.SchemaLoaderUtils;
 import org.springframework.xml.validation.XmlValidatorFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import javax.xml.crypto.MarshalException;
@@ -65,10 +64,9 @@ import static org.apache.commons.codec.digest.DigestUtils.sha256;
 @SuppressWarnings("FieldCanBeLocal")
 public class CreateSignature {
 
-    public static final String C14V1 = "http://www.w3.org/TR/2001/REC-xml-c14n-20010315";
-
-    private final String asicNamespace = "http://uri.etsi.org/2918/v1.2.1#";
-    private final String signedPropertiesType = "http://uri.etsi.org/01903#SignedProperties";
+    private static final String C14V1 = CanonicalizationMethod.INCLUSIVE;
+    private static final String ASIC_NAMESPACE = "http://uri.etsi.org/2918/v1.2.1#";
+    private static final String SIGNED_PROPERTIES_TYPE = "http://uri.etsi.org/01903#SignedProperties";
 
 
     private final DigestMethod sha256DigestMethod;
@@ -123,7 +121,7 @@ public class CreateSignature {
                 xadesArtifacts.signerPropertiesReferenceUri,
                 sha256DigestMethod,
                 singletonList(canonicalXmlTransform),
-                signedPropertiesType,
+                SIGNED_PROPERTIES_TYPE,
                 null
                 ));
 
@@ -133,15 +131,17 @@ public class CreateSignature {
         // Define signature over XAdES document
         XMLObject xmlObject = xmlSignatureFactory.newXMLObject(singletonList(new DOMStructure(xadesArtifacts.document.getDocumentElement())), null, null, null);
         XMLSignature xmlSignature = xmlSignatureFactory.newXMLSignature(signedInfo, keyInfo, singletonList(xmlObject), "Signature", null);
-        Document signedDocument = newEmptyXmlDocument();
-        DOMSignContext signContext = new DOMSignContext(keyStoreConfig.getPrivateKey(), signedDocument);
         URIDereferencer defaultUriDereferencer = xmlSignatureFactory.getURIDereferencer();
+
+        Document signedDocument = newEmptyXmlDocument();
+        DOMSignContext signContext = new DOMSignContext(keyStoreConfig.getPrivateKey(), addXAdESSignaturesElement(signedDocument));
         signContext.setURIDereferencer((uriReference, context) -> {
             if (xadesArtifacts.signerPropertiesReferenceUri.equals(uriReference.getURI())) {
                 return (NodeSetData) () -> singleton(xadesArtifacts.signableProperties).iterator();
             }
             return defaultUriDereferencer.dereference(uriReference, context);
         });
+
         try {
             xmlSignature.sign(signContext);
         } catch (MarshalException e) {
@@ -150,14 +150,11 @@ public class CreateSignature {
             throw new XmlConfigurationException("Failed to sign ASiC-E element.", e);
         }
 
-        wrapSignatureInXADeSEnvelope(signedDocument);
-
-        ByteArrayOutputStream outputStream;
-        try {
-            outputStream = new ByteArrayOutputStream();
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             Transformer transformer = transformerFactory.newTransformer();
             schema.newValidator().validate(new DOMSource(signedDocument));
             transformer.transform(new DOMSource(signedDocument), new StreamResult(outputStream));
+            return new Signature(outputStream.toByteArray());
         } catch (TransformerException e) {
             throw new ConfigurationException("Unable to serialize XML.", e);
         } catch (SAXException e) {
@@ -165,8 +162,8 @@ public class CreateSignature {
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
-        return new Signature(outputStream.toByteArray());
     }
+
 
     private Document newEmptyXmlDocument() {
         try {
@@ -176,7 +173,11 @@ public class CreateSignature {
         }
     }
 
-    private SignatureMethod getSignatureMethod(final XMLSignatureFactory xmlSignatureFactory) {
+    private static Element addXAdESSignaturesElement(Document doc) {
+        return (Element) doc.appendChild(doc.createElementNS(ASIC_NAMESPACE, "XAdESSignatures"));
+    }
+
+    private static SignatureMethod getSignatureMethod(final XMLSignatureFactory xmlSignatureFactory) {
         try {
             return xmlSignatureFactory.newSignatureMethod("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256", null);
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
@@ -199,21 +200,13 @@ public class CreateSignature {
         return result;
     }
 
-    private KeyInfo keyInfo(final XMLSignatureFactory xmlSignatureFactory, final Certificate[] sertifikater) {
+    private static KeyInfo keyInfo(final XMLSignatureFactory xmlSignatureFactory, final Certificate[] sertifikater) {
         KeyInfoFactory keyInfoFactory = xmlSignatureFactory.getKeyInfoFactory();
         X509Data x509Data = keyInfoFactory.newX509Data(asList(sertifikater));
         return keyInfoFactory.newKeyInfo(singletonList(x509Data));
     }
 
-    private void wrapSignatureInXADeSEnvelope(final Document document) {
-        Node signatureElement = document.removeChild(document.getDocumentElement());
-        Element xadesElement = document.createElementNS(asicNamespace, "XAdESSignatures");
-        xadesElement.appendChild(signatureElement);
-        document.appendChild(xadesElement);
-    }
-
-
-    private XMLSignatureFactory getSignatureFactory() {
+    private static XMLSignatureFactory getSignatureFactory() {
         try {
             return XMLSignatureFactory.getInstance("DOM", "XMLDSig");
         } catch (NoSuchProviderException e) {
