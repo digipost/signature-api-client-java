@@ -13,11 +13,16 @@ import org.springframework.xml.validation.SchemaLoaderUtils;
 import org.springframework.xml.validation.XmlValidatorFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.NodeSetData;
 import javax.xml.crypto.URIDereferencer;
+import javax.xml.crypto.URIReference;
+import javax.xml.crypto.URIReferenceException;
+import javax.xml.crypto.XMLCryptoContext;
 import javax.xml.crypto.dom.DOMStructure;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
 import javax.xml.crypto.dsig.DigestMethod;
@@ -43,6 +48,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.validation.Schema;
+import javax.xml.xpath.XPathException;
+import javax.xml.xpath.XPathFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -54,11 +61,13 @@ import java.security.NoSuchProviderException;
 import java.security.cert.Certificate;
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static javax.xml.xpath.XPathConstants.NODESET;
 import static org.apache.commons.codec.digest.DigestUtils.sha256;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -131,16 +140,10 @@ public class CreateSignature {
         // Define signature over XAdES document
         XMLObject xmlObject = xmlSignatureFactory.newXMLObject(singletonList(new DOMStructure(xadesArtifacts.document.getDocumentElement())), null, null, null);
         XMLSignature xmlSignature = xmlSignatureFactory.newXMLSignature(signedInfo, keyInfo, singletonList(xmlObject), "Signature", null);
-        URIDereferencer defaultUriDereferencer = xmlSignatureFactory.getURIDereferencer();
 
         Document signedDocument = newEmptyXmlDocument();
         DOMSignContext signContext = new DOMSignContext(keyStoreConfig.getPrivateKey(), addXAdESSignaturesElement(signedDocument));
-        signContext.setURIDereferencer((uriReference, context) -> {
-            if (xadesArtifacts.signerPropertiesReferenceUri.equals(uriReference.getURI())) {
-                return (NodeSetData) () -> singleton(xadesArtifacts.signableProperties).iterator();
-            }
-            return defaultUriDereferencer.dereference(uriReference, context);
-        });
+        signContext.setURIDereferencer(signedPropertiesURIDereferencer(xadesArtifacts.document, xmlSignatureFactory));
 
         try {
             xmlSignature.sign(signContext);
@@ -171,6 +174,28 @@ public class CreateSignature {
         } catch (ParserConfigurationException e) {
             throw new XmlConfigurationException("Unable to create new Document. " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
         }
+    }
+
+    private static URIDereferencer signedPropertiesURIDereferencer(Document documentToSign, XMLSignatureFactory signatureFactory) {
+        return (URIReference uriReference, XMLCryptoContext context) -> {
+            if ("#SignedProperties".equals(uriReference.getURI())) {
+                Element signedPropertiesNode = (Element) documentToSign.getDocumentElement().getElementsByTagName("SignedProperties").item(0);
+                if ("SignedProperties".equals(signedPropertiesNode.getAttribute("Id"))) {
+                    try {
+                        NodeList nodeList = (NodeList) XPathFactory.newInstance().newXPath().evaluate(". | .//node() | .//@*", signedPropertiesNode, NODESET);
+                        Set<Node> nodes = new LinkedHashSet<>();
+                        for (int i = 0; i < nodeList.getLength(); i++) {
+                            Node node = nodeList.item(i);
+                            nodes.add(node);
+                        }
+                        return (NodeSetData) nodes::iterator;
+                    } catch (XPathException e) {
+                        throw new URIReferenceException(e.getMessage(), e);
+                    }
+                }
+            }
+            return signatureFactory.getURIDereferencer().dereference(uriReference, context);
+        };
     }
 
     private static Element addXAdESSignaturesElement(Document doc) {
