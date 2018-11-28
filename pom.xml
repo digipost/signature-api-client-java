@@ -331,16 +331,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.jasig.maven</groupId>
                 <artifactId>maven-notice-plugin</artifactId>
                 <executions>
