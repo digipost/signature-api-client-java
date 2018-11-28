@@ -21,6 +21,8 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.time.Clock;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -55,7 +57,8 @@ public class CreateSignatureTest {
                 file("manifest.xml", "manifest-innhold".getBytes(), "application/xml")
         );
 
-        createSignature = new CreateSignature(Clock.systemDefaultZone());
+        ZonedDateTime signingTime = ZonedDateTime.of(2018, 11, 29, 9, 15, 0, 0, ZoneId.systemDefault());
+        createSignature = new CreateSignature(Clock.fixed(signingTime.toInstant(), signingTime.getZone()));
     }
 
     @Test
