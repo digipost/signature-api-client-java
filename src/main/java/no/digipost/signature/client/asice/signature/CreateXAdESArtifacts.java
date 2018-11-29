@@ -12,10 +12,6 @@ import no.digipost.signature.api.xml.thirdparty.xmldsig.DigestMethod;
 import no.digipost.signature.api.xml.thirdparty.xmldsig.X509IssuerSerialType;
 import no.digipost.signature.client.asice.ASiCEAttachable;
 import no.digipost.signature.client.core.exceptions.CertificateException;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-import org.w3c.dom.Document;
-
-import javax.xml.transform.dom.DOMResult;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -35,18 +31,12 @@ class CreateXAdESArtifacts {
     private final DigestMethod sha1DigestMethod = new DigestMethod(emptyList(), SHA1);
     private final Clock clock;
 
-    private static Jaxb2Marshaller marshaller;
-
-    static {
-        marshaller = new Jaxb2Marshaller();
-        marshaller.setClassesToBeBound(QualifyingProperties.class);
-    }
 
     CreateXAdESArtifacts(Clock clock) {
         this.clock = clock;
     }
 
-    XAdESArtifacts createArtifactsToSign(final List<ASiCEAttachable> files, final X509Certificate certificate) {
+    XAdESArtifacts createArtifactsToSign(List<ASiCEAttachable> files, X509Certificate certificate) {
         byte[] certificateDigestValue;
         try {
             certificateDigestValue = sha1(certificate.getEncoded());
@@ -59,19 +49,15 @@ class CreateXAdESArtifacts {
         SigningCertificate signingCertificate = new SigningCertificate(singletonList(new CertIDType(certificateDigest, certificateIssuer, null)));
 
         ZonedDateTime now = ZonedDateTime.now(clock);
-        SignedSignatureProperties signedSignatureProperties = new SignedSignatureProperties(now, signingCertificate, null, null, null, null);
-        SignedDataObjectProperties signedDataObjectProperties = new SignedDataObjectProperties(dataObjectFormats(files), null, null, null, null);
+        SignedSignatureProperties signedSignatureProperties = new SignedSignatureProperties().withSigningTime(now).withSigningCertificate(signingCertificate);
+        SignedDataObjectProperties signedDataObjectProperties = new SignedDataObjectProperties().withDataObjectFormats(dataObjectFormats(files));
         SignedProperties signedProperties = new SignedProperties(signedSignatureProperties, signedDataObjectProperties, "SignedProperties");
-        QualifyingProperties qualifyingProperties = new QualifyingProperties(signedProperties, null, "#Signature", null);
+        QualifyingProperties qualifyingProperties = new QualifyingProperties().withSignedProperties(signedProperties).withTarget("#Signature");
 
-        DOMResult domResult = new DOMResult();
-        marshaller.marshal(qualifyingProperties, domResult);
-        Document document = (Document) domResult.getNode();
-
-        return XAdESArtifacts.from(document);
+        return XAdESArtifacts.from(qualifyingProperties);
     }
 
-    private List<DataObjectFormat> dataObjectFormats(final List<ASiCEAttachable> files) {
+    private List<DataObjectFormat> dataObjectFormats(List<ASiCEAttachable> files) {
         List<DataObjectFormat> result = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             String signatureElementIdReference = format("#ID_%s", i);
