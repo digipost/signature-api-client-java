@@ -23,8 +23,10 @@ import java.math.BigInteger;
 import java.time.Clock;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Base64;
 import java.util.List;
 
+import static co.unruly.matchers.Java8Matchers.where;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -57,19 +59,29 @@ public class CreateSignatureTest {
                 file("manifest.xml", "manifest-innhold".getBytes(), "application/xml")
         );
 
-        ZonedDateTime signingTime = ZonedDateTime.of(2018, 11, 29, 9, 15, 0, 0, ZoneId.systemDefault());
+        ZonedDateTime signingTime = ZonedDateTime.of(2018, 11, 29, 9, 15, 0, 0, ZoneId.of("Europe/Oslo"));
         createSignature = new CreateSignature(Clock.fixed(signingTime.toInstant(), signingTime.getZone()));
     }
 
     @Test
     public void test_generated_signatures() {
+        /*
+         * Expected signature value (Base-64 encoded) from the given keys, files, and time of the signing.
+         * If this changes, something has changed in the signature implementation, and must be investigated!
+         */
+        final String expectedBase64EncodedSignatureValue =
+                "GELdAv4Dc+w5RnN3Hd2Fk9KjRh8LyNaiLM8PZLvFriuahHoZcb3OBTdCJhaxoup1tgmOUspMGgJ7Zgl6/hh" +
+                "G+zuZ0UjT521mqH4PrupH464B9ztBFnPScedvJpSAwROqSn7eCG78J+ittKBhKxPkBmfStaGPxnvqm2reug" +
+                "I3vbFem+KDiFU+Q4T26OWXapLQC2fhEttH/pUYND1PZN8pNaMiKgzaG7aHurMQCoB5qxfKEL9YEe4pF7H0T" +
+                "PAdNndCACJiWrkHNQ5gTJ+UWx8y2kuzZHEGGTJ+ip9KpCRohDfLapQAMTh0zMLrUNbYpq6kiYWrlxTNfdcVm4skBY0j9Q==";
+
         Signature signature = createSignature.createSignature(files, noekkelpar);
         XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getBytes())));
 
         assertThat(xAdESSignatures.getSignatures(), hasSize(1));
         no.digipost.signature.api.xml.thirdparty.xmldsig.Signature dSignature = xAdESSignatures.getSignatures().get(0);
         verify_signed_info(dSignature.getSignedInfo());
-        assertThat(dSignature.getSignatureValue(), is(notNullValue()));
+        assertThat("signature value", dSignature.getSignatureValue().getValue(), where(Base64.getEncoder()::encodeToString, is(expectedBase64EncodedSignatureValue)));
         assertThat(dSignature.getKeyInfo(), is(notNullValue()));
     }
 
