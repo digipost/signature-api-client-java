@@ -12,16 +12,7 @@ import no.digipost.signature.api.xml.thirdparty.xmldsig.DigestMethod;
 import no.digipost.signature.api.xml.thirdparty.xmldsig.X509IssuerSerialType;
 import no.digipost.signature.client.asice.ASiCEAttachable;
 import no.digipost.signature.client.core.exceptions.CertificateException;
-import no.digipost.signature.client.core.exceptions.XmlConfigurationException;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.Clock;
@@ -35,23 +26,17 @@ import static java.util.Collections.singletonList;
 import static javax.xml.crypto.dsig.DigestMethod.SHA1;
 import static org.apache.commons.codec.digest.DigestUtils.sha1;
 
-class CreateXAdESProperties {
+class CreateXAdESArtifacts {
 
     private final DigestMethod sha1DigestMethod = new DigestMethod(emptyList(), SHA1);
     private final Clock clock;
 
-    private static Jaxb2Marshaller marshaller;
 
-    static {
-        marshaller = new Jaxb2Marshaller();
-        marshaller.setClassesToBeBound(QualifyingProperties.class);
-    }
-
-    CreateXAdESProperties(Clock clock) {
+    CreateXAdESArtifacts(Clock clock) {
         this.clock = clock;
     }
 
-    Document createPropertiesToSign(final List<ASiCEAttachable> files, final X509Certificate certificate) {
+    XAdESArtifacts createArtifactsToSign(List<ASiCEAttachable> files, X509Certificate certificate) {
         byte[] certificateDigestValue;
         try {
             certificateDigestValue = sha1(certificate.getEncoded());
@@ -64,23 +49,15 @@ class CreateXAdESProperties {
         SigningCertificate signingCertificate = new SigningCertificate(singletonList(new CertIDType(certificateDigest, certificateIssuer, null)));
 
         ZonedDateTime now = ZonedDateTime.now(clock);
-        SignedSignatureProperties signedSignatureProperties = new SignedSignatureProperties(now, signingCertificate, null, null, null, null);
-        SignedDataObjectProperties signedDataObjectProperties = new SignedDataObjectProperties(dataObjectFormats(files), null, null, null, null);
+        SignedSignatureProperties signedSignatureProperties = new SignedSignatureProperties().withSigningTime(now).withSigningCertificate(signingCertificate);
+        SignedDataObjectProperties signedDataObjectProperties = new SignedDataObjectProperties().withDataObjectFormats(dataObjectFormats(files));
         SignedProperties signedProperties = new SignedProperties(signedSignatureProperties, signedDataObjectProperties, "SignedProperties");
-        QualifyingProperties qualifyingProperties = new QualifyingProperties(signedProperties, null, "#Signature", null);
+        QualifyingProperties qualifyingProperties = new QualifyingProperties().withSignedProperties(signedProperties).withTarget("#Signature");
 
-        DOMResult domResult = new DOMResult();
-        marshaller.marshal(qualifyingProperties, domResult);
-        Document document = (Document) domResult.getNode();
-
-        // Explicitly mark the SignedProperties Id as an Document ID attribute, so that it will be eligble as a reference for signature.
-        // If not, it will not be treated as something to sign.
-        markAsIdProperty(document, "SignedProperties", "Id");
-
-        return document;
+        return XAdESArtifacts.from(qualifyingProperties);
     }
 
-    private List<DataObjectFormat> dataObjectFormats(final List<ASiCEAttachable> files) {
+    private List<DataObjectFormat> dataObjectFormats(List<ASiCEAttachable> files) {
         List<DataObjectFormat> result = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             String signatureElementIdReference = format("#ID_%s", i);
@@ -89,14 +66,4 @@ class CreateXAdESProperties {
         return result;
     }
 
-    private void markAsIdProperty(final Document document, final String elementName, final String property) {
-        XPath xPath = XPathFactory.newInstance().newXPath();
-        try {
-            Element idElement = (Element) xPath.evaluate("//*[local-name()='" + elementName + "']", document, XPathConstants.NODE);
-            idElement.setIdAttribute(property, true);
-
-        } catch (XPathExpressionException e) {
-            throw new XmlConfigurationException("XPath on generated XML failed.", e);
-        }
-    }
 }
