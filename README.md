@@ -8,3 +8,7 @@ This repo is the Java client library for integrating with Posten signering. Plea
 Integration guide can be found at [digipost.github.io/signature-api-client-java](http://digipost.github.io/signature-api-client-java).
 
 For a detailed API specification, please see [Signature-API-Specification](https://github.com/digipost/signature-api-specification).
+
+## Releasing (only for Digipost members)
+
+See docs/systemer/open-source-biblioteker.md
