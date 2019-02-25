@@ -11,6 +11,6 @@ The client library is available on Maven Central. To use the library, please cli
 
 Javadoc is available here: [javadoc.io/doc/no.digipost.signature/signature-api-client-java](https://www.javadoc.io/doc/no.digipost.signature/signature-api-client-java/4.0)
 
-# The documentation for sending is moved
+# The documentation for sending and error handling is moved
  
  The documentation for v4 sending is moved to [signering docs](https://signering-docs.readthedocs.io/en/latest/index.html). All older versions can still be browsed here.
