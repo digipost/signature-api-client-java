@@ -5,7 +5,7 @@ This repo is the Java client library for integrating with Posten signering. Plea
 
 ## 📕 Documentation
 
-Integration guide can be found at [digipost.github.io/signature-api-client-java](http://digipost.github.io/signature-api-client-java).
+Get started by [reading the documentation](http://signering-docs.rtfd.io/).
 
 For a detailed API specification, please see [Signature-API-Specification](https://github.com/digipost/signature-api-specification).
 
