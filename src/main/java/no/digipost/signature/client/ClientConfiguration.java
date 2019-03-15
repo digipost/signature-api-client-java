@@ -60,7 +60,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
      * The {@link HttpHeaders#USER_AGENT User-Agent} header which will be included in all requests. You may include a custom part
      * using {@link Builder#includeInUserAgent(String)}.
      */
-    public static final String MANDATORY_USER_AGENT = "digipost-signature-api-client-java/" + VERSION + " (" + JAVA_DESCRIPTION + ")";
+    public static final String MANDATORY_USER_AGENT = "posten-signature-api-client-java/" + VERSION + " (" + JAVA_DESCRIPTION + ")";
 
     /**
      * {@value #HTTP_REQUEST_RESPONSE_LOGGER_NAME} is the name of the logger which will log the HTTP requests and responses,
