@@ -1,6 +1,5 @@
 package no.digipost.signature.client.asice.signature;
 
-import no.digipost.signature.client.asice.ASiCEAttachable;
 import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import no.digipost.signature.client.core.exceptions.XmlConfigurationException;
 import no.digipost.signature.client.core.exceptions.XmlValidationException;
@@ -50,7 +49,6 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.apache.commons.codec.digest.DigestUtils.sha256;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class CreateSignature {
@@ -94,7 +92,7 @@ public class CreateSignature {
         }
     }
 
-    public Signature createSignature(final List<ASiCEAttachable> attachedFiles, final KeyStoreConfig keyStoreConfig) {
+    public Signature createSignature(final List<? extends SignableFileReference> attachedFiles, final KeyStoreConfig keyStoreConfig) {
         XMLSignatureFactory xmlSignatureFactory = getSignatureFactory();
         SignatureMethod signatureMethod = getSignatureMethod(xmlSignatureFactory);
 
@@ -164,13 +162,13 @@ public class CreateSignature {
         }
     }
 
-    private List<Reference> references(final XMLSignatureFactory xmlSignatureFactory, final List<ASiCEAttachable> files) {
+    private List<Reference> references(final XMLSignatureFactory xmlSignatureFactory, final List<? extends SignableFileReference> files) {
         List<Reference> result = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             try {
                 String signatureElementId = "ID_" + i;
                 String uri = URLEncoder.encode(files.get(i).getFileName(), "UTF-8");
-                Reference reference = xmlSignatureFactory.newReference(uri, sha256DigestMethod, null, null, signatureElementId, sha256(files.get(i).getBytes()));
+                Reference reference = xmlSignatureFactory.newReference(uri, sha256DigestMethod, null, null, signatureElementId, files.get(i).getSha256());
                 result.add(reference);
             } catch(UnsupportedEncodingException e) {
                 throw new RuntimeException(e);

@@ -10,7 +10,6 @@ import no.digipost.signature.api.xml.thirdparty.xades.SignedSignatureProperties;
 import no.digipost.signature.api.xml.thirdparty.xades.SigningCertificate;
 import no.digipost.signature.api.xml.thirdparty.xmldsig.DigestMethod;
 import no.digipost.signature.api.xml.thirdparty.xmldsig.X509IssuerSerialType;
-import no.digipost.signature.client.asice.ASiCEAttachable;
 import no.digipost.signature.client.core.exceptions.CertificateException;
 
 import java.security.cert.CertificateEncodingException;
@@ -36,7 +35,7 @@ class CreateXAdESArtifacts {
         this.clock = clock;
     }
 
-    XAdESArtifacts createArtifactsToSign(List<ASiCEAttachable> files, X509Certificate certificate) {
+    XAdESArtifacts createArtifactsToSign(List<? extends SignableFileReference> files, X509Certificate certificate) {
         byte[] certificateDigestValue;
         try {
             certificateDigestValue = sha1(certificate.getEncoded());
@@ -57,7 +56,7 @@ class CreateXAdESArtifacts {
         return XAdESArtifacts.from(qualifyingProperties);
     }
 
-    private List<DataObjectFormat> dataObjectFormats(List<ASiCEAttachable> files) {
+    private List<DataObjectFormat> dataObjectFormats(List<? extends SignableFileReference> files) {
         List<DataObjectFormat> result = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             String signatureElementIdReference = format("#ID_%s", i);
