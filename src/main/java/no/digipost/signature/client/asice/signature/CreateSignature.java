@@ -93,6 +93,10 @@ public class CreateSignature {
     }
 
     public Signature createSignature(final List<? extends SignableFileReference> attachedFiles, final KeyStoreConfig keyStoreConfig) {
+        return new Signature(domUtils.serializeToXml(createXmlSignature(attachedFiles, keyStoreConfig)));
+    }
+
+    protected Document createXmlSignature(final List<? extends SignableFileReference> attachedFiles, final KeyStoreConfig keyStoreConfig) {
         XMLSignatureFactory xmlSignatureFactory = getSignatureFactory();
         SignatureMethod signatureMethod = getSignatureMethod(xmlSignatureFactory);
 
@@ -138,7 +142,7 @@ public class CreateSignature {
                     "Verify that the input is valid and that there are no illegal symbols in file names etc.", e);
         }
 
-        return new Signature(domUtils.serializeToXml(signedDocument));
+        return signedDocument;
     }
 
     private URIDereferencer signedPropertiesURIDereferencer(XAdESArtifacts xadesArtifacts, XMLSignatureFactory signatureFactory) {
