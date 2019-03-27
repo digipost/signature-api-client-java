@@ -16,8 +16,8 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <signature.api.version>2.5</signature.api.version>
-        <slf4j.version>1.7.25</slf4j.version>
+        <signature.api.version>2.6</signature.api.version>
+        <slf4j.version>1.7.26</slf4j.version>
     </properties>
 
     <dependencyManagement>
@@ -113,7 +113,7 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.11</version>
+            <version>1.12</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -126,7 +126,7 @@
         <dependency>
             <groupId>org.springframework.ws</groupId>
             <artifactId>spring-xml</artifactId>
-            <version>3.0.6.RELEASE</version>
+            <version>3.0.7.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -173,7 +173,7 @@
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
             <artifactId>equalsverifier</artifactId>
-            <version>3.1.4</version>
+            <version>3.1.7</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -228,9 +228,9 @@
                             <version>2.3.2</version>
                         </dependency>
                         <dependency>
-                            <groupId>javax.xml.bind</groupId>
-                            <artifactId>jaxb-api</artifactId>
-                            <version>2.3.1</version>
+                            <groupId>jakarta.xml.bind</groupId>
+                            <artifactId>jakarta.xml.bind-api</artifactId>
+                            <version>2.3.2</version>
                         </dependency>
                     </dependencies>
                 </plugin>

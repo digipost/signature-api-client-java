@@ -17,12 +17,11 @@ This software includes third party software subject to the following licenses:
   istack common utility code runtime under Eclipse Distribution License - v 1.0
   jakarta.annotation API under EPL 2.0 or GPL2 w/ CPE
   jakarta.xml.bind-api under Eclipse Distribution License - v 1.0
-  JavaBeans Activation Framework API jar under CDDL/GPLv2+CE
+  JavaBeans Activation Framework API jar under EDL 1.0
   javax.annotation API under CDDL + GPLv2 with classpath exception
   javax.inject:1 as OSGi bundle under EPL 2.0 or GPL2 w/ CPE
   javax.ws.rs-api under EPL 2.0 or GPL2 w/ CPE
   JAXB Runtime under Eclipse Distribution License - v 1.0
-  jaxb-api under CDDL 1.1 or GPL2 w/ CPE
   JAXB2 Basics - Runtime under BSD-Style License
   JCL 1.2 implemented over SLF4J under MIT License
   jersey-core-client under EPL 2.0 or GPL2 w/ CPE or EDL 1.0 or BSD 2-Clause or Apache License, 2.0 or Public Domain or Modified BSD or jQuery license or MIT license or W3C license
