@@ -77,9 +77,9 @@
             <version>4.4.11</version>
         </dependency>
         <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-            <version>1.3.2</version>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>1.3.4</version>
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
@@ -300,6 +300,7 @@
                             <bannedDependencies>
                                 <excludes>
                                     <exclude>commons-logging</exclude>
+                                    <exclude>javax.annotation</exclude>
                                 </excludes>
                                 <searchTransitive>true</searchTransitive>
                             </bannedDependencies>

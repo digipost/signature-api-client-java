@@ -18,7 +18,6 @@ This software includes third party software subject to the following licenses:
   jakarta.annotation API under EPL 2.0 or GPL2 w/ CPE
   jakarta.xml.bind-api under Eclipse Distribution License - v 1.0
   JavaBeans Activation Framework API jar under EDL 1.0
-  javax.annotation API under CDDL + GPLv2 with classpath exception
   javax.inject:1 as OSGi bundle under EPL 2.0 or GPL2 w/ CPE
   javax.ws.rs-api under EPL 2.0 or GPL2 w/ CPE
   JAXB Runtime under Eclipse Distribution License - v 1.0
