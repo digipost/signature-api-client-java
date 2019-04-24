@@ -7,6 +7,7 @@ import no.digipost.signature.api.xml.XMLError;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobRequest;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
+import no.digipost.signature.api.xml.XMLSignerSpecificUrl;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.DeleteDocumentsUrl;
 import no.digipost.signature.client.core.Sender;
@@ -22,6 +23,7 @@ import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
+import no.digipost.signature.client.direct.DirectSigner;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
@@ -219,6 +221,11 @@ public class ClientHelper {
             }
         });
 
+    }
+
+    public XMLSignerSpecificUrl getRedirectUrl(long signatureJobId, DirectSigner signer) {
+        httpClient.signatureServiceRoot();
+        return new XMLSignerSpecificUrl("test.com", "signer");
     }
 
     private class UsingBodyParts {
