@@ -30,8 +30,10 @@ import org.glassfish.jersey.media.multipart.MultiPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.POST;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -86,6 +88,17 @@ public class ClientHelper {
 
         return call(() -> new UsingBodyParts(signatureJobBodyPart, documentBundleBodyPart)
                 .postAsMultiPart(DIRECT.path(actualSender), XMLDirectSignatureJobResponse.class));
+    }
+
+    public XMLSignerSpecificUrl getRedirectUrl(long signatureJobId, DirectSigner signer) {
+        String signerIdentifier = signer.isIdentifiedByPersonalIdentificationNumber() ? signer.getPersonalIdentificationNumber() : signer.getCustomIdentifier();
+        String url = httpClient.signatureServiceRoot()
+                .path(globalSender.get().getOrganizationNumber() + "/direct/signature-jobs/" + signatureJobId + "/signerurl/" + signerIdentifier)
+                .getUri().toString();
+
+        try (Response response = postEmptyEntity(url)) {
+            return parseResponse(response, XMLSignerSpecificUrl.class);
+        }
     }
 
     public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(XMLPortalSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
@@ -223,10 +236,6 @@ public class ClientHelper {
 
     }
 
-    public XMLSignerSpecificUrl getRedirectUrl(long signatureJobId, DirectSigner signer) {
-        httpClient.signatureServiceRoot();
-        return new XMLSignerSpecificUrl("test.com", "signer");
-    }
 
     private class UsingBodyParts {
 
