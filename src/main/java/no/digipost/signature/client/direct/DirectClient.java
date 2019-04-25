@@ -45,9 +45,9 @@ public class DirectClient {
         return fromJaxb(xmlSignatureJobResponse);
     }
 
-    public RedirectUrl getRedirectUrl(long signatureJobId, DirectSigner signer ){
-        XMLSignerSpecificUrl redirectUrl = client.getRedirectUrl(signatureJobId, signer);
-        return RedirectUrl.fromJaxb(redirectUrl);
+    public RedirectUrl createUrlForSigning(long signatureJobId, DirectSigner signer) {
+        XMLSignerSpecificUrl urlForSigning = client.createUrlForSigning(signatureJobId, signer);
+        return RedirectUrl.fromJaxb(urlForSigning);
     }
 
 

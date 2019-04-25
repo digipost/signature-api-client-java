@@ -90,10 +90,10 @@ public class ClientHelper {
                 .postAsMultiPart(DIRECT.path(actualSender), XMLDirectSignatureJobResponse.class));
     }
 
-    public XMLSignerSpecificUrl getRedirectUrl(long signatureJobId, DirectSigner signer) {
+    public XMLSignerSpecificUrl createUrlForSigning(long signatureJobId, DirectSigner signer) {
         String signerIdentifier = signer.isIdentifiedByPersonalIdentificationNumber() ? signer.getPersonalIdentificationNumber() : signer.getCustomIdentifier();
         String url = httpClient.signatureServiceRoot()
-                .path(globalSender.get().getOrganizationNumber() + "/direct/signature-jobs/" + signatureJobId + "/signerurl/" + signerIdentifier)
+                .path(DIRECT.path(globalSender.get()) + "/" + signatureJobId + "/signers/" + signerIdentifier + "/signing-url/")
                 .getUri().toString();
 
         try (Response response = postEmptyEntity(url)) {
