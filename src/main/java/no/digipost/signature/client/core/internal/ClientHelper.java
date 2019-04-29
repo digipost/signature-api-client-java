@@ -23,21 +23,20 @@ import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
-import no.digipost.signature.client.direct.DirectSigner;
+import no.digipost.signature.client.direct.RedirectUrlRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.POST;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.StatusType;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
@@ -90,13 +89,8 @@ public class ClientHelper {
                 .postAsMultiPart(DIRECT.path(actualSender), XMLDirectSignatureJobResponse.class));
     }
 
-    public XMLSignerSpecificUrl createUrlForSigning(long signatureJobId, DirectSigner signer) {
-        String signerIdentifier = signer.isIdentifiedByPersonalIdentificationNumber() ? signer.getPersonalIdentificationNumber() : signer.getCustomIdentifier();
-        String url = httpClient.signatureServiceRoot()
-                .path(DIRECT.path(globalSender.get()) + "/" + signatureJobId + "/signers/" + signerIdentifier + "/signing-url/")
-                .getUri().toString();
-
-        try (Response response = postEmptyEntity(url)) {
+    public XMLSignerSpecificUrl createUrlForSigning(RedirectUrlRequest url) {
+        try (Response response = postEmptyEntity(url.url)) {
             return parseResponse(response, XMLSignerSpecificUrl.class);
         }
     }

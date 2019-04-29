@@ -7,12 +7,14 @@ import java.util.List;
 public class DirectJobResponse {
     private final long signatureJobId;
     private final String reference;
+    private final List<RedirectUrlRequest> redirectUrlRequests;
     private final RedirectUrls redirectUrls;
     private final String statusUrl;
 
-    public DirectJobResponse(long signatureJobId, String reference, List<RedirectUrl> redirectUrls, String statusUrl) {
+    public DirectJobResponse(long signatureJobId, String reference, List<RedirectUrlRequest> redirectUrlRequests, List<RedirectUrl> redirectUrls, String statusUrl) {
         this.signatureJobId = signatureJobId;
         this.reference = reference;
+        this.redirectUrlRequests = redirectUrlRequests;
         this.redirectUrls = new RedirectUrls(redirectUrls);
         this.statusUrl = statusUrl;
     }
@@ -28,6 +30,24 @@ public class DirectJobResponse {
     public String getReference() {
         return reference;
     }
+
+    /**
+     * Gets the only signing URL for this job.
+     * Convenience method for retrieving the signing URL for jobs with exactly one signer.
+     * @throws IllegalStateException if there are multiple signers for this job
+     * @see #getRedirectUrlRequests()
+     */
+    public RedirectUrlRequest getSingleRedirectUrlRequest() {
+        if (redirectUrlRequests.size() != 1) {
+            throw new IllegalStateException("Calls to this method should only be done when there are no more than one (1) signer.");
+        }
+        return redirectUrlRequests.get(0);
+    }
+
+    public List<RedirectUrlRequest> getRedirectUrlRequests() {
+        return redirectUrlRequests;
+    }
+
 
     /**
      * Gets the only redirect URL for this job.
