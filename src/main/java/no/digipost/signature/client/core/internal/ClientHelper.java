@@ -66,7 +66,7 @@ public class ClientHelper {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientHelper.class);
 
-    public static final String NEXT_PERMITTED_POLL_TIME_HEADER = "X-Next-permitted-poll-time";
+    private static final String NEXT_PERMITTED_POLL_TIME_HEADER = "X-Next-permitted-poll-time";
     private static final String POLLING_QUEUE_QUERY_PARAMETER = "polling_queue";
 
     private final SignatureHttpClient httpClient;
@@ -89,7 +89,7 @@ public class ClientHelper {
                 .postAsMultiPart(DIRECT.path(actualSender), XMLDirectSignatureJobResponse.class));
     }
 
-    public XMLSignerSpecificUrl createUrlForSigning(RedirectUrlRequest url) {
+    public XMLSignerSpecificUrl createRedirectUrl(RedirectUrlRequest url) {
         try (Response response = postEmptyEntity(url.url)) {
             return parseResponse(response, XMLSignerSpecificUrl.class);
         }

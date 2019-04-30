@@ -43,7 +43,7 @@ final class JaxbEntityMapping {
                 .map(RedirectUrl::fromJaxb)
                 .collect(toList());
 
-        List<RedirectUrlRequest> redirectUrlRequests = xmlSignatureJobResponse.getSigningUrls().stream()
+        List<RedirectUrlRequest> redirectUrlRequests = xmlSignatureJobResponse.getUrlForSignings().stream()
                 .map(RedirectUrlRequest::fromJaxb)
                 .collect(toList());
 
