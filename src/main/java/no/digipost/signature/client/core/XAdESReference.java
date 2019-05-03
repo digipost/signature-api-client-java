@@ -1,18 +1,20 @@
 package no.digipost.signature.client.core;
 
+import java.net.URI;
+
 public class XAdESReference {
 
     public static XAdESReference of(String url) {
-        return url == null ? null : new XAdESReference(url);
+        return url == null ? null : new XAdESReference(URI.create(url));
     }
 
-    private final String xAdESUrl;
+    private final URI xAdESUrl;
 
-    private XAdESReference(String xAdESUrl) {
+    private XAdESReference(URI xAdESUrl) {
         this.xAdESUrl = xAdESUrl;
     }
 
-    public String getxAdESUrl() {
+    public URI getxAdESUrl() {
         return xAdESUrl;
     }
 }

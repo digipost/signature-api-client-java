@@ -3,7 +3,7 @@ package no.digipost.signature.client.direct;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobStatusResponse;
-import no.digipost.signature.api.xml.XMLSignerSpecificUrl;
+import no.digipost.signature.api.xml.XMLDirectSignerResponse;
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.CreateASiCE;
 import no.digipost.signature.client.asice.DocumentBundle;
@@ -16,7 +16,6 @@ import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
-import no.digipost.signature.client.direct.RedirectUrls.RedirectUrl;
 
 import java.io.InputStream;
 import java.util.Optional;
@@ -41,13 +40,13 @@ public class DirectClient {
         DocumentBundle documentBundle = aSiCECreator.createASiCE(job);
         XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(job, clientConfiguration.getGlobalSender());
 
-        XMLDirectSignatureJobResponse xmlSignatureJobResponse = client.sendSignatureJobRequest(signatureJobRequest, documentBundle, job.getSender());
-        return fromJaxb(xmlSignatureJobResponse);
+        XMLDirectSignatureJobResponse createdJob = client.sendSignatureJobRequest(signatureJobRequest, documentBundle, job.getSender());
+        return fromJaxb(createdJob);
     }
 
-    public RedirectUrl createRedirectUrl(RedirectUrlRequest request) {
-        XMLSignerSpecificUrl redirectUrl = client.createRedirectUrl(request);
-        return RedirectUrl.fromJaxb(redirectUrl);
+    public DirectSignerResponse requestNewRedirectUrl(WithSignerUrl request) {
+        XMLDirectSignerResponse updatedSigner = client.requestNewRedirectUrl(request);
+        return DirectSignerResponse.fromJaxb(updatedSigner);
     }
 
 

@@ -1,6 +1,8 @@
 package no.digipost.signature.client.direct;
 
 import javax.ws.rs.core.UriBuilder;
+
+import java.net.URI;
 import java.util.Objects;
 /**
  * A {@code StatusReference} is constructed from the url acquired from
@@ -51,8 +53,8 @@ public class StatusReference {
         this.statusQueryToken = Objects.requireNonNull(statusQueryToken, STATUS_QUERY_TOKEN_PARAM_NAME);
     }
 
-    public String getStatusUrl() {
-        return UriBuilder.fromUri(statusUrl).queryParam(STATUS_QUERY_TOKEN_PARAM_NAME, statusQueryToken).build().toString();
+    public URI getStatusUrl() {
+        return UriBuilder.fromUri(statusUrl).queryParam(STATUS_QUERY_TOKEN_PARAM_NAME, statusQueryToken).build();
     }
 
     public static abstract class StatusUrlContruction {

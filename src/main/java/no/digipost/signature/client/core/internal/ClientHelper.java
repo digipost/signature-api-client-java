@@ -3,11 +3,13 @@ package no.digipost.signature.client.core.internal;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobStatusResponse;
+import no.digipost.signature.api.xml.XMLDirectSignerResponse;
+import no.digipost.signature.api.xml.XMLDirectSignerUpdateRequest;
+import no.digipost.signature.api.xml.XMLEmptyElement;
 import no.digipost.signature.api.xml.XMLError;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobRequest;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
-import no.digipost.signature.api.xml.XMLSignerSpecificUrl;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.DeleteDocumentsUrl;
 import no.digipost.signature.client.core.Sender;
@@ -23,7 +25,7 @@ import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
-import no.digipost.signature.client.direct.RedirectUrlRequest;
+import no.digipost.signature.client.direct.WithSignerUrl;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
@@ -39,6 +41,7 @@ import javax.ws.rs.core.Response.StatusType;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -47,6 +50,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static javax.ws.rs.core.HttpHeaders.CONTENT_LENGTH;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
@@ -89,9 +93,9 @@ public class ClientHelper {
                 .postAsMultiPart(DIRECT.path(actualSender), XMLDirectSignatureJobResponse.class));
     }
 
-    public XMLSignerSpecificUrl createRedirectUrl(RedirectUrlRequest url) {
-        try (Response response = postEmptyEntity(url.url)) {
-            return parseResponse(response, XMLSignerSpecificUrl.class);
+    public XMLDirectSignerResponse requestNewRedirectUrl(WithSignerUrl url) {
+        try (Response response = postEntity(url.getSignerUrl(), new XMLDirectSignerUpdateRequest().withRedirectUrl(new XMLEmptyElement()))) {
+            return parseResponse(response, XMLDirectSignerResponse.class);
         }
     }
 
@@ -105,7 +109,7 @@ public class ClientHelper {
                 .postAsMultiPart(PORTAL.path(actualSender), XMLPortalSignatureJobResponse.class));
     }
 
-    public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(final String statusUrl) {
+    public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(final URI statusUrl) {
         return call(() -> {
             Invocation.Builder request = httpClient.target(statusUrl).request().accept(APPLICATION_XML_TYPE);
 
@@ -129,14 +133,14 @@ public class ClientHelper {
         });
     }
 
-    public InputStream getSignedDocumentStream(final String uri) {
+    public InputStream getSignedDocumentStream(final URI uri) {
         return call(() -> parseResponse(httpClient.target(uri).request().accept(APPLICATION_XML_TYPE, APPLICATION_OCTET_STREAM_TYPE).get(), InputStream.class));
     }
 
     public void cancel(final Cancellable cancellable) {
         call(() -> {
             if (cancellable.getCancellationUrl() != null) {
-                String url = cancellable.getCancellationUrl().getUrl();
+                URI url = cancellable.getCancellationUrl().getUrl();
                 try (Response response = postEmptyEntity(url)) {
                     StatusType status = ResponseStatus.resolve(response.getStatus());
                     if (status == OK) {
@@ -190,7 +194,7 @@ public class ClientHelper {
     public void confirm(final Confirmable confirmable) {
         call(() -> {
             if (confirmable.getConfirmationReference() != null) {
-                String url = confirmable.getConfirmationReference().getConfirmationUrl();
+                URI url = confirmable.getConfirmationReference().getConfirmationUrl();
                 LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
                 try (Response response = postEmptyEntity(url)) {
                     StatusType status = ResponseStatus.resolve(response.getStatus());
@@ -215,7 +219,7 @@ public class ClientHelper {
     public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {
         call(() -> {
             if (deleteDocumentsUrl != null) {
-                String url = deleteDocumentsUrl.getUrl();
+                URI url = deleteDocumentsUrl.getUrl();
                 try (Response response = delete(url)) {
                     StatusType status = ResponseStatus.resolve(response.getStatus());
                     if (status == OK) {
@@ -258,15 +262,20 @@ public class ClientHelper {
         }
     }
 
-    private Response postEmptyEntity(String uri) {
-        return httpClient.target(uri)
-                .request()
-                .accept(APPLICATION_XML_TYPE)
-                .header("Content-Length", 0)
-                .post(Entity.entity(null, APPLICATION_XML_TYPE));
+    private Response postEmptyEntity(URI uri) {
+        return postEntity(uri, null);
     }
 
-    private Response delete(String uri) {
+    private Response postEntity(URI uri, Object entity) {
+        Invocation.Builder requestBuilder = httpClient.target(uri)
+                .request()
+                .accept(APPLICATION_XML_TYPE);
+        return (entity == null ? requestBuilder.header(CONTENT_LENGTH, 0) : requestBuilder)
+                .post(Entity.entity(entity, APPLICATION_XML_TYPE));
+    }
+
+
+    private Response delete(URI uri) {
         return httpClient.target(uri)
                 .request()
                 .accept(APPLICATION_XML_TYPE)

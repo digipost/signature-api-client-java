@@ -1,21 +1,17 @@
 package no.digipost.signature.client.direct;
 
-import no.digipost.signature.client.direct.RedirectUrls.RedirectUrl;
-
 import java.util.List;
 
 public class DirectJobResponse {
     private final long signatureJobId;
     private final String reference;
-    private final List<RedirectUrlRequest> redirectUrlRequests;
-    private final RedirectUrls redirectUrls;
+    private final List<DirectSignerResponse> signers;
     private final String statusUrl;
 
-    public DirectJobResponse(long signatureJobId, String reference, List<RedirectUrlRequest> redirectUrlRequests, List<RedirectUrl> redirectUrls, String statusUrl) {
+    public DirectJobResponse(long signatureJobId, String reference, String statusUrl, List<DirectSignerResponse> signers) {
         this.signatureJobId = signatureJobId;
         this.reference = reference;
-        this.redirectUrlRequests = redirectUrlRequests;
-        this.redirectUrls = new RedirectUrls(redirectUrls);
+        this.signers = signers;
         this.statusUrl = statusUrl;
     }
 
@@ -32,39 +28,31 @@ public class DirectJobResponse {
     }
 
     /**
-     * Gets the only signing URL for this job.
-     * Convenience method for retrieving the signing URL for jobs with exactly one signer.
+     * Gets the single signer for this job.
+     * Convenience method for retrieving the signer for jobs with exactly one signer.
+     *
+     * @return the signer
+     *
      * @throws IllegalStateException if there are multiple signers for this job
-     * @see #getRedirectUrlRequests()
+     * @see #getSigners()
      */
-    public RedirectUrlRequest getSingleRedirectUrlRequest() {
-        if (redirectUrlRequests.size() != 1) {
-            throw new IllegalStateException("Calls to this method should only be done when there are no more than one (1) signer.");
+    public DirectSignerResponse getSingleSigner() {
+        if (signers.size() != 1) {
+            throw new IllegalStateException("Calls to this method should only be done when there are no more than one signer.");
         }
-        return redirectUrlRequests.get(0);
+        return signers.get(0);
     }
-
-    public List<RedirectUrlRequest> getRedirectUrlRequests() {
-        return redirectUrlRequests;
-    }
-
 
     /**
-     * Gets the only redirect URL for this job.
-     * Convenience method for retrieving the redirect URL for jobs with exactly one signer.
-     * @throws IllegalStateException if there are multiple redirect URLs
-     * @see #getRedirectUrls()
+     * Gets all the {@link DirectSignerResponse signers} for this job
+     *
+     * @return the signers
      */
-    public String getSingleRedirectUrl() {
-        return redirectUrls.getSingleRedirectUrl();
-    }
-
-    public RedirectUrls getRedirectUrls() {
-        return redirectUrls;
+    public List<DirectSignerResponse> getSigners() {
+        return signers;
     }
 
     public String getStatusUrl() {
         return statusUrl;
     }
-
 }
