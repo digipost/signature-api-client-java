@@ -1,6 +1,10 @@
 package no.digipost.signature.client.direct;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
+import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
 
 public class DirectJobResponse {
     private final long signatureJobId;
@@ -50,6 +54,32 @@ public class DirectJobResponse {
      */
     public List<DirectSignerResponse> getSigners() {
         return signers;
+    }
+
+    /**
+     * Get the signer with the given identifier for this job.
+     *
+     * @param identifier the string identifying the signer, either a personal identification number,
+     *                   or a custom identifier
+     * @return the signer with the given identifier
+     * @throws NoSuchElementException if the signer was not found.
+     */
+    public DirectSignerResponse getSignerIdentifiedBy(String identifier) {
+        return findSignerIdentifiedBy(identifier).orElseThrow(() -> new NoSuchElementException(
+                "signer with identifier " + mask(identifier) + " in job " + signatureJobId +
+                (reference != null ? " (reference: " + reference + ")" : "") + "."));
+    }
+
+    /**
+     * Try to find the signer with the given identifier for this job. If you expect the signer to exist,
+     * consider using {@link #getSignerIdentifiedBy(String)} instead.
+     *
+     * @param identifier the string identifying the signer, either a personal identification number,
+     *                   or a custom identifier
+     * @return the found {@link DirectSignerResponse signer}, or {@link Optional#empty() empty}.
+     */
+    public Optional<DirectSignerResponse> findSignerIdentifiedBy(String identifier) {
+        return getSigners().stream().filter(signer -> signer.hasIdentifier(identifier)).findFirst();
     }
 
     public String getStatusUrl() {

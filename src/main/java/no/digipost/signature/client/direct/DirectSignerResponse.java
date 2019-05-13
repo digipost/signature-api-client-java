@@ -3,6 +3,7 @@ package no.digipost.signature.client.direct;
 import no.digipost.signature.api.xml.XMLDirectSignerResponse;
 
 import java.net.URI;
+import java.util.Objects;
 
 public class DirectSignerResponse implements WithSignerUrl {
 
@@ -30,6 +31,17 @@ public class DirectSignerResponse implements WithSignerUrl {
         this.customIdentifier = customIdentifier;
         this.signerUrl = signerUrl;
         this.redirectUrl = redirectUrl;
+    }
+
+    /**
+     * Check if this signer is identified by the given identifier string, either
+     * as personal identification number or a custom identifier.
+     *
+     * @param identifier either a personal identification number or a custom identifier
+     * @return {@code true} if this signer has the given identifier, {@code false} otherwise.
+     */
+    public boolean hasIdentifier(String identifier) {
+        return Objects.equals(personalIdentificationNumber, identifier) || Objects.equals(customIdentifier, identifier);
     }
 
     public boolean isIdentifiedByPersonalIdentificationNumber() {
