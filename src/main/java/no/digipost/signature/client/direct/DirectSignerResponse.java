@@ -26,7 +26,7 @@ public class DirectSignerResponse implements WithSignerUrl {
     private final URI signerUrl;
     private final URI redirectUrl;
 
-    private DirectSignerResponse(String personalIdentificationNumber, String customIdentifier, URI signerUrl, URI redirectUrl) {
+    DirectSignerResponse(String personalIdentificationNumber, String customIdentifier, URI signerUrl, URI redirectUrl) {
         this.personalIdentificationNumber = personalIdentificationNumber;
         this.customIdentifier = customIdentifier;
         this.signerUrl = signerUrl;
