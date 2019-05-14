@@ -19,7 +19,7 @@ import no.digipost.signature.client.portal.SignerIdentifier;
 import java.io.InputStream;
 import java.time.Instant;
 
-@SuppressWarnings({"unused", "ConstantConditions", "StatementWithEmptyBody"})
+@SuppressWarnings({"unused", "ConstantConditions", "StatementWithEmptyBody", "null"})
 class PortalClientUseCases {
 
     static void create_and_send_signature_job() {
