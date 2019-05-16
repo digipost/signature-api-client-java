@@ -44,10 +44,25 @@ public class DirectSignerResponse implements WithSignerUrl {
         return Objects.equals(personalIdentificationNumber, identifier) || Objects.equals(customIdentifier, identifier);
     }
 
+    /**
+     * Check if this signer is identified by a personal identification number. If
+     * this method returns {@code true}, {@link #getPersonalIdentificationNumber()} can
+     * safely be called. Likewise, if it returns {@code false}, then
+     * {@link #getCustomIdentifier()} can be called.
+     *
+     * @return {@code true} if this signer is identified by a personal identification number,
+     *         {@code false} otherwise.
+     */
     public boolean isIdentifiedByPersonalIdentificationNumber() {
         return personalIdentificationNumber != null;
     }
 
+    /**
+     * Get the personal identification number for this signer.
+     *
+     * @return the personal identification number
+     * @throws IllegalStateException if this signer is <em>not</em> identified by personal identification number
+     */
     public String getPersonalIdentificationNumber() {
         if (!isIdentifiedByPersonalIdentificationNumber()) {
             throw new IllegalStateException(this + " is not identified by personal identification number, use getCustomIdentifier() instead.");
@@ -55,6 +70,12 @@ public class DirectSignerResponse implements WithSignerUrl {
         return personalIdentificationNumber;
     }
 
+    /**
+     * Get the custom identifier string for this signer.
+     *
+     * @return the custom identifier
+     * @throws IllegalStateException if this signer is <em>not</em> identified by a custom identifier string
+     */
     public String getCustomIdentifier() {
         if (customIdentifier == null) {
             throw new IllegalStateException(this + " is not identified by a custom identifier, use getPersonalIdentificationNumber() instead.");
