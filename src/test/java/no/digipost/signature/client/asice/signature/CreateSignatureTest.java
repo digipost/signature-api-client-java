@@ -12,8 +12,8 @@ import no.digipost.signature.api.xml.thirdparty.xmldsig.X509IssuerSerialType;
 import no.digipost.signature.client.TestKonfigurasjon;
 import no.digipost.signature.client.asice.ASiCEAttachable;
 import no.digipost.signature.client.security.KeyStoreConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.xml.transform.stream.StreamSource;
@@ -28,11 +28,10 @@ import java.util.List;
 
 import static co.unruly.matchers.Java8Matchers.where;
 import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 public class CreateSignatureTest {
 
@@ -51,7 +50,7 @@ public class CreateSignatureTest {
         marshaller.setClassesToBeBound(XAdESSignatures.class, QualifyingProperties.class);
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         noekkelpar = TestKonfigurasjon.CLIENT_KEYSTORE;
         files = asList(
@@ -78,7 +77,7 @@ public class CreateSignatureTest {
         Signature signature = createSignature.createSignature(files, noekkelpar);
         XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getBytes())));
 
-        assertThat(xAdESSignatures.getSignatures(), hasSize(1));
+        assertThat(xAdESSignatures, where(XAdESSignatures::getSignatures, hasSize(1)));
         no.digipost.signature.api.xml.thirdparty.xmldsig.Signature dSignature = xAdESSignatures.getSignatures().get(0);
         verify_signed_info(dSignature.getSignedInfo());
         assertThat("signature value", dSignature.getSignatureValue().getValue(), where(Base64.getEncoder()::encodeToString, is(expectedBase64EncodedSignatureValue)));
@@ -110,7 +109,7 @@ public class CreateSignatureTest {
         Signature signature = createSignature.createSignature(otherFiles, noekkelpar);
         XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getBytes())));
         String uri = xAdESSignatures.getSignatures().get(0).getSignedInfo().getReferences().get(0).getURI();
-        assertEquals("dokument+%282%29.pdf", uri);
+        assertThat(uri, is("dokument+%282%29.pdf"));
     }
 
     private void verify_signed_data_object_properties(final SignedDataObjectProperties signedDataObjectProperties) {

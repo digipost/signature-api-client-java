@@ -4,14 +4,15 @@ import no.digipost.signature.api.xml.XMLEmail;
 import no.digipost.signature.api.xml.XMLNotifications;
 import no.digipost.signature.api.xml.XMLSms;
 import no.digipost.signature.client.portal.Signature.Signer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import static co.unruly.matchers.Java8Matchers.where;
+import static co.unruly.matchers.Java8Matchers.whereNot;
 import static no.digipost.signature.client.portal.SignerIdentifier.identifiedByEmailAddress;
 import static no.digipost.signature.client.portal.SignerIdentifier.identifiedByEmailAddressAndMobileNumber;
 import static no.digipost.signature.client.portal.SignerIdentifier.identifiedByMobileNumber;
 import static no.digipost.signature.client.portal.SignerIdentifier.identifiedByPersonalIdentificationNumber;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class SignerTest {
 
@@ -22,23 +23,23 @@ public class SignerTest {
         Signer smsSigner = new Signer(null, new XMLNotifications(null, new XMLSms("11111111")));
         Signer emailAndSmsSigner = new Signer(null, new XMLNotifications(new XMLEmail("email@example.com"), new XMLSms("11111111")));
 
-        assertTrue(pinSigner.isSameAs(identifiedByPersonalIdentificationNumber("00000000000")));
-        assertFalse(pinSigner.isSameAs(identifiedByPersonalIdentificationNumber("11111111111")));
-        assertFalse(pinSigner.isSameAs(identifiedByEmailAddress("test@example.com")));
+        assertThat(identifiedByPersonalIdentificationNumber("00000000000"), where(pinSigner::isSameAs));
+        assertThat(identifiedByPersonalIdentificationNumber("11111111111"), whereNot(pinSigner::isSameAs));
+        assertThat(identifiedByEmailAddress("test@example.com"), whereNot(pinSigner::isSameAs));
 
-        assertTrue(emailSigner.isSameAs(identifiedByEmailAddress("email@example.com")));
-        assertFalse(emailSigner.isSameAs(identifiedByEmailAddress("other@example.com")));
-        assertFalse(emailSigner.isSameAs(identifiedByEmailAddressAndMobileNumber("email@example.com", "11111111")));
+        assertThat(identifiedByEmailAddress("email@example.com"), where(emailSigner::isSameAs));
+        assertThat(identifiedByEmailAddress("other@example.com"), whereNot(emailSigner::isSameAs));
+        assertThat(identifiedByEmailAddressAndMobileNumber("email@example.com", "11111111"), whereNot(emailSigner::isSameAs));
 
-        assertTrue(smsSigner.isSameAs(identifiedByMobileNumber("11111111")));
-        assertFalse(smsSigner.isSameAs(identifiedByMobileNumber("22222222")));
-        assertFalse(smsSigner.isSameAs(identifiedByEmailAddressAndMobileNumber("email@example.com", "11111111")));
+        assertThat(identifiedByMobileNumber("11111111"), where(smsSigner::isSameAs));
+        assertThat(identifiedByMobileNumber("22222222"), whereNot(smsSigner::isSameAs));
+        assertThat(identifiedByEmailAddressAndMobileNumber("email@example.com", "11111111"), whereNot(smsSigner::isSameAs));
 
-        assertTrue(emailAndSmsSigner.isSameAs(identifiedByEmailAddressAndMobileNumber("email@example.com", "11111111")));
-        assertFalse(emailAndSmsSigner.isSameAs(identifiedByEmailAddressAndMobileNumber("other@example.com", "11111111")));
-        assertFalse(emailAndSmsSigner.isSameAs(identifiedByEmailAddressAndMobileNumber("email@example.com", "00000000")));
-        assertFalse(emailAndSmsSigner.isSameAs(identifiedByEmailAddress("email@example.com")));
-        assertFalse(emailAndSmsSigner.isSameAs(identifiedByMobileNumber("11111111")));
+        assertThat(identifiedByEmailAddressAndMobileNumber("email@example.com", "11111111"), where(emailAndSmsSigner::isSameAs));
+        assertThat(identifiedByEmailAddressAndMobileNumber("other@example.com", "11111111"), whereNot(emailAndSmsSigner::isSameAs));
+        assertThat(identifiedByEmailAddressAndMobileNumber("email@example.com", "00000000"), whereNot(emailAndSmsSigner::isSameAs));
+        assertThat(identifiedByEmailAddress("email@example.com"), whereNot(emailAndSmsSigner::isSameAs));
+        assertThat(identifiedByMobileNumber("11111111"), whereNot(emailAndSmsSigner::isSameAs));
     }
 
 }

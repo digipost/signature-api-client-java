@@ -1,13 +1,13 @@
 package no.digipost.signature.client.direct;
 
 import no.digipost.signature.api.xml.XMLDirectSignatureJobStatus;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
 
 public class DirectJobStatusTest {
 

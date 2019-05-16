@@ -1,11 +1,11 @@
 package no.digipost.signature.client.direct;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static co.unruly.matchers.Java8Matchers.where;
 import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class DirectJobResponseTest {
 

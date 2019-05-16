@@ -1,27 +1,28 @@
 package no.digipost.signature.client.core.internal;
 
-import com.pholser.junit.quickcheck.Property;
-import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import static no.digipost.signature.client.core.internal.PersonalIdentificationNumbers.mask;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.quicktheories.QuickTheory.qt;
+import static org.quicktheories.generators.SourceDSL.strings;
 
-@RunWith(JUnitQuickcheck.class)
 public class PersonalIdentificationNumbersTest {
 
-    @Property
-    public void maskingNeverThrowsException(String randomString) {
-        assertThat(mask(randomString), isA(String.class));
+    @Test
+    public void maskingNeverThrowsException() {
+        qt()
+            .forAll(strings().allPossible().ofLengthBetween(0, 100))
+            .check(randomString -> mask(randomString) instanceof String);
     }
 
-    @Property
-    public void alwaysReturnsStringWithSameLengthAsGiven(String randomString) {
-        assertThat(mask(randomString).length(), is(randomString.length()));
+    @Test
+    public void alwaysReturnsStringWithSameLengthAsGiven() {
+        qt()
+            .forAll(strings().allPossible().ofLengthBetween(0, 100))
+            .checkAssert(randomString -> assertThat(mask(randomString).length(), is(randomString.length())));
     }
 
     @Test
