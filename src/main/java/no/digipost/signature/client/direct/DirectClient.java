@@ -3,6 +3,7 @@ package no.digipost.signature.client.direct;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobStatusResponse;
+import no.digipost.signature.api.xml.XMLDirectSignerResponse;
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.CreateASiCE;
 import no.digipost.signature.client.asice.DocumentBundle;
@@ -39,8 +40,13 @@ public class DirectClient {
         DocumentBundle documentBundle = aSiCECreator.createASiCE(job);
         XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(job, clientConfiguration.getGlobalSender());
 
-        XMLDirectSignatureJobResponse xmlSignatureJobResponse = client.sendSignatureJobRequest(signatureJobRequest, documentBundle, job.getSender());
-        return fromJaxb(xmlSignatureJobResponse);
+        XMLDirectSignatureJobResponse createdJob = client.sendSignatureJobRequest(signatureJobRequest, documentBundle, job.getSender());
+        return fromJaxb(createdJob);
+    }
+
+    public DirectSignerResponse requestNewRedirectUrl(WithSignerUrl request) {
+        XMLDirectSignerResponse updatedSigner = client.requestNewRedirectUrl(request);
+        return DirectSignerResponse.fromJaxb(updatedSigner);
     }
 
 
@@ -121,6 +127,7 @@ public class DirectClient {
     public void confirm(DirectJobStatusResponse receivedStatusResponse) {
         client.confirm(receivedStatusResponse);
     }
+
 
     public InputStream getXAdES(XAdESReference xAdESReference) {
         return client.getSignedDocumentStream(xAdESReference.getxAdESUrl());

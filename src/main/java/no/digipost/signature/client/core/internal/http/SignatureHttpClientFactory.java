@@ -5,6 +5,7 @@ import org.glassfish.jersey.client.JerseyClientBuilder;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
+
 import java.net.URI;
 
 public class SignatureHttpClientFactory {
@@ -32,7 +33,7 @@ public class SignatureHttpClientFactory {
         }
 
         @Override
-        public WebTarget target(String uri) {
+        public WebTarget target(URI uri) {
             return jerseyClient.target(uri);
         }
 

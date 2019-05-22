@@ -11,7 +11,6 @@ import no.digipost.signature.client.core.DeleteDocumentsUrl;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
-import no.digipost.signature.client.direct.RedirectUrls.RedirectUrl;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -38,16 +37,14 @@ final class JaxbEntityMapping {
                 .withPollingQueue(actualSender.getPollingQueue().value);
     }
 
-    static DirectJobResponse fromJaxb(XMLDirectSignatureJobResponse xmlSignatureJobResponse) {
-        List<RedirectUrl> redirectUrls = xmlSignatureJobResponse.getRedirectUrls().stream()
-                .map(RedirectUrl::fromJaxb)
-                .collect(toList());
+    static DirectJobResponse fromJaxb(XMLDirectSignatureJobResponse job) {
+        List<DirectSignerResponse> signers = job.getSigners().stream().map(DirectSignerResponse::fromJaxb).collect(toList());
 
         return new DirectJobResponse(
-                xmlSignatureJobResponse.getSignatureJobId(),
-                xmlSignatureJobResponse.getReference(),
-                redirectUrls,
-                xmlSignatureJobResponse.getStatusUrl()
+                job.getSignatureJobId(),
+                job.getReference(),
+                job.getStatusUrl(),
+                signers
         );
     }
 

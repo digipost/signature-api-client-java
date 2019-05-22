@@ -5,18 +5,18 @@
     <name>Posten signering - Java API Client Library</name>
     <groupId>no.digipost.signature</groupId>
     <artifactId>signature-api-client-java</artifactId>
-    <version>4.7-SNAPSHOT</version>
+    <version>5.0-SNAPSHOT</version>
 
     <parent>
         <groupId>no.digipost</groupId>
         <artifactId>digipost-open-super-pom</artifactId>
-        <version>2</version>
+        <version>3</version>
     </parent>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <signature.api.version>2.6</signature.api.version>
+        <signature.api.version>2.7-RC1</signature.api.version>
         <slf4j.version>1.7.26</slf4j.version>
     </properties>
 
@@ -25,7 +25,7 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-framework-bom</artifactId>
-                <version>5.1.6.RELEASE</version>
+                <version>5.1.7.RELEASE</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -37,13 +37,11 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <!--
-                    Used by junit-quickcheck. Override version to an artifact specifying its own license,
-                    or we would need a license-mapping file for the license-maven-plugin.
-                 -->
-                <groupId>org.antlr</groupId>
-                <artifactId>antlr-runtime</artifactId>
-                <version>3.5.2</version>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>5.5.0-M1</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -131,7 +129,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.8.1</version>
+            <version>3.9</version>
         </dependency>
 
         <dependency>
@@ -153,27 +151,25 @@
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
-            <version>4.12</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.hamcrest</groupId>
-                    <artifactId>hamcrest-core</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
-            <artifactId>java-hamcrest</artifactId>
-            <version>2.0.0.0</version>
+            <artifactId>hamcrest</artifactId>
+            <version>2.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
             <artifactId>equalsverifier</artifactId>
-            <version>3.1.7</version>
+            <version>3.1.9</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -181,20 +177,19 @@
             <artifactId>java-8-matchers</artifactId>
             <version>1.6</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.pholser</groupId>
-            <artifactId>junit-quickcheck-core</artifactId>
-            <version>0.8.2</version>
+            <groupId>org.quicktheories</groupId>
+            <artifactId>quicktheories</artifactId>
+            <version>0.26</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.pholser</groupId>
-            <artifactId>junit-quickcheck-generators</artifactId>
-            <version>0.8.2</version>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -236,12 +231,12 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.0</version>
+                    <version>3.8.1</version>
                 </plugin>
                 <plugin>
                     <groupId>com.github.siom79.japicmp</groupId>
                     <artifactId>japicmp-maven-plugin</artifactId>
-                    <version>0.13.1</version>
+                    <version>0.14.0</version>
                     <configuration>
                         <newVersion>
                             <file>
@@ -290,7 +285,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.1.1</version>
+                    <version>3.1.2</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-enforcer-plugin</artifactId>

@@ -14,8 +14,8 @@ import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,14 +38,14 @@ import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.TIMESTAMP_PATTERN;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.referenceFilenamePart;
 import static no.digipost.signature.client.direct.ExitUrls.singleExitUrl;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.junit.Assert.assertThat;
 
 public class CreateASiCETest {
 
     private static final Clock clock = Clock.systemDefaultZone();
 
-    @BeforeClass
+    @BeforeAll
     public static void initTempFolder() throws URISyntaxException, IOException {
         dumpFolder = Paths.get(CreateASiCETest.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent()
                 .resolve(CreateASiCETest.class.getSimpleName())

@@ -20,7 +20,7 @@ import no.digipost.signature.client.direct.WithExitUrls;
 import java.io.InputStream;
 import java.time.Instant;
 
-@SuppressWarnings({"unused", "ConstantConditions", "StatementWithEmptyBody"})
+@SuppressWarnings({"unused", "ConstantConditions", "StatementWithEmptyBody", "null"})
 class DirectClientUseCases {
 
     static void create_and_send_signature_job() {

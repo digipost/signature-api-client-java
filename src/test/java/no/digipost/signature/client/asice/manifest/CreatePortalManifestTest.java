@@ -7,20 +7,22 @@ import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.util.Collections;
 
+import static co.unruly.matchers.Java8Matchers.where;
 import static java.util.concurrent.TimeUnit.DAYS;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 
-public class CreatePortalManifestTest {
+class CreatePortalManifestTest {
 
     private final Clock clock = Clock.systemDefaultZone();
 
     @Test
-    public void accept_valid_manifest() {
+    void accept_valid_manifest() {
         CreatePortalManifest createManifest = new CreatePortalManifest(clock);
 
         PortalDocument document = PortalDocument.builder("Title", "file.txt", "hello".getBytes())
@@ -33,11 +35,7 @@ public class CreatePortalManifestTest {
                 .availableFor(30, DAYS)
                 .withIdentifierInSignedDocuments(IdentifierInSignedDocuments.PERSONAL_IDENTIFICATION_NUMBER_AND_NAME)
                 .build();
-        try {
-            createManifest.createManifest(job, new Sender("123456789"));
-        } catch (Exception e) {
-            fail("Expected no exception, got: " + e.getMessage());
-        }
+        assertThat(createManifest, where(__ -> __.createManifest(job, new Sender("123456789")), instanceOf(Manifest.class)));
     }
 
 }
