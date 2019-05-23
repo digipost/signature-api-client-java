@@ -2,7 +2,7 @@ package no.digipost.signature.client.core;
 
 import java.util.Objects;
 
-public class PollingQueue {
+public final class PollingQueue {
 
     public final static PollingQueue DEFAULT = new PollingQueue(null);
 

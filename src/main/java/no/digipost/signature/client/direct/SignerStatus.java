@@ -7,7 +7,7 @@ import java.util.Objects;
 
 import static java.util.Arrays.asList;
 
-public class SignerStatus {
+public final class SignerStatus {
 
     /**
      * The signer has rejected to sign the document.
