@@ -35,9 +35,9 @@ class DirectClientUseCases {
         DirectDocument document = DirectDocument.builder("Subject", "document.pdf", documentBytes).build();
 
         ExitUrls exitUrls = ExitUrls.of(
-                "http://sender.org/onCompletion",
-                "http://sender.org/onRejection",
-                "http://sender.org/onError"
+                URI.create("http://sender.org/onCompletion"),
+                URI.create("http://sender.org/onRejection"),
+                URI.create("http://sender.org/onError")
         );
 
         DirectSigner signer = DirectSigner.withPersonalIdentificationNumber("12345678910").build();

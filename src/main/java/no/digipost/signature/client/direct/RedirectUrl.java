@@ -2,6 +2,8 @@ package no.digipost.signature.client.direct;
 
 import no.digipost.signature.api.xml.XMLSignerSpecificUrl;
 
+import java.net.URI;
+
 public class RedirectUrl {
 
     static RedirectUrl fromJaxb(XMLSignerSpecificUrl xmlSignerSpecificUrl) {
@@ -11,9 +13,9 @@ public class RedirectUrl {
 
     private final String signer;
 
-    private final String url;
+    private final URI url;
 
-    private RedirectUrl(String signer, String url) {
+    private RedirectUrl(String signer, URI url) {
         this.signer = signer;
         this.url = url;
     }
@@ -22,7 +24,7 @@ public class RedirectUrl {
         return signer;
     }
 
-    public String getUrl() {
+    public URI getUrl() {
         return url;
     }
 

@@ -1,11 +1,13 @@
 package no.digipost.signature.client.direct;
 
+import java.net.URI;
+
 public interface WithExitUrls {
 
-    String getCompletionUrl();
+    URI getCompletionUrl();
 
-    String getRejectionUrl();
+    URI getRejectionUrl();
 
-    String getErrorUrl();
+    URI getErrorUrl();
 
 }

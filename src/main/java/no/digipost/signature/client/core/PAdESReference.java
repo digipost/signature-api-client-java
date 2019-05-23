@@ -4,8 +4,8 @@ import java.net.URI;
 
 public class PAdESReference {
 
-    public static PAdESReference of(String url) {
-        return url == null ? null : new PAdESReference(URI.create(url));
+    public static PAdESReference of(URI url) {
+        return url == null ? null : new PAdESReference(url);
     }
 
     private final URI pAdESUrl;

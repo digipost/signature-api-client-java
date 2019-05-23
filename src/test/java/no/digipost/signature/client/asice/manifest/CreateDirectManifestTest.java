@@ -9,6 +9,8 @@ import no.digipost.signature.client.direct.DirectSigner;
 import no.digipost.signature.client.direct.ExitUrls;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
+
 import static co.unruly.matchers.Java8Matchers.where;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -24,7 +26,10 @@ class CreateDirectManifestTest {
                 .fileType(Document.FileType.TXT)
                 .build();
 
-        DirectJob job = DirectJob.builder(document, ExitUrls.of("http://localhost/signed", "http://localhost/canceled", "http://localhost/failed"), DirectSigner.withPersonalIdentificationNumber("12345678910").build())
+        DirectJob job = DirectJob.builder(
+                    document,
+                    ExitUrls.of(URI.create("http://localhost/signed"), URI.create("http://localhost/canceled"), URI.create("http://localhost/failed")),
+                    DirectSigner.withPersonalIdentificationNumber("12345678910").build())
                 .withIdentifierInSignedDocuments(IdentifierInSignedDocuments.NAME)
                 .build();
         assertThat(createManifest, where(__ -> __.createManifest(job, new Sender("123456789")), instanceOf(Manifest.class)));

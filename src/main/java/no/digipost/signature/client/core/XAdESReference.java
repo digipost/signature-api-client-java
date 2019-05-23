@@ -4,8 +4,8 @@ import java.net.URI;
 
 public class XAdESReference {
 
-    public static XAdESReference of(String url) {
-        return url == null ? null : new XAdESReference(URI.create(url));
+    public static XAdESReference of(URI url) {
+        return url == null ? null : new XAdESReference(url);
     }
 
     private final URI xAdESUrl;
