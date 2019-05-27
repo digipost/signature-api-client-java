@@ -1,14 +1,16 @@
 package no.digipost.signature.client.portal;
 
-import no.digipost.signature.api.xml.XMLSignatureStatus;
+import no.digipost.signature.api.xml.XMLDirectSignerStatusValue;
+import no.digipost.signature.api.xml.XMLPortalSignatureStatusValue;
 import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 
-import java.util.List;
 import java.util.Objects;
-
-import static java.util.Arrays.asList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public final class SignatureStatus {
+
+    private static final ConcurrentMap<XMLPortalSignatureStatusValue, SignatureStatus> KNOWN = new ConcurrentHashMap<>();
 
     /**
      * The signer has rejected to sign the document.
@@ -73,41 +75,26 @@ public final class SignatureStatus {
      * where the sender requires signed documents to contain {@link IdentifierInSignedDocuments#NAME name}
      * as {@link PortalJob.Builder#withIdentifierInSignedDocuments(IdentifierInSignedDocuments) the signer's identifier}.
      */
-    public static final SignatureStatus SIGNERS_NAME_NOT_AVAILABLE = new SignatureStatus("SIGNERS_NAME_NOT_AVAILABLE");
+    public static final SignatureStatus SIGNERS_NAME_NOT_AVAILABLE = of(XMLPortalSignatureStatusValue.SIGNERS_NAME_NOT_AVAILABLE);
 
 
-    private static final List<SignatureStatus> KNOWN_STATUSES = asList(
-            REJECTED,
-            CANCELLED,
-            RESERVED,
-            CONTACT_INFORMATION_MISSING,
-            EXPIRED,
-            WAITING,
-            SIGNED,
-            NOT_APPLICABLE,
-            BLOCKED,
-            SIGNERS_NAME_NOT_AVAILABLE
-    );
+    static final SignatureStatus of(XMLPortalSignatureStatusValue status) {
+        Objects.requireNonNull(status, XMLDirectSignerStatusValue.class.getSimpleName());
+        return KNOWN.computeIfAbsent(status, key -> new SignatureStatus(key.asString()));
+    }
+
 
     private final String identifier;
 
-    public SignatureStatus(String identifier) {
+    private SignatureStatus(String identifier) {
         this.identifier = identifier;
     }
 
-    static SignatureStatus fromXmlType(XMLSignatureStatus xmlSignatureStatus) {
-        String value = xmlSignatureStatus.getValue();
-        for (SignatureStatus status : KNOWN_STATUSES) {
-            if (status.is(value)) {
-                return status;
-            }
-        }
-
-        return new SignatureStatus(value);
-    }
-
-    private boolean is(String xmlSignatureStatus) {
-        return this.identifier.equals(xmlSignatureStatus);
+    /**
+     * @return the String identifier for this status.
+     */
+    public String getIdentifier() {
+        return identifier;
     }
 
     @Override

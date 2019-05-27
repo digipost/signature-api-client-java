@@ -1,40 +1,42 @@
 package no.digipost.signature.client.direct;
 
+import no.digipost.signature.api.xml.XMLDirectSignerStatusValue;
 import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 
-import java.util.List;
 import java.util.Objects;
-
-import static java.util.Arrays.asList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public final class SignerStatus {
+
+    private static final ConcurrentMap<XMLDirectSignerStatusValue, SignerStatus> KNOWN = new ConcurrentHashMap<>();
 
     /**
      * The signer has rejected to sign the document.
      */
-    public static final SignerStatus REJECTED = new SignerStatus("REJECTED");
+    public static final SignerStatus REJECTED = SignerStatus.of(XMLDirectSignerStatusValue.REJECTED);
 
     /**
      * The signer has not made a decision to either sign or reject the document within the
      * specified time limit.
      */
-    public static final SignerStatus EXPIRED = new SignerStatus("EXPIRED");
+    public static final SignerStatus EXPIRED = SignerStatus.of(XMLDirectSignerStatusValue.EXPIRED);
 
     /**
      * The signer has yet to review the document and decide if she/he wants to sign or
      * reject it.
      */
-    public static final SignerStatus WAITING = new SignerStatus("WAITING");
+    public static final SignerStatus WAITING = SignerStatus.of(XMLDirectSignerStatusValue.WAITING);
 
     /**
      * The signer has successfully signed the document.
      */
-    public static final SignerStatus SIGNED = new SignerStatus("SIGNED");
+    public static final SignerStatus SIGNED = SignerStatus.of(XMLDirectSignerStatusValue.SIGNED);
 
     /**
      * An unexpected error occured during the signing ceremony.
      */
-    public static final SignerStatus FAILED = new SignerStatus("FAILED");
+    public static final SignerStatus FAILED = SignerStatus.of(XMLDirectSignerStatusValue.FAILED);
 
     /**
      * The job has reached a state where the status of this signature is not applicable.
@@ -42,7 +44,7 @@ public final class SignerStatus {
      * {@link DirectJobStatus#FAILED} state. Any remaining (previously {@link #WAITING})
      * signatures are marked as {@link #NOT_APPLICABLE}.
      */
-    public static final SignerStatus NOT_APPLICABLE = new SignerStatus("NOT_APPLICABLE");
+    public static final SignerStatus NOT_APPLICABLE = SignerStatus.of(XMLDirectSignerStatusValue.NOT_APPLICABLE);
 
     /**
      * Indicates that the service was unable to retrieve the signer's name.
@@ -54,47 +56,31 @@ public final class SignerStatus {
      * where the sender requires signed documents to contain {@link IdentifierInSignedDocuments#NAME name}
      * as {@link DirectJob.Builder#withIdentifierInSignedDocuments(IdentifierInSignedDocuments) the signer's identifier}.
      */
-    public static final SignerStatus SIGNERS_NAME_NOT_AVAILABLE = new SignerStatus("SIGNERS_NAME_NOT_AVAILABLE");
+    public static final SignerStatus SIGNERS_NAME_NOT_AVAILABLE = SignerStatus.of(XMLDirectSignerStatusValue.SIGNERS_NAME_NOT_AVAILABLE);
 
 
-    private static final List<SignerStatus> KNOWN_STATUSES = asList(
-            REJECTED,
-            EXPIRED,
-            WAITING,
-            SIGNED,
-            FAILED,
-            NOT_APPLICABLE,
-            SIGNERS_NAME_NOT_AVAILABLE
-    );
+    static final SignerStatus of(XMLDirectSignerStatusValue status) {
+        Objects.requireNonNull(status, XMLDirectSignerStatusValue.class.getSimpleName());
+        return KNOWN.computeIfAbsent(status, key -> new SignerStatus(key.asString()));
+    }
 
     private final String identifier;
 
 
-    public SignerStatus(String identifier) {
+    private SignerStatus(String identifier) {
         this.identifier = identifier;
     }
 
-    static SignerStatus fromXmlType(String xmlSignerStatus) {
-        for (SignerStatus status : KNOWN_STATUSES) {
-            if (status.is(xmlSignerStatus)) {
-                return status;
-            }
-        }
-
-        return new SignerStatus(xmlSignerStatus);
-    }
-
-    private boolean is(String xmlSignerStatus) {
-        return this.identifier.equals(xmlSignerStatus);
+    /**
+     * @return the String identifier for this status.
+     */
+    public String getIdentifier() {
+        return identifier;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof SignerStatus) {
-            SignerStatus that = (SignerStatus) o;
-            return Objects.equals(identifier, that.identifier);
-        }
-        return false;
+        return o instanceof SignerStatus && Objects.equals(this.identifier, ((SignerStatus) o).identifier);
     }
 
     @Override
