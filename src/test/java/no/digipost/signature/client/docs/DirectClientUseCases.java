@@ -10,15 +10,19 @@ import no.digipost.signature.client.direct.DirectJobResponse;
 import no.digipost.signature.client.direct.DirectJobStatus;
 import no.digipost.signature.client.direct.DirectJobStatusResponse;
 import no.digipost.signature.client.direct.DirectSigner;
+import no.digipost.signature.client.direct.DirectSignerResponse;
 import no.digipost.signature.client.direct.ExitUrls;
 import no.digipost.signature.client.direct.Signature;
 import no.digipost.signature.client.direct.SignerStatus;
 import no.digipost.signature.client.direct.StatusReference;
 import no.digipost.signature.client.direct.StatusRetrievalMethod;
 import no.digipost.signature.client.direct.WithExitUrls;
+import no.digipost.signature.client.direct.WithSignerUrl;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.time.Instant;
+import java.util.NoSuchElementException;
 
 @SuppressWarnings({"unused", "ConstantConditions", "StatementWithEmptyBody", "null"})
 class DirectClientUseCases {
@@ -40,6 +44,45 @@ class DirectClientUseCases {
         DirectJob directJob = DirectJob.builder(document, exitUrls, signer).build();
 
         DirectJobResponse directJobResponse = client.create(directJob);
+    }
+
+    static void request_new_redirect_url_from_response() {
+        ClientConfiguration clientConfiguration = null; // As initialized earlier
+        DirectClient client = new DirectClient(clientConfiguration);
+        DirectJobResponse directJobResponse = null; // As created earlier
+
+        //Request new redirect URL from response
+        DirectSignerResponse signerToRequestNewUrlForFromResponse = directJobResponse
+                .getSigners()
+                .stream()
+                .filter(s -> s.hasIdentifier("12345678910"))
+                .findAny().orElseThrow(NoSuchElementException::new);
+
+        DirectSignerResponse signerWithUpdatedRedirectUrl = client
+                .requestNewRedirectUrl(signerToRequestNewUrlForFromResponse);
+        URI newRedirectUrl = signerWithUpdatedRedirectUrl.getRedirectUrl();
+    }
+
+    static void request_new_redirect_url_from_signer_url() {
+        ClientConfiguration clientConfiguration = null; // As initialized earlier
+        DirectClient client = new DirectClient(clientConfiguration);
+        DirectJobResponse directJobResponse = null; // As created earlier
+
+        // Step 1:
+        for (DirectSignerResponse signer : directJobResponse.getSigners()) {
+            //Persist signer URL in sender system
+            URI signerResponseSignerUrl = signer.getSignerUrl();
+        }
+
+        // ... some time later ...
+
+        // Step 2: Request new redirect URL for signer
+        URI persistedSignerUrl = null; //Persisted URL from step 1
+        DirectSignerResponse signerWithUpdatedRedirectUrl = client
+                .requestNewRedirectUrl(
+                        WithSignerUrl.of(persistedSignerUrl)
+                );
+        URI newRedirectUrl = signerWithUpdatedRedirectUrl.getRedirectUrl();
     }
 
     static void get_signature_job_status() {
