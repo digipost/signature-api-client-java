@@ -52,14 +52,14 @@ class DirectClientUseCases {
         DirectJobResponse directJobResponse = null; // As created earlier
 
         //Request new redirect URL from response
-        DirectSignerResponse signerToRequestNewUrlForFromResponse = directJobResponse
+        DirectSignerResponse signerFromResponse = directJobResponse
                 .getSigners()
                 .stream()
                 .filter(s -> s.hasIdentifier("12345678910"))
                 .findAny().orElseThrow(NoSuchElementException::new);
 
         DirectSignerResponse signerWithUpdatedRedirectUrl = client
-                .requestNewRedirectUrl(signerToRequestNewUrlForFromResponse);
+                .requestNewRedirectUrl(signerFromResponse);
         URI newRedirectUrl = signerWithUpdatedRedirectUrl.getRedirectUrl();
     }
 
