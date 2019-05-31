@@ -46,7 +46,7 @@ class DirectClientUseCases {
         DirectJobResponse directJobResponse = client.create(directJob);
     }
 
-    static void request_new_redirect_url_from_response() {
+    static void request_new_redirect_url_using_signer_response() {
         ClientConfiguration clientConfiguration = null; // As initialized earlier
         DirectClient client = new DirectClient(clientConfiguration);
         DirectJobResponse directJobResponse = null; // As created earlier
@@ -63,7 +63,7 @@ class DirectClientUseCases {
         URI newRedirectUrl = signerWithUpdatedRedirectUrl.getRedirectUrl();
     }
 
-    static void request_new_redirect_url_from_signer_url() {
+    static void request_new_redirect_url_using_signer_url() {
         ClientConfiguration clientConfiguration = null; // As initialized earlier
         DirectClient client = new DirectClient(clientConfiguration);
         DirectJobResponse directJobResponse = null; // As created earlier
