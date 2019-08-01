@@ -17,6 +17,7 @@ This software includes third party software subject to the following licenses:
   istack common utility code runtime under Eclipse Distribution License - v 1.0
   jakarta.annotation API under EPL 2.0 or GPL2 w/ CPE
   jakarta.xml.bind-api under Eclipse Distribution License - v 1.0
+  JavaBeans Activation Framework under EDL 1.0
   JavaBeans Activation Framework API jar under EDL 1.0
   javax.inject:1 as OSGi bundle under EPL 2.0 or GPL2 w/ CPE
   javax.ws.rs-api under EPL 2.0 or GPL2 w/ CPE
