@@ -43,8 +43,12 @@ class ClientExceptionMapper {
                     "* A certificate with the wrong KeyUsage was used. The keyUsage should be DigitalSignature\n" +
                     "* Erroneous configuration of the trust store\n" +
                     "* Intermediate network devices interfering with traffic (e.g. proxies)\n" +
-                    "* An attacker impersonating the server (man in the middle)\n" +
-                    "* Wrong TLS version. For Java 7, see 'JSSE tuning parameters' at https://blogs.oracle.com/java-platform-group/entry/diagnosing_tls_ssl_and_https for information about enabling the latest TLS versions", e);
+                    "* An attacker impersonating the server (man in the middle)." +
+                    "* Wrong TLS version. For Java 7, see 'JSSE tuning parameters' at https://blogs.oracle.com/java-platform-group/entry/diagnosing_tls_ssl_and_https " +
+                    "for information about enabling the latest TLS versions." +
+                    "* Incorrect certificate. If none of the errors above fixes the issue, it may be because wrong certificate is being used. Please see the Posten" +
+                    " signering documentation for buying and installing enterprise certificates. \n"
+                    , e);
         }
 
         return e;
