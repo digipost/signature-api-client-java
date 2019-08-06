@@ -50,11 +50,13 @@ class PortalClientUseCases {
             // Queue is empty. Must wait before polling again
             Instant nextPermittedPollTime = statusChange.getNextPermittedPollTime();
         } else {
-            // Recieved status update, act according to status
+            // Received status update, act according to status
             PortalJobStatus signatureJobStatus = statusChange.getStatus();
             Instant nextPermittedPollTime = statusChange.getNextPermittedPollTime();
         }
 
+        //Confirm the receipt to remove it from the queue
+        client.confirm(statusChange);
     }
 
     static void get_signer_status() {
@@ -87,13 +89,6 @@ class PortalClientUseCases {
         if (signature.is(SignatureStatus.SIGNED)) {
             InputStream xAdESStream = client.getXAdES(signature.getxAdESUrl());
         }
-    }
-
-    static void confirm_processed_signature_job() {
-        PortalClient client = null; // As initialized earlier
-        PortalJobStatusChanged statusChange = null; // As returned when polling for status changes
-
-        client.confirm(statusChange);
     }
 
     static void specifying_queues() {
