@@ -15,11 +15,11 @@ This software includes third party software subject to the following licenses:
   Extended StAX API under Eclipse Distribution License - v 1.0
   fastinfoset under Apache License, Version 2.0 or Eclipse Distribution License - v 1.0
   istack common utility code runtime under Eclipse Distribution License - v 1.0
-  jakarta.annotation API under EPL 2.0 or GPL2 w/ CPE
+  Jakarta Annotations API under EPL 2.0 or GPL2 w/ CPE
+  jakarta.ws.rs-api under EPL 2.0 or GPL2 w/ CPE
   jakarta.xml.bind-api under Eclipse Distribution License - v 1.0
   JavaBeans Activation Framework API jar under EDL 1.0
   javax.inject:1 as OSGi bundle under EPL 2.0 or GPL2 w/ CPE
-  javax.ws.rs-api under EPL 2.0 or GPL2 w/ CPE
   JAXB Runtime under Eclipse Distribution License - v 1.0
   JAXB2 Basics - Runtime under BSD-Style License
   JCL 1.2 implemented over SLF4J under MIT License
