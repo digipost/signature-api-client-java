@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -68,7 +69,7 @@ public class CreateASiCETest {
 
     @Test
     public void create_direct_asice_and_write_to_disk() throws IOException {
-        DirectJob job = DirectJob.builder(DIRECT_DOCUMENT, singleExitUrl("https://job.well.done.org"), DirectSigner.withPersonalIdentificationNumber("12345678910").build())
+        DirectJob job = DirectJob.builder(DIRECT_DOCUMENT, singleExitUrl(URI.create("https://job.well.done.org")), DirectSigner.withPersonalIdentificationNumber("12345678910").build())
                 .withReference("direct job")
                 .build();
 

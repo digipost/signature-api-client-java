@@ -15,11 +15,11 @@ This software includes third party software subject to the following licenses:
   Extended StAX API under Eclipse Distribution License - v 1.0
   fastinfoset under Apache License, Version 2.0 or Eclipse Distribution License - v 1.0
   istack common utility code runtime under Eclipse Distribution License - v 1.0
-  jakarta.annotation API under EPL 2.0 or GPL2 w/ CPE
+  Jakarta Annotations API under EPL 2.0 or GPL2 w/ CPE
+  jakarta.ws.rs-api under EPL 2.0 or GPL2 w/ CPE
   jakarta.xml.bind-api under Eclipse Distribution License - v 1.0
   JavaBeans Activation Framework API jar under EDL 1.0
   javax.inject:1 as OSGi bundle under EPL 2.0 or GPL2 w/ CPE
-  javax.ws.rs-api under EPL 2.0 or GPL2 w/ CPE
   JAXB Runtime under Eclipse Distribution License - v 1.0
   JAXB2 Basics - Runtime under BSD-Style License
   JCL 1.2 implemented over SLF4J under MIT License
@@ -27,7 +27,7 @@ This software includes third party software subject to the following licenses:
   jersey-core-common under EPL 2.0 or The GNU General Public License (GPL), Version 2, With Classpath Exception or Apache License, 2.0 or Public Domain
   jersey-media-multipart under EPL 2.0 or GPL2 w/ CPE or EDL 1.0 or BSD 2-Clause or Apache License, 2.0 or Public Domain or Modified BSD or jQuery license or MIT license or W3C license
   MIME streaming extension under Eclipse Distribution License - v 1.0
-  OSGi resource locator bundle - used by various API providers that rely on META-INF/services mechanism to locate providers. under CDDL + GPLv2 with classpath exception
+  OSGi resource locator under EPL 2.0 or GPL2 w/ CPE
   Posten signering - API JAXB Classes under The Apache Software License, Version 2.0
   Posten signering - API Schema under The Apache Software License, Version 2.0
   Posten signering - Java API Client Library under The Apache Software License, Version 2.0

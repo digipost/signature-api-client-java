@@ -18,17 +18,17 @@ public class ResponseStatusTest {
 
     @Test
     public void resolveStandardHttpStatus() {
-        assertThat(ResponseStatus.resolve(200), is(Status.OK));
+        assertThat(ResponseStatus.resolve(200).get(), is(Status.OK));
     }
 
     @Test
     public void resolveCustomHttpStatus() {
-        assertThat(ResponseStatus.resolve(422), is(Custom.UNPROCESSABLE_ENTITY));
+        assertThat(ResponseStatus.resolve(422).get(), is(Custom.UNPROCESSABLE_ENTITY));
     }
 
     @Test
     public void resolveUnknownHttpStatus() {
-        assertThat(ResponseStatus.resolve(478), is(ResponseStatus.unknown(478)));
+        assertThat(ResponseStatus.resolve(478).get(), is(ResponseStatus.unknown(478)));
     }
 
     @Test
@@ -36,8 +36,8 @@ public class ResponseStatusTest {
         qt()
         .forAll(integers().between(0, 1000))
         .checkAssert(anyStatusCode -> {
-            assertThat(ResponseStatus.resolve(anyStatusCode), is(ResponseStatus.resolve(anyStatusCode)));
-            assertThat(ResponseStatus.resolve(anyStatusCode), not(ResponseStatus.resolve(anyStatusCode + 1)));
+            assertThat(ResponseStatus.resolve(anyStatusCode).get(), is(ResponseStatus.resolve(anyStatusCode).get()));
+            assertThat(ResponseStatus.resolve(anyStatusCode).get(), not(ResponseStatus.resolve(anyStatusCode + 1).get()));
         });
     }
 

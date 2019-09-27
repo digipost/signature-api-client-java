@@ -60,6 +60,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.Status.TOO_MANY_REQUESTS;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static no.digipost.signature.client.core.internal.ActualSender.getActualSender;
 import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_AUTHORIZED;
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
@@ -114,27 +115,27 @@ public class ClientHelper {
             Invocation.Builder request = httpClient.target(statusUrl).request().accept(APPLICATION_XML_TYPE);
 
             try (Response response = request.get()) {
-                StatusType status = ResponseStatus.resolve(response.getStatus());
-                if (status == OK) {
-                    return response.readEntity(XMLDirectSignatureJobStatusResponse.class);
-                } else if (status == FORBIDDEN) {
-                    XMLError error = extractError(response);
-                    if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
-                        throw new InvalidStatusQueryTokenException(statusUrl, error.getErrorMessage());
+                ResponseStatus.resolve(response.getStatus()).expect(OK).orThrow(status -> {
+                    if (status == FORBIDDEN) {
+                        XMLError error = extractError(response);
+                        if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
+                            return new InvalidStatusQueryTokenException(statusUrl, error.getErrorMessage());
+                        }
+                    } else if (status == NOT_FOUND) {
+                        XMLError error = extractError(response);
+                        if (SIGNING_CEREMONY_NOT_COMPLETED.sameAs(error.getErrorCode())) {
+                            return new CantQueryStatusException(status, error.getErrorMessage());
+                        }
                     }
-                } else if (status == NOT_FOUND) {
-                    XMLError error = extractError(response);
-                    if (SIGNING_CEREMONY_NOT_COMPLETED.sameAs(error.getErrorCode())) {
-                        throw new CantQueryStatusException(status, error.getErrorMessage());
-                    }
-                }
-                throw exceptionForGeneralError(response);
+                    return exceptionForGeneralError(response);
+                });
+                return response.readEntity(XMLDirectSignatureJobStatusResponse.class);
             }
         });
     }
 
-    public InputStream getSignedDocumentStream(final URI uri) {
-        return call(() -> parseResponse(httpClient.target(uri).request().accept(APPLICATION_XML_TYPE, APPLICATION_OCTET_STREAM_TYPE).get(), InputStream.class));
+    public InputStream getSignedDocumentStream(URI uri, MediaType ... acceptedResponses) {
+        return call(() -> parseResponse(httpClient.target(uri).request().accept(acceptedResponses).get(), InputStream.class));
     }
 
     public void cancel(final Cancellable cancellable) {
@@ -142,14 +143,10 @@ public class ClientHelper {
             if (cancellable.getCancellationUrl() != null) {
                 URI url = cancellable.getCancellationUrl().getUrl();
                 try (Response response = postEmptyEntity(url)) {
-                    StatusType status = ResponseStatus.resolve(response.getStatus());
-                    if (status == OK) {
-                        return;
-                    } else if (status == CONFLICT) {
-                        XMLError error = extractError(response);
-                        throw new JobCannotBeCancelledException(status, error.getErrorCode(), error.getErrorMessage());
-                    }
-                    throw exceptionForGeneralError(response);
+                    ResponseStatus.resolve(response.getStatus())
+                        .throwIf(CONFLICT, status -> new JobCannotBeCancelledException(status, extractError(response)))
+                        .expect(SUCCESSFUL)
+                        .orThrow(status -> exceptionForGeneralError(response));
                 }
             } else {
                 throw new NotCancellableException();
@@ -173,16 +170,10 @@ public class ClientHelper {
                     .request()
                     .accept(APPLICATION_XML_TYPE);
             try (Response response = request.get()) {
-                StatusType status = ResponseStatus.resolve(response.getStatus());
-                if (status == NO_CONTENT) {
-                    return new JobStatusResponse<>(null, getNextPermittedPollTime(response));
-                } else if (status == OK) {
-                    return new JobStatusResponse<>(response.readEntity(responseClass), getNextPermittedPollTime(response));
-                } else if (status == TOO_MANY_REQUESTS) {
-                    throw new TooEagerPollingException();
-                } else {
-                    throw exceptionForGeneralError(response);
-                }
+                StatusType status = ResponseStatus.resolve(response.getStatus())
+                        .throwIf(TOO_MANY_REQUESTS, s -> new TooEagerPollingException())
+                        .expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
+                return new JobStatusResponse<>(status == NO_CONTENT ? null : response.readEntity(responseClass), getNextPermittedPollTime(response));
             }
         });
     }
@@ -197,10 +188,7 @@ public class ClientHelper {
                 URI url = confirmable.getConfirmationReference().getConfirmationUrl();
                 LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
                 try (Response response = postEmptyEntity(url)) {
-                    StatusType status = ResponseStatus.resolve(response.getStatus());
-                    if (status != OK) {
-                        throw exceptionForGeneralError(response);
-                    }
+                    ResponseStatus.resolve(response.getStatus()).expect(SUCCESSFUL).orThrow(status -> exceptionForGeneralError(response));
                 }
             } else {
                 LOG.info("Does not need to send confirmation for '{}'", confirmable);
@@ -221,17 +209,12 @@ public class ClientHelper {
             if (deleteDocumentsUrl != null) {
                 URI url = deleteDocumentsUrl.getUrl();
                 try (Response response = delete(url)) {
-                    StatusType status = ResponseStatus.resolve(response.getStatus());
-                    if (status == OK) {
-                        return;
-                    }
-                    throw exceptionForGeneralError(response);
+                    ResponseStatus.resolve(response.getStatus()).expect(SUCCESSFUL).orThrow(status -> exceptionForGeneralError(response));
                 }
             } else {
                 throw new DocumentsNotDeletableException();
             }
         });
-
     }
 
 
@@ -283,20 +266,16 @@ public class ClientHelper {
     }
 
     private <T> T parseResponse(Response response, Class<T> responseType) {
-        StatusType status = ResponseStatus.resolve(response.getStatus());
-        if (status == OK) {
-            return response.readEntity(responseType);
-        } else {
-            throw exceptionForGeneralError(response);
-        }
+        ResponseStatus.resolve(response.getStatus()).expect(OK).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
+        return response.readEntity(responseType);
     }
 
-    private SignatureException exceptionForGeneralError(Response response) {
+    private static SignatureException exceptionForGeneralError(Response response) {
         XMLError error = extractError(response);
         if (BROKER_NOT_AUTHORIZED.sameAs(error.getErrorCode())) {
             return new BrokerNotAuthorizedException(error);
         }
-        return new UnexpectedResponseException(error, ResponseStatus.resolve(response.getStatus()), OK);
+        return new UnexpectedResponseException(error, ResponseStatus.resolve(response.getStatus()).get(), OK);
     }
 
     private static XMLError extractError(Response response) {
@@ -310,16 +289,16 @@ public class ClientHelper {
                 throw new UnexpectedResponseException(
                         HttpHeaders.CONTENT_TYPE + " " + responseContentType.orElse("unknown") + ": " +
                         Optional.ofNullable(response.readEntity(String.class)).filter(StringUtils::isNoneBlank).orElse("<no content in response>"),
-                        e, ResponseStatus.resolve(response.getStatus()), OK);
+                        e, ResponseStatus.resolve(response.getStatus()).get(), OK);
             }
         } else {
             throw new UnexpectedResponseException(
                     HttpHeaders.CONTENT_TYPE + " " + responseContentType.orElse("unknown") + ": " +
                     Optional.ofNullable(response.readEntity(String.class)).filter(StringUtils::isNoneBlank).orElse("<no content in response>"),
-                    ResponseStatus.resolve(response.getStatus()), OK);
+                    ResponseStatus.resolve(response.getStatus()).get(), OK);
         }
         if (error == null) {
-            throw new UnexpectedResponseException(null, ResponseStatus.resolve(response.getStatus()), OK);
+            throw new UnexpectedResponseException(null, ResponseStatus.resolve(response.getStatus()).get(), OK);
         }
         return error;
     }

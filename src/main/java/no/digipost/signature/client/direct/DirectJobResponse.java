@@ -1,5 +1,6 @@
 package no.digipost.signature.client.direct;
 
+import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -10,9 +11,9 @@ public class DirectJobResponse {
     private final long signatureJobId;
     private final String reference;
     private final List<DirectSignerResponse> signers;
-    private final String statusUrl;
+    private final URI statusUrl;
 
-    public DirectJobResponse(long signatureJobId, String reference, String statusUrl, List<DirectSignerResponse> signers) {
+    public DirectJobResponse(long signatureJobId, String reference, URI statusUrl, List<DirectSignerResponse> signers) {
         this.signatureJobId = signatureJobId;
         this.reference = reference;
         this.signers = signers;
@@ -82,7 +83,7 @@ public class DirectJobResponse {
         return getSigners().stream().filter(signer -> signer.hasIdentifier(identifier)).findFirst();
     }
 
-    public String getStatusUrl() {
+    public URI getStatusUrl() {
         return statusUrl;
     }
 }

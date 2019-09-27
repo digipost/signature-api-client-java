@@ -9,9 +9,9 @@ public class DirectSignerResponse implements WithSignerUrl {
 
     public static DirectSignerResponse fromJaxb(XMLDirectSignerResponse signer) {
         if (signer.getPersonalIdentificationNumber() != null) {
-            return new DirectSignerResponse(signer.getPersonalIdentificationNumber(), null, URI.create(signer.getHref()), URI.create(signer.getRedirectUrl()));
+            return new DirectSignerResponse(signer.getPersonalIdentificationNumber(), null, signer.getHref(), signer.getRedirectUrl());
         } else if (signer.getSignerIdentifier() != null) {
-            return new DirectSignerResponse(null, signer.getSignerIdentifier(), URI.create(signer.getHref()), URI.create(signer.getRedirectUrl()));
+            return new DirectSignerResponse(null, signer.getSignerIdentifier(), signer.getHref(), signer.getRedirectUrl());
         } else {
             throw new IllegalStateException(
                     "Unable to convert from " + XMLDirectSignerResponse.class.getSimpleName() + " " +

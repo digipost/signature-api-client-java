@@ -12,6 +12,7 @@ import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,7 @@ final class JaxbEntityMapping {
     static DirectJobStatusResponse fromJaxb(XMLDirectSignatureJobStatusResponse statusResponse, Instant nextPermittedPollTime) {
         List<Signature> signatures = new ArrayList<>();
         for (XMLSignerStatus signerStatus : statusResponse.getStatuses()) {
-            String xAdESUrl = statusResponse.getXadesUrls().stream()
+            URI xAdESUrl = statusResponse.getXadesUrls().stream()
                     .filter(forSigner(signerStatus.getSigner()))
                     .findFirst()
                     .map(XMLSignerSpecificUrl::getValue)
@@ -59,7 +60,7 @@ final class JaxbEntityMapping {
 
             signatures.add(new Signature(
                     signerStatus.getSigner(),
-                    SignerStatus.fromXmlType(signerStatus.getValue()),
+                    SignerStatus.of(signerStatus.getValue()),
                     signerStatus.getSince().toInstant(),
                     XAdESReference.of(xAdESUrl)
             ));

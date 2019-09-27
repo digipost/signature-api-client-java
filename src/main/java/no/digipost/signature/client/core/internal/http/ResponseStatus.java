@@ -1,13 +1,20 @@
 package no.digipost.signature.client.core.internal.http;
 
+import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
+
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.Status.Family;
 import javax.ws.rs.core.Response.StatusType;
+
 import java.util.Objects;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
-public class ResponseStatus {
+public final class ResponseStatus {
 
-    public static StatusType resolve(int code) {
+    public static ResponseStatus resolve(int code) {
         StatusType status = Status.fromStatusCode(code);
         if (status == null) {
             status = Custom.fromStatusCode(code);
@@ -15,8 +22,75 @@ public class ResponseStatus {
         if (status == null) {
             status = unknown(code);
         }
-        return status;
+        return new ResponseStatus(status, s -> true);
     }
+
+    private final StatusType status;
+    private final Predicate<StatusType> statusExpectation;
+
+    private ResponseStatus(StatusType status, Predicate<StatusType> expectation) {
+        this.status = status;
+        this.statusExpectation = expectation;
+    }
+
+    public ResponseStatus expect(Status expectedStatus) {
+        return expect(s -> s.equals(expectedStatus));
+    }
+
+    public ResponseStatus expectOneOf(Status ... expectedStatuses) {
+        return expectOneOf(Stream.of(expectedStatuses), Status::equals);
+    }
+
+    public ResponseStatus expect(Status.Family expectedStatusFamily) {
+        return expect(s -> s.getFamily() == expectedStatusFamily);
+    }
+
+    public ResponseStatus expectOneOf(Status.Family ... expectedStatusFamilies) {
+        return expectOneOf(Stream.of(expectedStatusFamilies), (family, status) -> status.getFamily() == family);
+    }
+
+    private <T> ResponseStatus expectOneOf(Stream<T> expecteds, BiPredicate<T, StatusType> expectedEvaluator) {
+        Predicate<StatusType> oneOfExpectedsAndAlsoExistingExpectation =
+                expecteds
+                .map(expected -> (Predicate<StatusType>) status -> expectedEvaluator.test(expected, status))
+                .reduce(Predicate::or)
+                .map(statusExpectation::and)
+                .orElse(statusExpectation);
+
+        return expect(oneOfExpectedsAndAlsoExistingExpectation);
+    }
+
+    public ResponseStatus expect(Predicate<? super StatusType> expectation) {
+        return new ResponseStatus(status, this.statusExpectation.and(expectation));
+    }
+
+    public <X extends Exception> ResponseStatus throwIf(Status status, Function<StatusType, X> exceptionSupplier) throws X {
+        return throwIf(s -> s.equals(status), exceptionSupplier);
+    }
+
+    public <X extends Exception> ResponseStatus throwIf(Predicate<? super StatusType> illegalStatus, Function<StatusType, X> exceptionSupplier) throws X {
+        if (illegalStatus.test(status)) {
+            throw exceptionSupplier.apply(status);
+        } else {
+            return this;
+        }
+    }
+
+
+    public StatusType get() {
+        return orThrow(s -> new UnexpectedResponseException(status));
+    }
+
+
+    public <X extends Exception> StatusType orThrow(Function<StatusType, X> exceptionSuppplier) throws X {
+        return throwIf(statusExpectation.negate(), exceptionSuppplier).status;
+    }
+
+    @Override
+    public String toString() {
+        return status.toString() + (statusExpectation.test(status) ? "" : " (unexpected)");
+    }
+
 
 
 
@@ -83,7 +157,7 @@ public class ResponseStatus {
 
 
 
-    public static StatusType unknown(int code) {
+    static StatusType unknown(int code) {
         return new Unknown(code);
     }
 
@@ -134,6 +208,5 @@ public class ResponseStatus {
             return Objects.hash(code);
         }
     }
-
 
 }

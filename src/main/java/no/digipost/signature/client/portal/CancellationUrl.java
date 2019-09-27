@@ -4,8 +4,8 @@ import java.net.URI;
 
 public class CancellationUrl {
 
-    public static CancellationUrl of(String url) {
-        return url == null ? null : new CancellationUrl(URI.create(url));
+    public static CancellationUrl of(URI url) {
+        return url == null ? null : new CancellationUrl(url);
     }
 
     private final URI url;

@@ -4,8 +4,8 @@ import java.net.URI;
 
 public class ConfirmationReference {
 
-    public static ConfirmationReference of(String url) {
-        return url == null ? null : new ConfirmationReference(URI.create(url));
+    public static ConfirmationReference of(URI url) {
+        return url == null ? null : new ConfirmationReference(url);
     }
 
     private final URI url;

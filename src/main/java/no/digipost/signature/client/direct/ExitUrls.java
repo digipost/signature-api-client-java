@@ -1,18 +1,20 @@
 package no.digipost.signature.client.direct;
 
+import java.net.URI;
+
 public final class ExitUrls implements WithExitUrls {
 
     /**
      * A single exit url can be used if you do not need to separate
      * resources for handling the different outcomes of a direct job.
      * This is simply a convenience factory method for
-     * {@link ExitUrls#of(String, String, String)} with the same url
+     * {@link ExitUrls#of(URI, URI, URI)} with the same url
      * given for all the arguments.
      *
      * @param url The url you want the user to be redirected to upon
      *        completing the signing ceremony, regardless of its outcome
      */
-    public static ExitUrls singleExitUrl(String url) {
+    public static ExitUrls singleExitUrl(URI url) {
         return of(url, url, url);
     }
 
@@ -26,32 +28,32 @@ public final class ExitUrls implements WithExitUrls {
      * @param rejectionUrl the user will be redirected to this url if actively rejecting to sign the document.
      * @param errorUrl the user will be redirected to this url if any unexpected error happens during the signing ceremony.
      */
-    public static ExitUrls of(String completionUrl, String rejectionUrl, String errorUrl) {
+    public static ExitUrls of(URI completionUrl, URI rejectionUrl, URI errorUrl) {
         return new ExitUrls(completionUrl, rejectionUrl, errorUrl);
     }
 
-    private final String completionUrl;
-    private final String rejectionUrl;
-    private final String errorUrl;
+    private final URI completionUrl;
+    private final URI rejectionUrl;
+    private final URI errorUrl;
 
-    private ExitUrls(String completionUrl, String rejectionUrl, String errorUrl) {
+    private ExitUrls(URI completionUrl, URI rejectionUrl, URI errorUrl) {
         this.completionUrl = completionUrl;
         this.rejectionUrl = rejectionUrl;
         this.errorUrl = errorUrl;
     }
 
     @Override
-    public String getCompletionUrl() {
+    public URI getCompletionUrl() {
         return completionUrl;
     }
 
     @Override
-    public String getRejectionUrl() {
+    public URI getRejectionUrl() {
         return rejectionUrl;
     }
 
     @Override
-    public String getErrorUrl() {
+    public URI getErrorUrl() {
         return errorUrl;
     }
 }

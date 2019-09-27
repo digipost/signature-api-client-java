@@ -20,6 +20,8 @@ import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactor
 import java.io.InputStream;
 import java.util.Optional;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
 import static no.digipost.signature.client.portal.PortalJobStatusChanged.noUpdatedStatus;
@@ -102,12 +104,12 @@ public class PortalClient {
 
 
     public InputStream getXAdES(XAdESReference xAdESReference) {
-        return client.getSignedDocumentStream(xAdESReference.getxAdESUrl());
+        return client.getSignedDocumentStream(xAdESReference.getxAdESUrl(), APPLICATION_XML_TYPE);
     }
 
 
     public InputStream getPAdES(PAdESReference pAdESReference) {
-        return client.getSignedDocumentStream(pAdESReference.getpAdESUrl());
+        return client.getSignedDocumentStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM_TYPE, APPLICATION_XML_TYPE);
     }
 
     public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {

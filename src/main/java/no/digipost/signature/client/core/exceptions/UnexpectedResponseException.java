@@ -9,6 +9,10 @@ public class UnexpectedResponseException extends SignatureException {
     private final XMLError error;
     private final StatusType actualStatus;
 
+    public UnexpectedResponseException(StatusType actual) {
+        this(null, actual);
+    }
+
     public UnexpectedResponseException(Object errorEntity, StatusType actual, StatusType ... expected) {
         this(errorEntity, null, actual, expected);
     }
@@ -40,6 +44,9 @@ public class UnexpectedResponseException extends SignatureException {
     }
 
     private static String prettyprintExpectedStatuses(StatusType ... statuses) {
+        if (statuses == null || statuses.length == 0) {
+            return "status not specified";
+        }
         String message = "[" + prettyprintSingleStatus(statuses[0]);
         for (int i = 1; i < statuses.length; i++) {
             message += ", " + prettyprintSingleStatus(statuses[i]);

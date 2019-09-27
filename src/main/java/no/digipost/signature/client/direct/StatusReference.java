@@ -20,7 +20,7 @@ public class StatusReference {
      * Start constructing a new {@link StatusReference}.
      *
      * @param response the {@link DirectJobResponse}
-     * @see #ofUrl(String)
+     * @see #ofUrl(URI)
      */
     public static StatusUrlContruction of(DirectJobResponse response) {
         return ofUrl(response.getStatusUrl());
@@ -34,7 +34,7 @@ public class StatusReference {
      *         must be completed with a status query token using
      *         {@link StatusUrlContruction#withStatusQueryToken(String) .withStatusQueryToken(token)}
      */
-    public static StatusUrlContruction ofUrl(final String statusUrl) {
+    public static StatusUrlContruction ofUrl(final URI statusUrl) {
         return new StatusUrlContruction() {
             @Override
             public StatusReference withStatusQueryToken(String token) {
@@ -45,10 +45,10 @@ public class StatusReference {
 
     public static final String STATUS_QUERY_TOKEN_PARAM_NAME = "status_query_token";
 
-    private final String statusUrl;
+    private final URI statusUrl;
     private final String statusQueryToken;
 
-    private StatusReference(String statusUrl, String statusQueryToken) {
+    private StatusReference(URI statusUrl, String statusQueryToken) {
         this.statusUrl = statusUrl;
         this.statusQueryToken = Objects.requireNonNull(statusQueryToken, STATUS_QUERY_TOKEN_PARAM_NAME);
     }

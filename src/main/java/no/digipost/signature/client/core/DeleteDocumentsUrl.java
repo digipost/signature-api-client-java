@@ -4,8 +4,8 @@ import java.net.URI;
 
 public class DeleteDocumentsUrl {
 
-    public static DeleteDocumentsUrl of(String url) {
-        return url == null ? null : new DeleteDocumentsUrl(URI.create(url));
+    public static DeleteDocumentsUrl of(URI url) {
+        return url == null ? null : new DeleteDocumentsUrl(url);
     }
 
     private final URI url;
