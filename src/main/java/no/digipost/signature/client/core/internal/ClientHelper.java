@@ -115,7 +115,7 @@ public class ClientHelper {
             Invocation.Builder request = httpClient.target(statusUrl).request().accept(APPLICATION_XML_TYPE);
 
             try (Response response = request.get()) {
-                ResponseStatus.resolve(response.getStatus()).expect(OK).orThrow(status -> {
+                ResponseStatus.resolve(response.getStatus()).expect(SUCCESSFUL).orThrow(status -> {
                     if (status == FORBIDDEN) {
                         XMLError error = extractError(response);
                         if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
@@ -265,8 +265,8 @@ public class ClientHelper {
                 .delete();
     }
 
-    private <T> T parseResponse(Response response, Class<T> responseType) {
-        ResponseStatus.resolve(response.getStatus()).expect(OK).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
+    private static <T> T parseResponse(Response response, Class<T> responseType) {
+        ResponseStatus.resolve(response.getStatus()).expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
         return response.readEntity(responseType);
     }
 

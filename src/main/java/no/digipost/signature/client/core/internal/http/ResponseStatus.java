@@ -33,14 +33,6 @@ public final class ResponseStatus {
         this.statusExpectation = expectation;
     }
 
-    public ResponseStatus expect(Status expectedStatus) {
-        return expect(s -> s.equals(expectedStatus));
-    }
-
-    public ResponseStatus expectOneOf(Status ... expectedStatuses) {
-        return expectOneOf(Stream.of(expectedStatuses), Status::equals);
-    }
-
     public ResponseStatus expect(Status.Family expectedStatusFamily) {
         return expect(s -> s.getFamily() == expectedStatusFamily);
     }
