@@ -132,11 +132,11 @@ public class DirectClient {
 
 
     public InputStream getXAdES(XAdESReference xAdESReference) {
-        return client.getSignedDocumentStream(xAdESReference.getxAdESUrl(), APPLICATION_XML_TYPE);
+        return client.getDataStream(xAdESReference.getxAdESUrl(), APPLICATION_XML_TYPE);
     }
 
     public InputStream getPAdES(PAdESReference pAdESReference) {
-        return client.getSignedDocumentStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM_TYPE, APPLICATION_XML_TYPE);
+        return client.getDataStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM_TYPE, APPLICATION_XML_TYPE);
     }
 
     public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {

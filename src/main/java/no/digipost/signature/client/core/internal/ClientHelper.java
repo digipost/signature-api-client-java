@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -48,6 +49,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_LENGTH;
@@ -115,7 +117,7 @@ public class ClientHelper {
             Invocation.Builder request = httpClient.target(statusUrl).request().accept(APPLICATION_XML_TYPE);
 
             try (Response response = request.get()) {
-                ResponseStatus.resolve(response.getStatus()).expect(OK).orThrow(status -> {
+                ResponseStatus.resolve(response.getStatus()).expect(SUCCESSFUL).orThrow(status -> {
                     if (status == FORBIDDEN) {
                         XMLError error = extractError(response);
                         if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
@@ -134,8 +136,12 @@ public class ClientHelper {
         });
     }
 
-    public InputStream getSignedDocumentStream(URI uri, MediaType ... acceptedResponses) {
-        return call(() -> parseResponse(httpClient.target(uri).request().accept(acceptedResponses).get(), InputStream.class));
+    public InputStream getDataStream(URI uri, MediaType ... acceptedResponses) {
+        return getDataStream(ignoredRoot -> httpClient.target(uri), acceptedResponses);
+    }
+
+    public InputStream getDataStream(UnaryOperator<WebTarget> targetResolver, MediaType ... acceptedResponses) {
+        return call(() -> parseResponse(targetResolver.apply(httpClient.signatureServiceRoot()).request().accept(acceptedResponses).get(), InputStream.class));
     }
 
     public void cancel(final Cancellable cancellable) {
@@ -265,8 +271,8 @@ public class ClientHelper {
                 .delete();
     }
 
-    private <T> T parseResponse(Response response, Class<T> responseType) {
-        ResponseStatus.resolve(response.getStatus()).expect(OK).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
+    private static <T> T parseResponse(Response response, Class<T> responseType) {
+        ResponseStatus.resolve(response.getStatus()).expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
         return response.readEntity(responseType);
     }
 

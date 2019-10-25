@@ -1,6 +1,8 @@
 package no.digipost.signature.client.core;
 
-public class Sender {
+import java.util.Objects;
+
+public final class Sender implements WithOrganizationNumber {
 
     private final String organizationNumber;
     private final PollingQueue pollingQueue;
@@ -14,6 +16,7 @@ public class Sender {
         this.pollingQueue = pollingQueue;
     }
 
+    @Override
     public String getOrganizationNumber() {
         return organizationNumber;
     }
@@ -21,4 +24,21 @@ public class Sender {
     public PollingQueue getPollingQueue() {
         return pollingQueue;
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof Sender) {
+            Sender that = (Sender) other;
+            return Objects.equals(this.organizationNumber, that.organizationNumber) &&
+                    Objects.equals(this.pollingQueue, that.pollingQueue);
+        }
+        return false;
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(organizationNumber, pollingQueue);
+    }
+
 }
