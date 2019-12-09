@@ -15,7 +15,8 @@ public class ArchiveClient {
         this.client = new ClientHelper(SignatureHttpClientFactory.create(httpIntegrationConfig), Optional.empty());
     }
 
-    public InputStream getPAdES(DocumentOwner owner, String id) {
+    public InputStream getPAdES(ArchiveOwner owner, String id) {
         return client.getDataStream(root -> root.path(owner.getOrganizationNumber()).path("archive/documents/").path(id).path("pades"));
     }
+
 }
