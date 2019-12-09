@@ -41,7 +41,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.cert.Certificate;
 import java.time.Clock;
 import java.util.ArrayList;
@@ -50,7 +49,6 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
-@SuppressWarnings("FieldCanBeLocal")
 public class CreateSignature {
 
     private static final String C14V1 = CanonicalizationMethod.INCLUSIVE;
@@ -72,8 +70,8 @@ public class CreateSignature {
         domUtils = new DomUtils();
         createXAdESArtifacts = new CreateXAdESArtifacts(clock);
 
+        XMLSignatureFactory xmlSignatureFactory = XmlSignatureProviders.getSignatureFactory();
         try {
-            XMLSignatureFactory xmlSignatureFactory = getSignatureFactory();
             sha256DigestMethod = xmlSignatureFactory.newDigestMethod(DigestMethod.SHA256, null);
             canonicalizationMethod = xmlSignatureFactory.newCanonicalizationMethod(C14V1, (C14NMethodParameterSpec) null);
             canonicalXmlTransform = xmlSignatureFactory.newTransform(C14V1, (TransformParameterSpec) null);
@@ -97,7 +95,7 @@ public class CreateSignature {
     }
 
     protected Document createXmlSignature(final List<? extends SignableFileReference> attachedFiles, final KeyStoreConfig keyStoreConfig) {
-        XMLSignatureFactory xmlSignatureFactory = getSignatureFactory();
+        XMLSignatureFactory xmlSignatureFactory = XmlSignatureProviders.getSignatureFactory();
         SignatureMethod signatureMethod = getSignatureMethod(xmlSignatureFactory);
 
         // Generate XAdES document to sign, information about the key used for signing and information about what's signed
@@ -187,13 +185,4 @@ public class CreateSignature {
         return keyInfoFactory.newKeyInfo(singletonList(x509Data));
     }
 
-    private static XMLSignatureFactory getSignatureFactory() {
-        try {
-            return XMLSignatureFactory.getInstance("DOM", "XMLDSig");
-        } catch (NoSuchProviderException e) {
-            throw new ConfigurationException(
-                    "Failed to find XML Digital Signature provided. The library depends on default Java-provider. " +
-                    e.getClass().getSimpleName() + " '" + e.getMessage() + "'", e);
-        }
-    }
 }
