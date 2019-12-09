@@ -191,7 +191,9 @@ public class CreateSignature {
         try {
             return XMLSignatureFactory.getInstance("DOM", "XMLDSig");
         } catch (NoSuchProviderException e) {
-            throw new ConfigurationException("Failed to find XML Digital Signature provided. The library depends on default Java-provider");
+            throw new ConfigurationException(
+                    "Failed to find XML Digital Signature provided. The library depends on default Java-provider. " +
+                    e.getClass().getSimpleName() + " '" + e.getMessage() + "'", e);
         }
     }
 }
