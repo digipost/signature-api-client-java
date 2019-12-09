@@ -22,7 +22,7 @@ This software includes third party software subject to the following licenses:
   javax.inject:1 as OSGi bundle under EPL 2.0 or GPL2 w/ CPE
   JAXB Runtime under Eclipse Distribution License - v 1.0
   JAXB2 Basics - Runtime under BSD-Style License
-  JCL 1.2 implemented over SLF4J under MIT License
+  JCL 1.2 implemented over SLF4J under Apache License, Version 2.0
   jersey-core-client under EPL 2.0 or GPL2 w/ CPE or EDL 1.0 or BSD 2-Clause or Apache License, 2.0 or Public Domain or Modified BSD or jQuery license or MIT license or W3C license
   jersey-core-common under EPL 2.0 or The GNU General Public License (GPL), Version 2, With Classpath Exception or Apache License, 2.0 or Public Domain
   jersey-media-multipart under EPL 2.0 or GPL2 w/ CPE or EDL 1.0 or BSD 2-Clause or Apache License, 2.0 or Public Domain or Modified BSD or jQuery license or MIT license or W3C license

@@ -10,14 +10,14 @@
     <parent>
         <groupId>no.digipost</groupId>
         <artifactId>digipost-open-super-pom</artifactId>
-        <version>6</version>
+        <version>7</version>
     </parent>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <signature.api.version>2.7</signature.api.version>
-        <slf4j.version>1.7.28</slf4j.version>
+        <slf4j.version>1.7.29</slf4j.version>
     </properties>
 
     <dependencyManagement>
@@ -25,7 +25,7 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-framework-bom</artifactId>
-                <version>5.2.0.RELEASE</version>
+                <version>5.2.1.RELEASE</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -124,7 +124,7 @@
         <dependency>
             <groupId>org.springframework.ws</groupId>
             <artifactId>spring-xml</artifactId>
-            <version>3.0.7.RELEASE</version>
+            <version>3.0.8.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -193,7 +193,7 @@
         <dependency>
             <groupId>no.digipost</groupId>
             <artifactId>digg</artifactId>
-            <version>0.20</version>
+            <version>0.22</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -242,7 +242,7 @@
                 <plugin>
                     <groupId>com.github.siom79.japicmp</groupId>
                     <artifactId>japicmp-maven-plugin</artifactId>
-                    <version>0.14.1</version>
+                    <version>0.14.2</version>
                     <configuration>
                         <newVersion>
                             <file>
@@ -263,7 +263,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M3</version>
+                    <version>3.0.0-M4</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-deploy-plugin</artifactId>
@@ -295,11 +295,11 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.1.2</version>
+                    <version>3.2.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>3.0.0-M2</version>
+                    <version>3.0.0-M3</version>
                     <configuration>
                         <rules>
                             <bannedDependencies>
