@@ -58,7 +58,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                 .withSigners(xmlSigners)
                 .withRequiredAuthentication(job.getRequiredAuthentication().map(AuthenticationLevel::getXmlEnumValue).orElse(null))
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
-                .withDocument(new XMLPortalDocument()
+                .withDocuments(new XMLPortalDocument()
                         .withTitle(document.getTitle())
                         .withNonsensitiveTitle(document.getNonsensitiveTitle())
                         .withDescription(document.getMessage())
