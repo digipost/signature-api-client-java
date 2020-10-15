@@ -25,6 +25,7 @@ import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static no.digipost.signature.client.core.exceptions.SignerNotSpecifiedException.SIGNER_NOT_SPECIFIED;
 
@@ -50,7 +51,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
             xmlSigners.add(xmlPortalSigner);
         }
 
-        PortalDocument document = job.getDocument();
+        List<PortalDocument> documents = job.getDocuments();
 
         ZonedDateTime activationTime = job.getActivationTime().map(activation -> activation.atZone(clock.getZone())).orElse(null);
 
@@ -58,12 +59,14 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                 .withSigners(xmlSigners)
                 .withRequiredAuthentication(job.getRequiredAuthentication().map(AuthenticationLevel::getXmlEnumValue).orElse(null))
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
-                .withDocuments(new XMLPortalDocument()
+                .withDocuments(documents.stream().map(document ->
+                        new XMLPortalDocument()
                         .withTitle(document.getTitle())
                         .withNonsensitiveTitle(document.getNonsensitiveTitle())
                         .withDescription(document.getMessage())
                         .withHref(document.getFileName())
                         .withMime(document.getMimeType())
+                    ).collect(Collectors.toList())
                 )
                 .withAvailability(new XMLAvailability()
                         .withActivationTime(activationTime)
