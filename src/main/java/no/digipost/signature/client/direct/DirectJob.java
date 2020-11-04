@@ -41,7 +41,7 @@ public class DirectJob implements SignatureJob, WithExitUrls {
 
     @Override
     public List<? extends Document> getDocuments() {
-        return unmodifiableList(Collections.singletonList(getDocument()));
+        return unmodifiableList(Collections.singletonList(document));
     }
 
     @Override

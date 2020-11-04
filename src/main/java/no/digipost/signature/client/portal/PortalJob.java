@@ -34,12 +34,6 @@ public class PortalJob implements SignatureJob {
         return reference;
     }
 
-    // TODO: Remove this? Or throw exception if more than one document exists?
-    @Override
-    public PortalDocument getDocument() {
-        return documents.get(0);
-    }
-
     @Override
     public List<PortalDocument> getDocuments() {
         return documents;

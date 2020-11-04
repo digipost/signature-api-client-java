@@ -5,8 +5,13 @@ import java.util.Optional;
 
 public interface SignatureJob {
 
-    // TODO: Remove this?
-    Document getDocument();
+    default Document getDocument() {
+        List<? extends Document> documents = getDocuments();
+        if (documents.size() > 1) {
+            throw new RuntimeException("Expected one document, but found "+ documents.size());
+        }
+        return getDocuments().stream().findFirst().orElseThrow(() -> new RuntimeException("Expected one document, but found none"));
+    };
 
     List<? extends Document> getDocuments();
 
