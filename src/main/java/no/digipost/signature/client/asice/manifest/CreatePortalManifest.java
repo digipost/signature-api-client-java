@@ -3,6 +3,7 @@ package no.digipost.signature.client.asice.manifest;
 import no.digipost.signature.api.xml.XMLAvailability;
 import no.digipost.signature.api.xml.XMLEmail;
 import no.digipost.signature.api.xml.XMLEnabled;
+import no.digipost.signature.api.xml.XMLHref;
 import no.digipost.signature.api.xml.XMLNotifications;
 import no.digipost.signature.api.xml.XMLNotificationsUsingLookup;
 import no.digipost.signature.api.xml.XMLPortalDocument;
@@ -64,7 +65,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                         .withTitle(document.getTitle())
                         .withNonsensitiveTitle(document.getNonsensitiveTitle())
                         .withDescription(document.getMessage())
-                        .withHref(document.getFileName())
+                        .withHref(XMLHref.of(document.getFileName()))
                         .withMime(document.getMimeType())
                     ).collect(Collectors.toList())
                 )

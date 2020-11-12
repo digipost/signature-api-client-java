@@ -3,6 +3,7 @@ package no.digipost.signature.client.asice.manifest;
 import no.digipost.signature.api.xml.XMLDirectDocument;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobManifest;
 import no.digipost.signature.api.xml.XMLDirectSigner;
+import no.digipost.signature.api.xml.XMLHref;
 import no.digipost.signature.api.xml.XMLSender;
 import no.digipost.signature.client.core.AuthenticationLevel;
 import no.digipost.signature.client.core.IdentifierInSignedDocuments;
@@ -42,7 +43,7 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
                 .withDocuments(new XMLDirectDocument()
                         .withTitle(document.getTitle())
                         .withDescription(document.getMessage())
-                        .withHref(document.getFileName())
+                        .withHref(XMLHref.of(document.getFileName()))
                         .withMime(document.getMimeType())
                 )
                 .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null))
