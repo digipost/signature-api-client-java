@@ -26,13 +26,13 @@ class CreatePortalManifestTest {
         CreatePortalManifest createManifest = new CreatePortalManifest(clock);
 
         PortalDocument document = PortalDocument.builder("Title", "file.txt", "hello".getBytes())
-                .message("Message")
                 .fileType(Document.FileType.TXT)
                 .build();
 
-        PortalJob job = PortalJob.builder(document, Collections.singletonList(PortalSigner.identifiedByPersonalIdentificationNumber("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build()))
+        PortalJob job = PortalJob.builder("Job title", document, Collections.singletonList(PortalSigner.identifiedByPersonalIdentificationNumber("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build()))
                 .withActivationTime(clock.instant())
                 .availableFor(30, DAYS)
+                .withDescription("Message")
                 .withIdentifierInSignedDocuments(IdentifierInSignedDocuments.PERSONAL_IDENTIFICATION_NUMBER_AND_NAME)
                 .build();
         assertThat(createManifest, where(__ -> __.createManifest(job, new Sender("123456789")), instanceOf(Manifest.class)));

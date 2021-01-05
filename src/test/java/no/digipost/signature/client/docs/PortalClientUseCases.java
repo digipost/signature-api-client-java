@@ -27,9 +27,10 @@ class PortalClientUseCases {
         PortalClient client = new PortalClient(clientConfiguration);
 
         byte[] documentBytes = null; // Loaded document bytes
-        PortalDocument document = PortalDocument.builder("Subject", "document.pdf", documentBytes).build();
+        PortalDocument document = PortalDocument.builder("Document title", "document.pdf", documentBytes).build();
 
         PortalJob portalJob = PortalJob.builder(
+                "Job title",
                 document,
                 PortalSigner.identifiedByPersonalIdentificationNumber("12345678910",
                         NotificationsUsingLookup.EMAIL_ONLY).build(),
@@ -95,9 +96,10 @@ class PortalClientUseCases {
         Sender sender = new Sender("000000000", PollingQueue.of("CustomPollingQueue"));
 
         byte[] documentBytes = null; // Loaded document bytes
-        PortalDocument document = PortalDocument.builder("Subject", "document.pdf", documentBytes).build();
+        PortalDocument document = PortalDocument.builder("Document title", "document.pdf", documentBytes).build();
 
         PortalJob portalJob = PortalJob.builder(
+                "Job title",
                 document,
                 PortalSigner.identifiedByPersonalIdentificationNumber("12345678910",
                         NotificationsUsingLookup.EMAIL_ONLY).build(),

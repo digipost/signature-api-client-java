@@ -5,12 +5,20 @@ import no.digipost.signature.client.core.Document;
 import static no.digipost.signature.client.core.Document.FileType.PDF;
 
 public class DirectDocument extends Document {
+
+    private final String message;
+
     private DirectDocument(String title, String message, String fileName, FileType fileType, byte[] document) {
-        super(title, message, fileName, fileType, document);
+        super(title, fileName, fileType, document);
+        this.message = message;
     }
 
     public static Builder builder(final String title, final String fileName, final byte[] document) {
         return new Builder(title, fileName, document);
+    }
+
+    public String getMessage() {
+        return message;
     }
 
     public static class Builder {

@@ -17,6 +17,9 @@ public class PortalJob implements SignatureJob {
 
     private final List<PortalSigner> signers;
     private final List<PortalDocument> documents;
+    private String title;
+    private Optional<String> nonsensitiveTitle = Optional.empty();
+    private Optional<String> description = Optional.empty();
     private String reference;
     private Optional<Instant> activationTime = Optional.empty();
     private Long availableSeconds;
@@ -24,7 +27,8 @@ public class PortalJob implements SignatureJob {
     private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();
     private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Optional.empty();
 
-    private PortalJob(List<PortalSigner> signers, List<PortalDocument> documents) {
+    private PortalJob(String title, List<PortalSigner> signers, List<PortalDocument> documents) {
+        this.title = title;
         this.signers = unmodifiableList(new ArrayList<>(signers));
         this.documents = unmodifiableList(new ArrayList<>(documents));
     }
@@ -67,16 +71,28 @@ public class PortalJob implements SignatureJob {
     }
 
 
-    public static Builder builder(PortalDocument document, PortalSigner... signers) {
-        return builder(Collections.singletonList(document), Arrays.asList(signers));
+    public static Builder builder(String title, PortalDocument document, PortalSigner... signers) {
+        return builder(title, Collections.singletonList(document), Arrays.asList(signers));
     }
 
-    public static Builder builder(PortalDocument document, List<PortalSigner> signers) {
-        return builder(Collections.singletonList(document), signers);
+    public static Builder builder(String title, PortalDocument document, List<PortalSigner> signers) {
+        return builder(title, Collections.singletonList(document), signers);
     }
 
-    public static Builder builder(List<PortalDocument> documents, List<PortalSigner> signers) {
-        return new Builder(signers, documents);
+    public static Builder builder(String title, List<PortalDocument> documents, List<PortalSigner> signers) {
+        return new Builder(title, signers, documents);
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public Optional<String> getNonsensitiveTitle() {
+        return nonsensitiveTitle;
+    }
+
+    public Optional<String> getDescription() {
+        return description;
     }
 
     public static class Builder implements JobCustomizations<Builder> {
@@ -84,8 +100,8 @@ public class PortalJob implements SignatureJob {
         private final PortalJob target;
         private boolean built = false;
 
-        private Builder(List<PortalSigner> signers, List<PortalDocument> documents) {
-            target = new PortalJob(signers, documents);
+        private Builder(String title, List<PortalSigner> signers, List<PortalDocument> documents) {
+            target = new PortalJob(title, signers, documents);
         }
 
         @Override
@@ -124,6 +140,16 @@ public class PortalJob implements SignatureJob {
 
         public Builder availableFor(long duration, TimeUnit unit) {
             target.availableSeconds = unit.toSeconds(duration);
+            return this;
+        }
+
+        public Builder withNonsensitiveTitle(String nonsensitiveTitle) {
+            target.nonsensitiveTitle = Optional.of(nonsensitiveTitle);
+            return this;
+        }
+
+        public Builder withDescription(String description) {
+            target.description = Optional.of(description);
             return this;
         }
 
