@@ -40,7 +40,7 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
                 .withSigners(signers)
                 .withRequiredAuthentication(job.getRequiredAuthentication().map(AuthenticationLevel::getXmlEnumValue).orElse(null))
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
-                .withDocuments(new XMLDirectDocument()
+                .withDocument(new XMLDirectDocument()
                         .withTitle(document.getTitle())
                         .withDescription(document.getMessage())
                         .withHref(XMLHref.of(document.getFileName()))
