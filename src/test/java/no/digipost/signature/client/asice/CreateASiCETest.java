@@ -62,7 +62,6 @@ public class CreateASiCETest {
             .build();
 
     private static final PortalDocument PORTAL_DOCUMENT = PortalDocument.builder("Title", "file.txt", "hello".getBytes())
-            .message("Message")
             .fileType(Document.FileType.TXT)
             .build();
 
@@ -78,8 +77,9 @@ public class CreateASiCETest {
 
     @Test
     public void create_portal_asice_and_write_to_disk() throws IOException {
-        PortalJob job = PortalJob.builder(PORTAL_DOCUMENT, PortalSigner.identifiedByPersonalIdentificationNumber("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build())
+        PortalJob job = PortalJob.builder("Job title", PORTAL_DOCUMENT, PortalSigner.identifiedByPersonalIdentificationNumber("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build())
                 .withReference("portal job")
+                .withDescription("Message")
                 .withActivationTime(clock.instant())
                 .availableFor(30, DAYS)
                 .build();
