@@ -29,6 +29,7 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <project.previousVersion>set_with_-Dproject.previousVersion=X.Y</project.previousVersion>
         <signature.api.version>2.8-RC1</signature.api.version>
         <slf4j.version>1.7.30</slf4j.version>
     </properties>
@@ -186,9 +187,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>co.unruly</groupId>
+            <groupId>uk.co.probablyfine</groupId>
             <artifactId>java-8-matchers</artifactId>
-            <version>1.6</version>
+            <version>1.9</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -255,8 +256,15 @@
                 <plugin>
                     <groupId>com.github.siom79.japicmp</groupId>
                     <artifactId>japicmp-maven-plugin</artifactId>
-                    <version>0.14.2</version>
+                    <version>0.15.2</version>
                     <configuration>
+                        <oldVersion>
+                            <dependency>
+                                <groupId>${project.groupId}</groupId>
+                                <artifactId>${project.artifactId}</artifactId>
+                                <version>${project.previousVersion}</version>
+                            </dependency>
+                        </oldVersion>
                         <newVersion>
                             <file>
                                 <path>${project.build.directory}/${project.build.finalName}.${project.packaging}</path>

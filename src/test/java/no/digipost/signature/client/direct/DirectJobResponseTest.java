@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
-import static co.unruly.matchers.Java8Matchers.where;
+import static uk.co.probablyfine.matchers.Java8Matchers.where;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

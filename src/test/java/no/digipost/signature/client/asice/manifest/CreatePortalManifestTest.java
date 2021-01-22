@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.util.Collections;
 
-import static co.unruly.matchers.Java8Matchers.where;
+import static uk.co.probablyfine.matchers.Java8Matchers.where;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;

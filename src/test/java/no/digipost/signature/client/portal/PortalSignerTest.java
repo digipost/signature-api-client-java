@@ -2,10 +2,10 @@ package no.digipost.signature.client.portal;
 
 import org.junit.jupiter.api.Test;
 
-import static co.unruly.matchers.Java8Matchers.where;
-import static co.unruly.matchers.Java8Matchers.whereNot;
-import static co.unruly.matchers.OptionalMatchers.contains;
-import static co.unruly.matchers.OptionalMatchers.empty;
+import static uk.co.probablyfine.matchers.Java8Matchers.where;
+import static uk.co.probablyfine.matchers.Java8Matchers.whereNot;
+import static uk.co.probablyfine.matchers.OptionalMatchers.contains;
+import static uk.co.probablyfine.matchers.OptionalMatchers.empty;
 import static no.digipost.signature.client.portal.PortalSigner.identifiedByEmail;
 import static no.digipost.signature.client.portal.PortalSigner.identifiedByEmailAndMobileNumber;
 import static no.digipost.signature.client.portal.PortalSigner.identifiedByMobileNumber;
