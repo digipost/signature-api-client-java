@@ -6,19 +6,12 @@ import static no.digipost.signature.client.core.Document.FileType.PDF;
 
 public class DirectDocument extends Document {
 
-    private final String message;
-
-    private DirectDocument(String title, String message, String fileName, FileType fileType, byte[] document) {
+    private DirectDocument(String title, String fileName, FileType fileType, byte[] document) {
         super(title, fileName, fileType, document);
-        this.message = message;
     }
 
     public static Builder builder(final String title, final String fileName, final byte[] document) {
         return new Builder(title, fileName, document);
-    }
-
-    public String getMessage() {
-        return message;
     }
 
     public static class Builder {
@@ -26,7 +19,6 @@ public class DirectDocument extends Document {
         private String title;
         private String fileName;
         private byte[] document;
-        private String message;
         private FileType fileType = PDF;
 
         public Builder(final String title, final String fileName, final byte[] document) {
@@ -35,18 +27,13 @@ public class DirectDocument extends Document {
             this.document = document;
         }
 
-        public Builder message(String message) {
-            this.message = message;
-            return this;
-        }
-
         public Builder fileType(final FileType fileType) {
             this.fileType = fileType;
             return this;
         }
 
         public DirectDocument build() {
-            return new DirectDocument(title, message, fileName, fileType, document);
+            return new DirectDocument(title, fileName, fileType, document);
         }
     }
 }

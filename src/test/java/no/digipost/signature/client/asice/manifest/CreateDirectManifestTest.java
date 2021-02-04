@@ -22,11 +22,11 @@ class CreateDirectManifestTest {
         CreateDirectManifest createManifest = new CreateDirectManifest();
 
         DirectDocument document = DirectDocument.builder("Title", "file.txt", "hello".getBytes())
-                .message("Message")
                 .fileType(Document.FileType.TXT)
                 .build();
 
         DirectJob job = DirectJob.builder(
+                    "Job title",
                     document,
                     ExitUrls.of(URI.create("http://localhost/signed"), URI.create("http://localhost/canceled"), URI.create("http://localhost/failed")),
                     DirectSigner.withPersonalIdentificationNumber("12345678910").build())

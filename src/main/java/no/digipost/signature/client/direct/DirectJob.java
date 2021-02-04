@@ -12,7 +12,9 @@ public class DirectJob implements SignatureJob, WithExitUrls {
 
     private String reference;
     private List<DirectSigner> signers;
-    private DirectDocument document;
+    private List<DirectDocument> documents;
+    private String title;
+    private Optional<String> description = Optional.empty();
     private URI completionUrl;
     private URI rejectionUrl;
     private URI errorUrl;
@@ -21,9 +23,10 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();
     private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Optional.empty();
 
-    private DirectJob(List<DirectSigner> signers, DirectDocument document, URI completionUrl, URI rejectionUrl, URI errorUrl) {
+    private DirectJob(String title, List<DirectSigner> signers, List<DirectDocument> documents, URI completionUrl, URI rejectionUrl, URI errorUrl) {
+        this.title = title;
         this.signers = unmodifiableList(new ArrayList<>(signers));
-        this.document = document;
+        this.documents = unmodifiableList(new ArrayList<>(documents));
         this.completionUrl = completionUrl;
         this.rejectionUrl = rejectionUrl;
         this.errorUrl = errorUrl;
@@ -35,13 +38,8 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     }
 
     @Override
-    public DirectDocument getDocument() {
-        return document;
-    }
-
-    @Override
-    public List<? extends Document> getDocuments() {
-        return unmodifiableList(Collections.singletonList(document));
+    public List<DirectDocument> getDocuments() {
+        return documents;
     }
 
     @Override
@@ -93,12 +91,11 @@ public class DirectJob implements SignatureJob, WithExitUrls {
      * @param signers     The {@link DirectSigner DirectSigners} of the document.
      *
      * @return a builder to further customize the job
-     * @see DirectJob#builder(DirectDocument, WithExitUrls, List)
+     * @see DirectJob#builder(String, DirectDocument, WithExitUrls, List)
      */
-    public static Builder builder(DirectDocument document, WithExitUrls hasExitUrls, DirectSigner... signers) {
-        return builder(document, hasExitUrls, Arrays.asList(signers));
+    public static Builder builder(String title, DirectDocument document, WithExitUrls hasExitUrls, DirectSigner... signers) {
+        return builder(title, Collections.singletonList(document), hasExitUrls, Arrays.asList(signers));
     }
-
 
     /**
      * Create a new DirectJob.
@@ -110,24 +107,42 @@ public class DirectJob implements SignatureJob, WithExitUrls {
      * @param signers     The {@link DirectSigner DirectSigners} of the document.
      *
      * @return a builder to further customize the job
-     * @see DirectJob#builder(DirectDocument, WithExitUrls, DirectSigner...)
+     * @see DirectJob#builder(String, DirectDocument, WithExitUrls, DirectSigner...)
      */
-    public static Builder builder(DirectDocument document, WithExitUrls hasExitUrls, List<DirectSigner> signers) {
-        return new Builder(signers, document, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
+    public static Builder builder(String title, DirectDocument document, WithExitUrls hasExitUrls, List<DirectSigner> signers) {
+        return new Builder(title, signers, Collections.singletonList(document), hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
     }
+
+    public static Builder builder(String title, List<DirectDocument> documents, WithExitUrls hasExitUrls, List<DirectSigner> signers) {
+        return new Builder(title, signers, documents, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public Optional<String> getDescription() {
+        return description;
+    }
+
 
     public static class Builder implements JobCustomizations<Builder> {
 
         private final DirectJob target;
         private boolean built = false;
 
-        private Builder(List<DirectSigner> signers, DirectDocument document, URI completionUrl, URI rejectionUrl, URI errorUrl) {
-            target = new DirectJob(signers, document, completionUrl, rejectionUrl, errorUrl);
+        private Builder(String title, List<DirectSigner> signers, List<DirectDocument> documents, URI completionUrl, URI rejectionUrl, URI errorUrl) {
+            target = new DirectJob(title, signers, documents, completionUrl, rejectionUrl, errorUrl);
         }
 
         @Override
         public Builder withReference(UUID uuid) {
             return withReference(uuid.toString());
+        }
+
+        public Builder withDescription(String description) {
+            target.description = Optional.of(description);
+            return this;
         }
 
         @Override
