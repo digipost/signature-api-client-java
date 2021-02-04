@@ -117,6 +117,10 @@ public class DirectJob implements SignatureJob, WithExitUrls {
         return new Builder(title, signers, documents, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
     }
 
+    public static Builder builder(String title, List<DirectDocument> documents, WithExitUrls hasExitUrls, DirectSigner... signers) {
+        return new Builder(title, Arrays.asList(signers), documents, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
+    }
+
     public String getTitle() {
         return title;
     }
