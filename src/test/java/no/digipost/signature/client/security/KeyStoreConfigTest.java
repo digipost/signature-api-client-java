@@ -4,7 +4,7 @@ import no.digipost.signature.client.TestCertificates;
 import no.digipost.signature.client.core.exceptions.KeyException;
 import org.junit.jupiter.api.Test;
 
-import static co.unruly.matchers.Java8Matchers.where;
+import static uk.co.probablyfine.matchers.Java8Matchers.where;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;

@@ -6,8 +6,8 @@ import no.digipost.signature.api.xml.XMLSms;
 import no.digipost.signature.client.portal.Signature.Signer;
 import org.junit.jupiter.api.Test;
 
-import static co.unruly.matchers.Java8Matchers.where;
-import static co.unruly.matchers.Java8Matchers.whereNot;
+import static uk.co.probablyfine.matchers.Java8Matchers.where;
+import static uk.co.probablyfine.matchers.Java8Matchers.whereNot;
 import static no.digipost.signature.client.portal.SignerIdentifier.identifiedByEmailAddress;
 import static no.digipost.signature.client.portal.SignerIdentifier.identifiedByEmailAddressAndMobileNumber;
 import static no.digipost.signature.client.portal.SignerIdentifier.identifiedByMobileNumber;
