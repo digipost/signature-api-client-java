@@ -8,6 +8,7 @@ import no.digipost.signature.client.asice.signature.Signature;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.RuntimeIOException;
+import no.digipost.signature.client.core.internal.ActualSender;
 import no.digipost.signature.client.security.KeyStoreConfig;
 
 import java.io.ByteArrayInputStream;
@@ -15,8 +16,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import static no.digipost.signature.client.core.exceptions.SenderNotSpecifiedException.SENDER_NOT_SPECIFIED;
 
 public class CreateASiCE<JOB extends SignatureJob> {
 
@@ -37,10 +36,7 @@ public class CreateASiCE<JOB extends SignatureJob> {
     }
 
     public DocumentBundle createASiCE(JOB job) {
-        Sender sender = job.getSender()
-                .orElse(globalSender
-                .orElseThrow(SENDER_NOT_SPECIFIED));
-
+        Sender sender = ActualSender.getActualSender(job.getSender(), globalSender);
         Manifest manifest = manifestCreator.createManifest(job, sender);
 
         List<ASiCEAttachable> files = new ArrayList<>();
