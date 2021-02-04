@@ -110,15 +110,15 @@ public class DirectJob implements SignatureJob, WithExitUrls {
      * @see DirectJob#builder(String, DirectDocument, WithExitUrls, DirectSigner...)
      */
     public static Builder builder(String title, DirectDocument document, WithExitUrls hasExitUrls, List<DirectSigner> signers) {
-        return new Builder(title, signers, Collections.singletonList(document), hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
+        return builder(title, Collections.singletonList(document), hasExitUrls, signers);
+    }
+
+    public static Builder builder(String title, List<DirectDocument> documents, WithExitUrls hasExitUrls, DirectSigner... signers) {
+        return builder(title, documents, hasExitUrls, Arrays.asList(signers));
     }
 
     public static Builder builder(String title, List<DirectDocument> documents, WithExitUrls hasExitUrls, List<DirectSigner> signers) {
         return new Builder(title, signers, documents, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
-    }
-
-    public static Builder builder(String title, List<DirectDocument> documents, WithExitUrls hasExitUrls, DirectSigner... signers) {
-        return new Builder(title, Arrays.asList(signers), documents, hasExitUrls.getCompletionUrl(), hasExitUrls.getRejectionUrl(), hasExitUrls.getErrorUrl());
     }
 
     public String getTitle() {
