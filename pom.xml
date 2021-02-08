@@ -30,7 +30,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.previousVersion>set_with_-Dproject.previousVersion=X.Y</project.previousVersion>
-        <signature.api.version>2.8-RC1</signature.api.version>
+        <signature.api.version>2.8-RC2</signature.api.version>
         <slf4j.version>1.7.30</slf4j.version>
     </properties>
 

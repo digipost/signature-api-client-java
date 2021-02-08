@@ -16,12 +16,13 @@ import no.digipost.signature.client.direct.DirectSigner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CreateDirectManifest extends ManifestCreator<DirectJob> {
 
     @Override
     Object buildXmlManifest(DirectJob job, Sender sender) {
-        DirectDocument document = job.getDocument();
+        List<DirectDocument> documents = job.getDocuments();
 
         List<XMLDirectSigner> signers = new ArrayList<>();
         for (DirectSigner signer : job.getSigners()) {
@@ -40,11 +41,14 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
                 .withSigners(signers)
                 .withRequiredAuthentication(job.getRequiredAuthentication().map(AuthenticationLevel::getXmlEnumValue).orElse(null))
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
-                .withDocument(new XMLDirectDocument()
-                        .withTitle(document.getTitle())
-                        .withDescription(document.getMessage())
-                        .withHref(XMLHref.of(document.getFileName()))
-                        .withMime(document.getMimeType())
+                .withTitle(job.getTitle())
+                .withDescription(job.getDescription().orElse(null))
+                .withDocuments(documents.stream().map(document ->
+                            new XMLDirectDocument()
+                                    .withTitle(document.getTitle())
+                                    .withHref(XMLHref.of(document.getFileName()))
+                                    .withMime(document.getMimeType())
+                    ).collect(Collectors.toList())
                 )
                 .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null))
                 ;
