@@ -1,0 +1,23 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: org.springframework:spring-framework-bom
+    versions:
+    - 5.3.2
+    - 5.3.3
+  - dependency-name: nl.jqno.equalsverifier:equalsverifier
+    versions:
+    - "3.5"
+    - 3.5.2
+  - dependency-name: com.github.siom79.japicmp:japicmp-maven-plugin
+    versions:
+    - 0.15.1
+  - dependency-name: org.junit:junit-bom
+    versions:
+    - 5.7.0
