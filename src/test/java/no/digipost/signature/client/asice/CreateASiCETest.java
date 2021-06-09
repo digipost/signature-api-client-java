@@ -86,7 +86,7 @@ public class CreateASiCETest {
         create_document_bundle_and_dump_to_disk(new CreatePortalManifest(clock), job);
     }
 
-    private <JOB extends SignatureJob> void create_document_bundle_and_dump_to_disk(ManifestCreator<JOB> manifestCreator, JOB job) throws IOException {
+    private static <JOB extends SignatureJob> void create_document_bundle_and_dump_to_disk(ManifestCreator<JOB> manifestCreator, JOB job) throws IOException {
         CreateASiCE<JOB> aSiCECreator = new CreateASiCE<>(manifestCreator, ClientConfiguration.builder(CLIENT_KEYSTORE)
                 .globalSender(new Sender("123456789"))
                 .enableDocumentBundleDiskDump(dumpFolder)
@@ -104,7 +104,7 @@ public class CreateASiCETest {
                 fileNames.add(entry.getName());
             }
         }
-        assertThat(fileNames, hasItem(job.getDocument().getFileName()));
+        assertThat(fileNames, hasItem(job.getDocuments().get(0).getFileName()));
         assertThat(fileNames, hasItem("manifest.xml"));
         assertThat(fileNames, hasItem("META-INF/signatures.xml"));
     }
