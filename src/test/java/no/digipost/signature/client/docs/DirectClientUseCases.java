@@ -41,7 +41,7 @@ class DirectClientUseCases {
         );
 
         DirectSigner signer = DirectSigner.withPersonalIdentificationNumber("12345678910").build();
-        DirectJob directJob = DirectJob.builder("Job title", document, exitUrls, signer).build();
+        DirectJob directJob = DirectJob.builder("Job title", document, signer, exitUrls).build();
 
         DirectJobResponse directJobResponse = client.create(directJob);
     }
@@ -102,7 +102,7 @@ class DirectClientUseCases {
     static void create_job_and_status_by_polling() {
         DirectClient client = null; // As initialized earlier
 
-        DirectJob directJob = DirectJob.builder("Job title", document, exitUrls, signer)
+        DirectJob directJob = DirectJob.builder("Job title", document, signer, exitUrls)
                 .retrieveStatusBy(StatusRetrievalMethod.POLLING)
                 .build();
 
@@ -148,7 +148,7 @@ class DirectClientUseCases {
         DirectClient client = null; // As initialized earlier
         Sender sender = new Sender("000000000", PollingQueue.of("CustomPollingQueue"));
 
-        DirectJob directJob = DirectJob.builder("Job title", document, exitUrls, signer)
+        DirectJob directJob = DirectJob.builder("Job title", document, signer, exitUrls)
                 .retrieveStatusBy(StatusRetrievalMethod.POLLING).withSender(sender)
                 .build();
 

@@ -9,19 +9,22 @@ import no.digipost.signature.client.core.internal.JobCustomizations;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 
 
+/**
+ * Signature job with document(s) to be signed by
+ * one or more signers in portal flow.
+ */
 public class PortalJob implements SignatureJob {
 
-    private final List<PortalSigner> signers;
     private final List<PortalDocument> documents;
+    private final List<PortalSigner> signers;
     private final String title;
     private Optional<String> nonsensitiveTitle = Optional.empty();
     private Optional<String> description = Optional.empty();
@@ -32,10 +35,10 @@ public class PortalJob implements SignatureJob {
     private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();
     private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Optional.empty();
 
-    private PortalJob(String title, List<PortalSigner> signers, List<PortalDocument> documents) {
+    private PortalJob(String title, List<PortalDocument> documents, List<PortalSigner> signers) {
         this.title = title;
-        this.signers = unmodifiableList(new ArrayList<>(signers));
         this.documents = unmodifiableList(new ArrayList<>(documents));
+        this.signers = unmodifiableList(new ArrayList<>(signers));
     }
 
     @Override
@@ -75,19 +78,6 @@ public class PortalJob implements SignatureJob {
         return available;
     }
 
-
-    public static Builder builder(String title, PortalDocument document, PortalSigner... signers) {
-        return builder(title, Collections.singletonList(document), Arrays.asList(signers));
-    }
-
-    public static Builder builder(String title, PortalDocument document, List<PortalSigner> signers) {
-        return builder(title, Collections.singletonList(document), signers);
-    }
-
-    public static Builder builder(String title, List<PortalDocument> documents, List<PortalSigner> signers) {
-        return new Builder(title, signers, documents);
-    }
-
     public String getTitle() {
         return title;
     }
@@ -100,13 +90,38 @@ public class PortalJob implements SignatureJob {
         return description;
     }
 
+
+    /**
+     * Create a new signature job for portal flow.
+     *
+     * @param document    The {@link PortalDocument document} that should be signed.
+     * @param signer      The {@link PortalSigner signer} of the document.
+     *
+     * @return a builder to further customize the job
+     */
+    public static Builder builder(String title, PortalDocument document, PortalSigner signer) {
+        return builder(title, singletonList(document), singletonList(signer));
+    }
+
+    /**
+     * Create a new signature job for portal flow.
+     *
+     * @param documents   The {@link PortalDocument documents} that should be signed.
+     * @param signers     The {@link PortalSigner signers} of the document.
+     *
+     * @return a builder to further customize the job
+     */
+    public static Builder builder(String title, List<PortalDocument> documents, List<PortalSigner> signers) {
+        return new Builder(title, documents, signers);
+    }
+
     public static class Builder implements JobCustomizations<Builder> {
 
         private final PortalJob target;
         private boolean built = false;
 
-        private Builder(String title, List<PortalSigner> signers, List<PortalDocument> documents) {
-            target = new PortalJob(title, signers, documents);
+        private Builder(String title, List<PortalDocument> documents, List<PortalSigner> signers) {
+            target = new PortalJob(title, documents, signers);
         }
 
         @Override

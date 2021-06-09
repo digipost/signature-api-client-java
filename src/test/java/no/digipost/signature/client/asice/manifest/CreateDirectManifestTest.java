@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
-import static uk.co.probablyfine.matchers.Java8Matchers.where;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
+import static uk.co.probablyfine.matchers.Java8Matchers.where;
 
 class CreateDirectManifestTest {
 
@@ -28,8 +28,8 @@ class CreateDirectManifestTest {
         DirectJob job = DirectJob.builder(
                     "Job title",
                     document,
-                    ExitUrls.of(URI.create("http://localhost/signed"), URI.create("http://localhost/canceled"), URI.create("http://localhost/failed")),
-                    DirectSigner.withPersonalIdentificationNumber("12345678910").build())
+                    DirectSigner.withPersonalIdentificationNumber("12345678910").build(),
+                    ExitUrls.of(URI.create("http://localhost/signed"), URI.create("http://localhost/canceled"), URI.create("http://localhost/failed")))
                 .withIdentifierInSignedDocuments(IdentifierInSignedDocuments.NAME)
                 .build();
         assertThat(createManifest, where(__ -> __.createManifest(job, new Sender("123456789")), instanceOf(Manifest.class)));

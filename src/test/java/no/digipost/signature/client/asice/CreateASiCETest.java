@@ -67,7 +67,7 @@ public class CreateASiCETest {
 
     @Test
     public void create_direct_asice_and_write_to_disk() throws IOException {
-        DirectJob job = DirectJob.builder("Job title", DIRECT_DOCUMENT, singleExitUrl(URI.create("https://job.well.done.org")), DirectSigner.withPersonalIdentificationNumber("12345678910").build())
+        DirectJob job = DirectJob.builder("Job title", DIRECT_DOCUMENT, DirectSigner.withPersonalIdentificationNumber("12345678910").build(), singleExitUrl(URI.create("https://job.well.done.org")))
                 .withReference("direct job")
                 .build();
 

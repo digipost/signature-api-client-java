@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -29,7 +28,7 @@ class CreatePortalManifestTest {
                 .fileType(Document.FileType.TXT)
                 .build();
 
-        PortalJob job = PortalJob.builder("Job title", document, Collections.singletonList(PortalSigner.identifiedByPersonalIdentificationNumber("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build()))
+        PortalJob job = PortalJob.builder("Job title", document, PortalSigner.identifiedByPersonalIdentificationNumber("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build())
                 .withActivationTime(clock.instant())
                 .availableFor(Duration.ofDays(30))
                 .withDescription("Message")

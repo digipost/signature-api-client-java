@@ -19,6 +19,8 @@ import no.digipost.signature.client.portal.SignerIdentifier;
 import java.io.InputStream;
 import java.time.Instant;
 
+import static java.util.Arrays.asList;
+
 @SuppressWarnings({"unused", "ConstantConditions", "StatementWithEmptyBody", "null"})
 class PortalClientUseCases {
 
@@ -31,12 +33,13 @@ class PortalClientUseCases {
 
         PortalJob portalJob = PortalJob.builder(
                 "Job title",
-                document,
-                PortalSigner.identifiedByPersonalIdentificationNumber("12345678910",
-                        NotificationsUsingLookup.EMAIL_ONLY).build(),
-                PortalSigner.identifiedByPersonalIdentificationNumber("12345678911",
-                        Notifications.builder().withEmailTo("email@example.com").build()).build(),
-                PortalSigner.identifiedByEmail("email@example.com").build()
+                asList(document),
+                asList(
+                    PortalSigner.identifiedByPersonalIdentificationNumber("12345678910",
+                            NotificationsUsingLookup.EMAIL_ONLY).build(),
+                    PortalSigner.identifiedByPersonalIdentificationNumber("12345678911",
+                            Notifications.builder().withEmailTo("email@example.com").build()).build(),
+                    PortalSigner.identifiedByEmail("email@example.com").build())
         ).build();
 
         PortalJobResponse portalJobResponse = client.create(portalJob);
@@ -100,12 +103,13 @@ class PortalClientUseCases {
 
         PortalJob portalJob = PortalJob.builder(
                 "Job title",
-                document,
-                PortalSigner.identifiedByPersonalIdentificationNumber("12345678910",
-                        NotificationsUsingLookup.EMAIL_ONLY).build(),
-                PortalSigner.identifiedByPersonalIdentificationNumber("12345678911",
-                        Notifications.builder().withEmailTo("email@example.com").build()).build(),
-                PortalSigner.identifiedByEmail("email@example.com").build()
+                asList(document),
+                asList(
+                    PortalSigner.identifiedByPersonalIdentificationNumber("12345678910",
+                            NotificationsUsingLookup.EMAIL_ONLY).build(),
+                    PortalSigner.identifiedByPersonalIdentificationNumber("12345678911",
+                            Notifications.builder().withEmailTo("email@example.com").build()).build(),
+                    PortalSigner.identifiedByEmail("email@example.com").build())
         ).withSender(sender).build();
 
         PortalJobResponse portalJobResponse = client.create(portalJob);

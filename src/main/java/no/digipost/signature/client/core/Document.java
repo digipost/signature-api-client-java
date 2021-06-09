@@ -4,12 +4,12 @@ import no.digipost.signature.client.asice.ASiCEAttachable;
 
 public abstract class Document implements ASiCEAttachable {
 
-    private String title;
-    private String fileName;
-    private byte[] document;
-    private FileType fileType;
+    private final String title;
+    private final String fileName;
+    private final byte[] document;
+    private final FileType fileType;
 
-    protected Document(final String title, final String fileName, final FileType fileType, final byte[] document) {
+    protected Document(String title, String fileName, FileType fileType, byte[] document) {
         this.title = title;
         this.fileName = fileName;
         this.fileType = fileType;

@@ -5,11 +5,12 @@ import no.digipost.signature.client.core.Document;
 import static no.digipost.signature.client.core.Document.FileType.PDF;
 
 public class PortalDocument extends Document {
+
     private PortalDocument(String title, String fileName, FileType fileType, byte[] document) {
         super(title, fileName, fileType, document);
     }
 
-    public static Builder builder(final String title, final String fileName, final byte[] document) {
+    public static Builder builder(String title, String fileName, byte[] document) {
         return new Builder(title, fileName, document);
     }
 
@@ -20,13 +21,13 @@ public class PortalDocument extends Document {
         private byte[] document;
         private FileType fileType = PDF;
 
-        public Builder(final String title, final String fileName, final byte[] document) {
+        public Builder(String title, String fileName, byte[] document) {
             this.title = title;
             this.fileName = fileName;
             this.document = document;
         }
 
-        public Builder fileType(final FileType fileType) {
+        public Builder fileType(FileType fileType) {
             this.fileType = fileType;
             return this;
         }

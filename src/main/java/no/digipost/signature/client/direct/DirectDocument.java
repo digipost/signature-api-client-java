@@ -10,7 +10,7 @@ public class DirectDocument extends Document {
         super(title, fileName, fileType, document);
     }
 
-    public static Builder builder(final String title, final String fileName, final byte[] document) {
+    public static Builder builder(String title, String fileName, byte[] document) {
         return new Builder(title, fileName, document);
     }
 
@@ -21,13 +21,13 @@ public class DirectDocument extends Document {
         private byte[] document;
         private FileType fileType = PDF;
 
-        public Builder(final String title, final String fileName, final byte[] document) {
+        public Builder(String title, String fileName, byte[] document) {
             this.title = title;
             this.fileName = fileName;
             this.document = document;
         }
 
-        public Builder fileType(final FileType fileType) {
+        public Builder fileType(FileType fileType) {
             this.fileType = fileType;
             return this;
         }
