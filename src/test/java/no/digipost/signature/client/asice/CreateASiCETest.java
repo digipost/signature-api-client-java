@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -34,7 +35,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static java.nio.file.Files.newDirectoryStream;
-import static java.util.concurrent.TimeUnit.DAYS;
 import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.TIMESTAMP_PATTERN;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.referenceFilenamePart;
@@ -80,7 +80,7 @@ public class CreateASiCETest {
                 .withReference("portal job")
                 .withDescription("Message")
                 .withActivationTime(clock.instant())
-                .availableFor(30, DAYS)
+                .availableFor(Duration.ofDays(30))
                 .build();
 
         create_document_bundle_and_dump_to_disk(new CreatePortalManifest(clock), job);

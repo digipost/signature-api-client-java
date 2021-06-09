@@ -6,6 +6,7 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.internal.JobCustomizations;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +14,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.unmodifiableList;
 
@@ -27,7 +27,7 @@ public class PortalJob implements SignatureJob {
     private Optional<String> description = Optional.empty();
     private String reference;
     private Optional<Instant> activationTime = Optional.empty();
-    private Long availableSeconds;
+    private Duration available;
     private Optional<Sender> sender = Optional.empty();
     private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();
     private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Optional.empty();
@@ -71,8 +71,8 @@ public class PortalJob implements SignatureJob {
         return activationTime;
     }
 
-    public Long getAvailableSeconds() {
-        return availableSeconds;
+    public Duration getAvailable() {
+        return available;
     }
 
 
@@ -143,8 +143,8 @@ public class PortalJob implements SignatureJob {
             return this;
         }
 
-        public Builder availableFor(long duration, TimeUnit unit) {
-            target.availableSeconds = unit.toSeconds(duration);
+        public Builder availableFor(Duration duration) {
+            target.available = duration;
             return this;
         }
 

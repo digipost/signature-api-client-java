@@ -67,7 +67,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                         .collect(toList()))
                 .withAvailability(new XMLAvailability()
                         .withActivationTime(activationTime)
-                        .withAvailableSeconds(job.getAvailableSeconds()))
+                        .withAvailableSeconds(job.getAvailable().getSeconds()))
                 .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null));
     }
 

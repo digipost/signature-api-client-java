@@ -10,12 +10,12 @@ import no.digipost.signature.client.portal.PortalSigner;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.Collections;
 
-import static uk.co.probablyfine.matchers.Java8Matchers.where;
-import static java.util.concurrent.TimeUnit.DAYS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
+import static uk.co.probablyfine.matchers.Java8Matchers.where;
 
 class CreatePortalManifestTest {
 
@@ -31,7 +31,7 @@ class CreatePortalManifestTest {
 
         PortalJob job = PortalJob.builder("Job title", document, Collections.singletonList(PortalSigner.identifiedByPersonalIdentificationNumber("12345678910", NotificationsUsingLookup.EMAIL_ONLY).build()))
                 .withActivationTime(clock.instant())
-                .availableFor(30, DAYS)
+                .availableFor(Duration.ofDays(30))
                 .withDescription("Message")
                 .withIdentifierInSignedDocuments(IdentifierInSignedDocuments.PERSONAL_IDENTIFICATION_NUMBER_AND_NAME)
                 .build();
