@@ -10,20 +10,18 @@ import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.OnBehalfOf;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureType;
-import no.digipost.signature.client.direct.DirectDocument;
 import no.digipost.signature.client.direct.DirectJob;
 import no.digipost.signature.client.direct.DirectSigner;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class CreateDirectManifest extends ManifestCreator<DirectJob> {
 
     @Override
     Object buildXmlManifest(DirectJob job, Sender sender) {
-        List<DirectDocument> documents = job.getDocuments();
-
         List<XMLDirectSigner> signers = new ArrayList<>();
         for (DirectSigner signer : job.getSigners()) {
             XMLDirectSigner xmlSigner = new XMLDirectSigner()
@@ -43,14 +41,12 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
                 .withTitle(job.getTitle())
                 .withDescription(job.getDescription().orElse(null))
-                .withDocuments(documents.stream().map(document ->
-                            new XMLDirectDocument()
+                .withDocuments(job.getDocuments().stream()
+                        .map(document -> new XMLDirectDocument()
                                     .withTitle(document.getTitle())
                                     .withHref(XMLHref.of(document.getFileName()))
-                                    .withMime(document.getMimeType())
-                    ).collect(Collectors.toList())
-                )
-                .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null))
-                ;
+                                    .withMime(document.getMimeType()))
+                        .collect(toList()))
+                .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null));
     }
 }

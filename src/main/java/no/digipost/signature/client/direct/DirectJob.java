@@ -1,10 +1,18 @@
 package no.digipost.signature.client.direct;
 
-import no.digipost.signature.client.core.*;
+import no.digipost.signature.client.core.AuthenticationLevel;
+import no.digipost.signature.client.core.IdentifierInSignedDocuments;
+import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.internal.JobCustomizations;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static java.util.Collections.unmodifiableList;
 
