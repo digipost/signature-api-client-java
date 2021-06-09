@@ -18,14 +18,14 @@ import static java.util.Collections.unmodifiableList;
 
 public class DirectJob implements SignatureJob, WithExitUrls {
 
-    private String reference;
-    private List<DirectSigner> signers;
-    private List<DirectDocument> documents;
-    private String title;
+    private final List<DirectSigner> signers;
+    private final List<DirectDocument> documents;
+    private final String title;
+    private final URI completionUrl;
+    private final URI rejectionUrl;
+    private final URI errorUrl;
     private Optional<String> description = Optional.empty();
-    private URI completionUrl;
-    private URI rejectionUrl;
-    private URI errorUrl;
+    private String reference;
     private Optional<Sender> sender = Optional.empty();
     private Optional<StatusRetrievalMethod> statusRetrievalMethod = Optional.empty();
     private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();

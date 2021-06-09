@@ -22,7 +22,7 @@ public class PortalJob implements SignatureJob {
 
     private final List<PortalSigner> signers;
     private final List<PortalDocument> documents;
-    private String title;
+    private final String title;
     private Optional<String> nonsensitiveTitle = Optional.empty();
     private Optional<String> description = Optional.empty();
     private String reference;
