@@ -29,7 +29,7 @@ class PortalClientUseCases {
         PortalClient client = new PortalClient(clientConfiguration);
 
         byte[] documentBytes = null; // Loaded document bytes
-        PortalDocument document = PortalDocument.builder("Document title", "document.pdf", documentBytes).build();
+        PortalDocument document = PortalDocument.builder("Document title", documentBytes).build();
 
         PortalJob portalJob = PortalJob.builder(
                 "Job title",
@@ -99,7 +99,7 @@ class PortalClientUseCases {
         Sender sender = new Sender("000000000", PollingQueue.of("CustomPollingQueue"));
 
         byte[] documentBytes = null; // Loaded document bytes
-        PortalDocument document = PortalDocument.builder("Document title", "document.pdf", documentBytes).build();
+        PortalDocument document = PortalDocument.builder("Document title", documentBytes).build();
 
         PortalJob portalJob = PortalJob.builder(
                 "Job title",

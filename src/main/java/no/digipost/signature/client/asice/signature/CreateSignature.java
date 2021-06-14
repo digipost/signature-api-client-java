@@ -169,8 +169,9 @@ public class CreateSignature {
         for (int i = 0; i < files.size(); i++) {
             try {
                 String signatureElementId = "ID_" + i;
-                String uri = URLEncoder.encode(files.get(i).getFileName(), "UTF-8");
-                Reference reference = xmlSignatureFactory.newReference(uri, sha256DigestMethod, null, null, signatureElementId, files.get(i).getSha256());
+                SignableFileReference file = files.get(i);
+                String uri = URLEncoder.encode(file.getFileName(), "UTF-8");
+                Reference reference = xmlSignatureFactory.newReference(uri, sha256DigestMethod, null, null, signatureElementId, file.getSha256());
                 result.add(reference);
             } catch(UnsupportedEncodingException e) {
                 throw new RuntimeException(e);

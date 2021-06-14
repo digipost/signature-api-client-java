@@ -4,7 +4,7 @@ import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.asice.manifest.CreateDirectManifest;
 import no.digipost.signature.client.asice.manifest.CreatePortalManifest;
 import no.digipost.signature.client.asice.manifest.ManifestCreator;
-import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.DocumentType;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.direct.DirectDocument;
@@ -56,12 +56,12 @@ public class CreateASiCETest {
 
     private static Path dumpFolder;
 
-    private static final DirectDocument DIRECT_DOCUMENT = DirectDocument.builder("Document title", "file.txt", "hello".getBytes())
-            .fileType(Document.FileType.TXT)
+    private static final DirectDocument DIRECT_DOCUMENT = DirectDocument.builder("Document title", "hello".getBytes())
+            .type(DocumentType.TXT)
             .build();
 
-    private static final PortalDocument PORTAL_DOCUMENT = PortalDocument.builder("Document title", "file.txt", "hello".getBytes())
-            .fileType(Document.FileType.TXT)
+    private static final PortalDocument PORTAL_DOCUMENT = PortalDocument.builder("Document title", "hello".getBytes())
+            .type(DocumentType.TXT)
             .build();
 
 

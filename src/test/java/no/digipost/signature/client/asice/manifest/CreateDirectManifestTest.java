@@ -1,6 +1,5 @@
 package no.digipost.signature.client.asice.manifest;
 
-import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.direct.DirectDocument;
@@ -11,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
+import static no.digipost.signature.client.core.DocumentType.TXT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static uk.co.probablyfine.matchers.Java8Matchers.where;
@@ -21,9 +21,7 @@ class CreateDirectManifestTest {
     void accept_valid_manifest() {
         CreateDirectManifest createManifest = new CreateDirectManifest();
 
-        DirectDocument document = DirectDocument.builder("Title", "file.txt", "hello".getBytes())
-                .fileType(Document.FileType.TXT)
-                .build();
+        DirectDocument document = DirectDocument.builder("Title", "hello".getBytes()).type(TXT).build();
 
         DirectJob job = DirectJob.builder(
                     "Job title",

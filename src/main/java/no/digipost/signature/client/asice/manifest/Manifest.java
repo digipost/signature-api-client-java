@@ -21,7 +21,8 @@ public class Manifest implements ASiCEAttachable {
     }
 
     @Override
-    public String getMimeType() {
-        return "application/xml";
+    public Type getType() {
+        return Type.XML;
     }
+
 }
