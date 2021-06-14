@@ -30,7 +30,7 @@ public class PortalJob implements SignatureJob {
     private Optional<String> description = Optional.empty();
     private String reference;
     private Optional<Instant> activationTime = Optional.empty();
-    private Duration available;
+    private Optional<Duration> available = Optional.empty();
     private Optional<Sender> sender = Optional.empty();
     private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();
     private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Optional.empty();
@@ -74,7 +74,7 @@ public class PortalJob implements SignatureJob {
         return activationTime;
     }
 
-    public Duration getAvailable() {
+    public Optional<Duration> getAvailable() {
         return available;
     }
 
@@ -159,7 +159,7 @@ public class PortalJob implements SignatureJob {
         }
 
         public Builder availableFor(Duration duration) {
-            target.available = duration;
+            target.available = Optional.of(duration);
             return this;
         }
 

@@ -22,6 +22,7 @@ import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +68,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                         .collect(toList()))
                 .withAvailability(new XMLAvailability()
                         .withActivationTime(activationTime)
-                        .withAvailableSeconds(job.getAvailable().getSeconds()))
+                        .withAvailableSeconds(job.getAvailable().map(Duration::getSeconds).orElse(null)))
                 .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null));
     }
 
