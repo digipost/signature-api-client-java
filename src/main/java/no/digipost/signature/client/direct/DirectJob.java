@@ -1,6 +1,7 @@
 package no.digipost.signature.client.direct;
 
 import no.digipost.signature.client.core.AuthenticationLevel;
+import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
@@ -12,8 +13,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
+import static no.digipost.signature.client.core.internal.FileName.reduceToFileNameSafeChars;
 
 
 /**
@@ -50,7 +53,14 @@ public class DirectJob implements SignatureJob, WithExitUrls {
     }
 
     @Override
-    public List<DirectDocument> getDocuments() {
+    public List<Document> getDocuments() {
+        List<Document> documents = new ArrayList<>();
+        for (int i = 0; i < this.documents.size(); i++) {
+            DirectDocument doc = this.documents.get(i);
+            documents.add(new Document(doc.title, doc.type,
+                    format("%04d", i) + "_" + reduceToFileNameSafeChars(doc.title) + "." + doc.type.getFileExtension(),
+                    doc.document));
+        }
         return documents;
     }
 

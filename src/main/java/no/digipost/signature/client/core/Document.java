@@ -2,14 +2,14 @@ package no.digipost.signature.client.core;
 
 import no.digipost.signature.client.asice.ASiCEAttachable;
 
-public abstract class Document implements ASiCEAttachable {
+public class Document implements ASiCEAttachable {
 
     private final String title;
     private final DocumentType documentType;
     private final String fileName;
     private final byte[] document;
 
-    protected Document(String title, DocumentType documentType, String fileName, byte[] document) {
+    public Document(String title, DocumentType documentType, String fileName, byte[] document) {
         this.title = title;
         this.documentType = documentType;
         this.fileName = fileName;

@@ -1,29 +1,33 @@
 package no.digipost.signature.client.direct;
 
-import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.DocumentType;
 
 import static java.util.Objects.requireNonNull;
 import static no.digipost.signature.client.core.DocumentType.PDF;
-import static no.digipost.signature.client.core.internal.FileName.reduceToFileNameSafeChars;
 
 
-public class DirectDocument extends Document {
+public class DirectDocument {
 
     public static Builder builder(String title, byte[] document) {
         return new Builder(title, document);
     }
 
 
-    private DirectDocument(String title, DocumentType documentType, String fileName, byte[] document) {
-        super(title, documentType, fileName, document);
+    public final String title;
+    public final DocumentType type;
+    public final byte[] document;
+
+    private DirectDocument(String title, DocumentType type, byte[] document) {
+        this.title = title;
+        this.type = type;
+        this.document = document;
     }
+
 
     public static class Builder {
 
         private String title;
         private DocumentType documentType = PDF;
-        private String fileName;
         private byte[] document;
 
         public Builder(String title, byte[] document) {
@@ -36,16 +40,8 @@ public class DirectDocument extends Document {
             return this;
         }
 
-        public Builder fileName(String fileName) {
-            this.fileName = fileName;
-            return this;
-        }
-
         public DirectDocument build() {
-            return new DirectDocument(
-                    title, documentType,
-                    fileName == null ? reduceToFileNameSafeChars(title) + "." + documentType.getFileExtension() : fileName,
-                    document);
+            return new DirectDocument(title, documentType, document);
         }
     }
 }
