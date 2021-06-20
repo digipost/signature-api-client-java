@@ -5,13 +5,13 @@ import no.digipost.signature.client.asice.ASiCEAttachable;
 public class Document implements ASiCEAttachable {
 
     private final String title;
-    private final DocumentType documentType;
+    private final String mediaType;
     private final String fileName;
     private final byte[] document;
 
-    public Document(String title, DocumentType documentType, String fileName, byte[] document) {
+    public Document(String title, String mediaType, String fileName, byte[] document) {
         this.title = title;
-        this.documentType = documentType;
+        this.mediaType = mediaType;
         this.fileName = fileName;
         this.document = document;
     }
@@ -26,8 +26,8 @@ public class Document implements ASiCEAttachable {
     }
 
     @Override
-    public Type getType() {
-        return documentType;
+    public String getMediaType() {
+        return mediaType;
     }
 
     @Override

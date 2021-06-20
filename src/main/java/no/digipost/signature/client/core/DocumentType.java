@@ -1,8 +1,6 @@
 package no.digipost.signature.client.core;
 
-import no.digipost.signature.client.asice.ASiCEAttachable;
-
-public enum DocumentType implements ASiCEAttachable.Type {
+public enum DocumentType {
 
     PDF("application/pdf", "pdf"),
     TXT("text/plain", "txt");
@@ -15,12 +13,10 @@ public enum DocumentType implements ASiCEAttachable.Type {
         this.fileExtension = fileExtension;
     }
 
-    @Override
     public String getMediaType() {
         return mediaType;
     }
 
-    @Override
     public String getFileExtension() {
         return fileExtension;
     }

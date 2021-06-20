@@ -55,8 +55,8 @@ public class CreateSignatureTest {
     public void setUp() {
         noekkelpar = TestKonfigurasjon.CLIENT_KEYSTORE;
         files = asList(
-                file("dokument.pdf", "hoveddokument-innhold".getBytes(), DocumentType.PDF),
-                file("manifest.xml", "manifest-innhold".getBytes(), ASiCEAttachable.Type.XML)
+                file("dokument.pdf", "hoveddokument-innhold".getBytes(), DocumentType.PDF.getMediaType()),
+                file("manifest.xml", "manifest-innhold".getBytes(), ASiCEAttachable.XML_MEDIATYPE)
         );
 
         ZonedDateTime signingTime = ZonedDateTime.of(2018, 11, 29, 9, 15, 0, 0, ZoneId.of("Europe/Oslo"));
@@ -103,8 +103,8 @@ public class CreateSignatureTest {
     @Test
     public void should_support_filenames_with_spaces_and_other_characters() {
         List<ASiCEAttachable> otherFiles = asList(
-                file("dokument (2).pdf", "hoveddokument-innhold".getBytes(), DocumentType.PDF),
-                file("manifest.xml", "manifest-innhold".getBytes(), ASiCEAttachable.Type.XML)
+                file("dokument (2).pdf", "hoveddokument-innhold".getBytes(), DocumentType.PDF.getMediaType()),
+                file("manifest.xml", "manifest-innhold".getBytes(), ASiCEAttachable.XML_MEDIATYPE)
         );
 
         Signature signature = createSignature.createSignature(otherFiles, noekkelpar);
@@ -161,14 +161,14 @@ public class CreateSignatureTest {
         assertThat(dokumentReference.getDigestMethod().getAlgorithm(), is("http://www.w3.org/2001/04/xmlenc#sha256"));
     }
 
-    private ASiCEAttachable file(String fileName, byte[] contents, ASiCEAttachable.Type type) {
+    private ASiCEAttachable file(String fileName, byte[] contents, String mediaType) {
         return new ASiCEAttachable() {
             @Override
             public String getFileName() { return fileName; }
             @Override
             public byte[] getBytes() { return contents; }
             @Override
-            public Type getType() { return type; }
+            public String getMediaType() { return mediaType; }
         };
     }
 

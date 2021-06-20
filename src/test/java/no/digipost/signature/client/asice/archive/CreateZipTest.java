@@ -55,8 +55,8 @@ public class CreateZipTest {
             }
 
             @Override
-            public Type getType() {
-                return DocumentType.TXT;
+            public String getMediaType() {
+                return DocumentType.TXT.getMediaType();
             }
         };
     }

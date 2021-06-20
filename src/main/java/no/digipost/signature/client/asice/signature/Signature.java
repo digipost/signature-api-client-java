@@ -21,8 +21,8 @@ public class Signature implements ASiCEAttachable {
     }
 
     @Override
-    public Type getType() {
-        return Type.XML;
+    public String getMediaType() {
+        return XML_MEDIATYPE;
     }
 
 }

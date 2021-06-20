@@ -45,7 +45,7 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
                         .map(document -> new XMLDirectDocument()
                                     .withTitle(document.getTitle())
                                     .withHref(XMLHref.of(document.getFileName()))
-                                    .withMime(document.getMimeType()))
+                                    .withMime(document.getMediaType()))
                         .collect(toList()))
                 .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null));
     }

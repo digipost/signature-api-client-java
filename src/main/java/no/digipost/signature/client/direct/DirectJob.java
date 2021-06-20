@@ -57,7 +57,7 @@ public class DirectJob implements SignatureJob, WithExitUrls {
         List<Document> documents = new ArrayList<>();
         for (int i = 0; i < this.documents.size(); i++) {
             DirectDocument doc = this.documents.get(i);
-            documents.add(new Document(doc.title, doc.type,
+            documents.add(new Document(doc.title, doc.type.getMediaType(),
                     format("%04d", i) + "_" + reduceToFileNameSafeChars(doc.title) + "." + doc.type.getFileExtension(),
                     doc.document));
         }
