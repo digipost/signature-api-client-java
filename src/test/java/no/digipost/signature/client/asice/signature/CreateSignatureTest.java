@@ -11,6 +11,7 @@ import no.digipost.signature.api.xml.thirdparty.xmldsig.SignedInfo;
 import no.digipost.signature.api.xml.thirdparty.xmldsig.X509IssuerSerialType;
 import no.digipost.signature.client.TestKonfigurasjon;
 import no.digipost.signature.client.asice.ASiCEAttachable;
+import no.digipost.signature.client.core.DocumentType;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,12 +27,12 @@ import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.List;
 
-import static uk.co.probablyfine.matchers.Java8Matchers.where;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static uk.co.probablyfine.matchers.Java8Matchers.where;
 
 public class CreateSignatureTest {
 
@@ -54,8 +55,8 @@ public class CreateSignatureTest {
     public void setUp() {
         noekkelpar = TestKonfigurasjon.CLIENT_KEYSTORE;
         files = asList(
-                file("dokument.pdf", "hoveddokument-innhold".getBytes(), "application/pdf"),
-                file("manifest.xml", "manifest-innhold".getBytes(), "application/xml")
+                file("dokument.pdf", "hoveddokument-innhold".getBytes(), DocumentType.PDF.getMediaType()),
+                file("manifest.xml", "manifest-innhold".getBytes(), ASiCEAttachable.XML_MEDIATYPE)
         );
 
         ZonedDateTime signingTime = ZonedDateTime.of(2018, 11, 29, 9, 15, 0, 0, ZoneId.of("Europe/Oslo"));
@@ -102,8 +103,8 @@ public class CreateSignatureTest {
     @Test
     public void should_support_filenames_with_spaces_and_other_characters() {
         List<ASiCEAttachable> otherFiles = asList(
-                file("dokument (2).pdf", "hoveddokument-innhold".getBytes(), "application/pdf"),
-                file("manifest.xml", "manifest-innhold".getBytes(), "application/xml")
+                file("dokument (2).pdf", "hoveddokument-innhold".getBytes(), DocumentType.PDF.getMediaType()),
+                file("manifest.xml", "manifest-innhold".getBytes(), ASiCEAttachable.XML_MEDIATYPE)
         );
 
         Signature signature = createSignature.createSignature(otherFiles, noekkelpar);
@@ -160,14 +161,14 @@ public class CreateSignatureTest {
         assertThat(dokumentReference.getDigestMethod().getAlgorithm(), is("http://www.w3.org/2001/04/xmlenc#sha256"));
     }
 
-    private ASiCEAttachable file(final String fileName, final byte[] contents, final String mimeType) {
+    private ASiCEAttachable file(String fileName, byte[] contents, String mediaType) {
         return new ASiCEAttachable() {
             @Override
             public String getFileName() { return fileName; }
             @Override
             public byte[] getBytes() { return contents; }
             @Override
-            public String getMimeType() { return mimeType; }
+            public String getMediaType() { return mediaType; }
         };
     }
 

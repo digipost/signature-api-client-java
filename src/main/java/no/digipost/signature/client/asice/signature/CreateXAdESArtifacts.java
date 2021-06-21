@@ -60,7 +60,7 @@ class CreateXAdESArtifacts {
         List<DataObjectFormat> result = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             String signatureElementIdReference = format("#ID_%s", i);
-            result.add(new DataObjectFormat(null, null, files.get(i).getMimeType(), null, signatureElementIdReference));
+            result.add(new DataObjectFormat(null, null, files.get(i).getMediaType(), null, signatureElementIdReference));
         }
         return result;
     }

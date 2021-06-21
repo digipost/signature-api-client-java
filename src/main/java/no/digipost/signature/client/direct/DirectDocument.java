@@ -1,39 +1,47 @@
 package no.digipost.signature.client.direct;
 
-import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.DocumentType;
 
-import static no.digipost.signature.client.core.Document.FileType.PDF;
+import static java.util.Objects.requireNonNull;
+import static no.digipost.signature.client.core.DocumentType.PDF;
 
-public class DirectDocument extends Document {
 
-    private DirectDocument(String title, String fileName, FileType fileType, byte[] document) {
-        super(title, fileName, fileType, document);
+public class DirectDocument {
+
+    public static Builder builder(String title, byte[] document) {
+        return new Builder(title, document);
     }
 
-    public static Builder builder(String title, String fileName, byte[] document) {
-        return new Builder(title, fileName, document);
+
+    public final String title;
+    public final DocumentType type;
+    public final byte[] document;
+
+    private DirectDocument(String title, DocumentType type, byte[] document) {
+        this.title = title;
+        this.type = type;
+        this.document = document;
     }
+
 
     public static class Builder {
 
         private String title;
-        private String fileName;
+        private DocumentType documentType = PDF;
         private byte[] document;
-        private FileType fileType = PDF;
 
-        public Builder(String title, String fileName, byte[] document) {
-            this.title = title;
-            this.fileName = fileName;
-            this.document = document;
+        public Builder(String title, byte[] document) {
+            this.title = requireNonNull(title, "title");
+            this.document = requireNonNull(document, "document bytes");
         }
 
-        public Builder fileType(FileType fileType) {
-            this.fileType = fileType;
+        public Builder type(DocumentType documentType) {
+            this.documentType = requireNonNull(documentType, "document type");
             return this;
         }
 
         public DirectDocument build() {
-            return new DirectDocument(title, fileName, fileType, document);
+            return new DirectDocument(title, documentType, document);
         }
     }
 }

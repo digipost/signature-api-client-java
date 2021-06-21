@@ -32,7 +32,7 @@ class DirectClientUseCases {
         DirectClient client = new DirectClient(clientConfiguration);
 
         byte[] documentBytes = null; // Loaded document bytes
-        DirectDocument document = DirectDocument.builder("Document title", "document.pdf", documentBytes).build();
+        DirectDocument document = DirectDocument.builder("Document title", documentBytes).build();
 
         ExitUrls exitUrls = ExitUrls.of(
                 URI.create("http://sender.org/onCompletion"),

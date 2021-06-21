@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface SignatureJob {
 
-    List<? extends Document> getDocuments();
+    List<Document> getDocuments();
 
     Optional<Sender> getSender();
 
