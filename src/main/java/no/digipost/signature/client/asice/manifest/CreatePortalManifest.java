@@ -64,7 +64,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
                         .map(document -> new XMLPortalDocument()
                                     .withTitle(document.getTitle())
                                     .withHref(XMLHref.of(document.getFileName()))
-                                    .withMime(document.getMediaType()))
+                                    .withMediaType(document.getMediaType()))
                         .collect(toList()))
                 .withAvailability(new XMLAvailability()
                         .withActivationTime(activationTime)
