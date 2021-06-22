@@ -1,6 +1,7 @@
 package no.digipost.signature.client.asice.archive;
 
 import no.digipost.signature.client.asice.ASiCEAttachable;
+import no.digipost.signature.client.core.DocumentType;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +42,7 @@ public class CreateZipTest {
         assertArrayEquals(IOUtils.toByteArray(zipInputStream), contents.getBytes());
     }
 
-    private ASiCEAttachable file(final String fileName, final String contents) {
+    private ASiCEAttachable file(String fileName, String contents) {
         return new ASiCEAttachable() {
             @Override
             public String getFileName() {
@@ -49,13 +50,13 @@ public class CreateZipTest {
             }
 
             @Override
-            public byte[] getBytes() {
+            public byte[] getContent() {
                 return contents.getBytes();
             }
 
             @Override
-            public String getMimeType() {
-                return "text/plain";
+            public String getMediaType() {
+                return DocumentType.TXT.getMediaType();
             }
         };
     }

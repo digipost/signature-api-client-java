@@ -39,8 +39,7 @@ public class CreateASiCE<JOB extends SignatureJob> {
         Sender sender = ActualSender.getActualSender(job.getSender(), globalSender);
         Manifest manifest = manifestCreator.createManifest(job, sender);
 
-        List<ASiCEAttachable> files = new ArrayList<>();
-        files.add(job.getDocument());
+        List<ASiCEAttachable> files = new ArrayList<>(job.getDocuments());
         files.add(manifest);
 
         Signature signature = createSignature.createSignature(files, keyStoreConfig);

@@ -19,6 +19,8 @@ import no.digipost.signature.client.portal.SignerIdentifier;
 import java.io.InputStream;
 import java.time.Instant;
 
+import static java.util.Arrays.asList;
+
 @SuppressWarnings({"unused", "ConstantConditions", "StatementWithEmptyBody", "null"})
 class PortalClientUseCases {
 
@@ -27,15 +29,17 @@ class PortalClientUseCases {
         PortalClient client = new PortalClient(clientConfiguration);
 
         byte[] documentBytes = null; // Loaded document bytes
-        PortalDocument document = PortalDocument.builder("Subject", "document.pdf", documentBytes).build();
+        PortalDocument document = PortalDocument.builder("Document title", documentBytes).build();
 
         PortalJob portalJob = PortalJob.builder(
-                document,
-                PortalSigner.identifiedByPersonalIdentificationNumber("12345678910",
-                        NotificationsUsingLookup.EMAIL_ONLY).build(),
-                PortalSigner.identifiedByPersonalIdentificationNumber("12345678911",
-                        Notifications.builder().withEmailTo("email@example.com").build()).build(),
-                PortalSigner.identifiedByEmail("email@example.com").build()
+                "Job title",
+                asList(document),
+                asList(
+                    PortalSigner.identifiedByPersonalIdentificationNumber("12345678910",
+                            NotificationsUsingLookup.EMAIL_ONLY).build(),
+                    PortalSigner.identifiedByPersonalIdentificationNumber("12345678911",
+                            Notifications.builder().withEmailTo("email@example.com").build()).build(),
+                    PortalSigner.identifiedByEmail("email@example.com").build())
         ).build();
 
         PortalJobResponse portalJobResponse = client.create(portalJob);
@@ -95,15 +99,17 @@ class PortalClientUseCases {
         Sender sender = new Sender("000000000", PollingQueue.of("CustomPollingQueue"));
 
         byte[] documentBytes = null; // Loaded document bytes
-        PortalDocument document = PortalDocument.builder("Subject", "document.pdf", documentBytes).build();
+        PortalDocument document = PortalDocument.builder("Document title", documentBytes).build();
 
         PortalJob portalJob = PortalJob.builder(
-                document,
-                PortalSigner.identifiedByPersonalIdentificationNumber("12345678910",
-                        NotificationsUsingLookup.EMAIL_ONLY).build(),
-                PortalSigner.identifiedByPersonalIdentificationNumber("12345678911",
-                        Notifications.builder().withEmailTo("email@example.com").build()).build(),
-                PortalSigner.identifiedByEmail("email@example.com").build()
+                "Job title",
+                asList(document),
+                asList(
+                    PortalSigner.identifiedByPersonalIdentificationNumber("12345678910",
+                            NotificationsUsingLookup.EMAIL_ONLY).build(),
+                    PortalSigner.identifiedByPersonalIdentificationNumber("12345678911",
+                            Notifications.builder().withEmailTo("email@example.com").build()).build(),
+                    PortalSigner.identifiedByEmail("email@example.com").build())
         ).withSender(sender).build();
 
         PortalJobResponse portalJobResponse = client.create(portalJob);

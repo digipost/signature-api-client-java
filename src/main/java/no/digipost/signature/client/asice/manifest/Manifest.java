@@ -16,12 +16,13 @@ public class Manifest implements ASiCEAttachable {
     }
 
     @Override
-    public byte[] getBytes() {
+    public byte[] getContent() {
         return xmlBytes;
     }
 
     @Override
-    public String getMimeType() {
-        return "application/xml";
+    public String getMediaType() {
+        return XML_MEDIATYPE;
     }
+
 }

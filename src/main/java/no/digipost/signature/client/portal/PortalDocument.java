@@ -1,57 +1,47 @@
 package no.digipost.signature.client.portal;
 
-import no.digipost.signature.client.core.Document;
+import no.digipost.signature.client.core.DocumentType;
 
-import static no.digipost.signature.client.core.Document.FileType.PDF;
+import static java.util.Objects.requireNonNull;
+import static no.digipost.signature.client.core.DocumentType.PDF;
 
-public class PortalDocument extends Document {
-    private final String nonsensitiveTitle;
 
-    private PortalDocument(String title, String nonsensitiveTitle, String message, String fileName, FileType fileType, byte[] document) {
-        super(title, message, fileName, fileType, document);
-        this.nonsensitiveTitle = nonsensitiveTitle;
+public class PortalDocument {
+
+    public static Builder builder(String title, byte[] documentContent) {
+        return new Builder(title, documentContent);
     }
 
-    public String getNonsensitiveTitle() {
-        return nonsensitiveTitle;
+
+    public final String title;
+    public final DocumentType type;
+    public final byte[] content;
+
+    private PortalDocument(String title, DocumentType type, byte[] content) {
+        this.title = title;
+        this.type = type;
+        this.content = content;
     }
 
-    public static Builder builder(final String title, final String fileName, final byte[] document) {
-        return new Builder(title, fileName, document);
-    }
 
     public static class Builder {
 
         private String title;
-        private String nonsensitiveTitle;
-        private String fileName;
-        private byte[] document;
-        private String message;
-        private FileType fileType = PDF;
+        private DocumentType type = PDF;
+        private byte[] content;
 
-        public Builder(final String title, final String fileName, final byte[] document) {
-            this.title = title;
-            this.fileName = fileName;
-            this.document = document;
+        public Builder(String title, byte[] content) {
+            this.title = requireNonNull(title, "title");
+            this.content = requireNonNull(content, "document content");
         }
 
-        public Builder message(String message) {
-            this.message = message;
-            return this;
-        }
-
-        public Builder nonsensitiveTitle(String nonsensitiveTitle) {
-            this.nonsensitiveTitle = nonsensitiveTitle;
-            return this;
-        }
-
-        public Builder fileType(final FileType fileType) {
-            this.fileType = fileType;
+        public Builder type(DocumentType type) {
+            this.type = requireNonNull(type, "document type");
             return this;
         }
 
         public PortalDocument build() {
-            return new PortalDocument(title, nonsensitiveTitle, message, fileName, fileType, document);
+            return new PortalDocument(title, type, content);
         }
     }
 }

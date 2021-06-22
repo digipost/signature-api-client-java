@@ -2,20 +2,22 @@ package no.digipost.signature.client.core;
 
 import no.digipost.signature.client.asice.ASiCEAttachable;
 
-public abstract class Document implements ASiCEAttachable {
+public class Document implements ASiCEAttachable {
 
-    private String title;
-    private String message;
-    private String fileName;
-    private byte[] document;
-    private FileType fileType;
+    private final String title;
+    private final String mediaType;
+    private final String fileName;
+    private final byte[] content;
 
-    protected Document(final String title, final String message, final String fileName, final FileType fileType, final byte[] document) {
+    public Document(String title, String mediaType, String fileName, byte[] content) {
         this.title = title;
-        this.message = message;
+        this.mediaType = mediaType;
         this.fileName = fileName;
-        this.fileType = fileType;
-        this.document = document;
+        this.content = content;
+    }
+
+    public String getTitle() {
+        return title;
     }
 
     @Override
@@ -24,31 +26,13 @@ public abstract class Document implements ASiCEAttachable {
     }
 
     @Override
-    public byte[] getBytes() {
-        return document;
+    public String getMediaType() {
+        return mediaType;
     }
 
     @Override
-    public String getMimeType() {
-        return fileType.mimeType;
+    public byte[] getContent() {
+        return content;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public enum FileType {
-        PDF("application/pdf"),
-        TXT("text/plain");
-
-        public final String mimeType;
-
-        FileType(final String mimeType) {
-            this.mimeType = mimeType;
-        }
-    }
 }

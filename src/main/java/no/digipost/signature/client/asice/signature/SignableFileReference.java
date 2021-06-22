@@ -6,6 +6,6 @@ public interface SignableFileReference {
 
     byte[] getSha256();
 
-    String getMimeType();
+    String getMediaType();
 
 }

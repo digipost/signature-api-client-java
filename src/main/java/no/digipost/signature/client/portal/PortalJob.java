@@ -1,36 +1,47 @@
 package no.digipost.signature.client.portal;
 
 import no.digipost.signature.client.core.AuthenticationLevel;
+import no.digipost.signature.client.core.Document;
 import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.internal.JobCustomizations;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
+import static no.digipost.signature.client.core.internal.FileName.reduceToFileNameSafeChars;
 
 
+/**
+ * Signature job with document(s) to be signed by
+ * one or more signers in portal flow.
+ */
 public class PortalJob implements SignatureJob {
 
+    private final List<PortalDocument> documents;
     private final List<PortalSigner> signers;
-    private final PortalDocument document;
+    private final String title;
+    private Optional<String> nonsensitiveTitle = Optional.empty();
+    private Optional<String> description = Optional.empty();
     private String reference;
     private Optional<Instant> activationTime = Optional.empty();
-    private Long availableSeconds;
+    private Optional<Duration> available = Optional.empty();
     private Optional<Sender> sender = Optional.empty();
     private Optional<AuthenticationLevel> requiredAuthentication = Optional.empty();
     private Optional<IdentifierInSignedDocuments> identifierInSignedDocuments = Optional.empty();
 
-    private PortalJob(List<PortalSigner> signers, PortalDocument document) {
+    private PortalJob(String title, List<PortalDocument> documents, List<PortalSigner> signers) {
+        this.title = title;
+        this.documents = unmodifiableList(new ArrayList<>(documents));
         this.signers = unmodifiableList(new ArrayList<>(signers));
-        this.document = document;
     }
 
     @Override
@@ -39,8 +50,15 @@ public class PortalJob implements SignatureJob {
     }
 
     @Override
-    public PortalDocument getDocument() {
-        return document;
+    public List<Document> getDocuments() {
+        List<Document> documents = new ArrayList<>();
+        for (int i = 0; i < this.documents.size(); i++) {
+            PortalDocument document = this.documents.get(i);
+            documents.add(new Document(document.title, document.type.getMediaType(),
+                    format("%04d", i) + "_" + reduceToFileNameSafeChars(document.title) + "." + document.type.getFileExtension(),
+                    document.content));
+        }
+        return documents;
     }
 
     @Override
@@ -66,17 +84,45 @@ public class PortalJob implements SignatureJob {
         return activationTime;
     }
 
-    public Long getAvailableSeconds() {
-        return availableSeconds;
+    public Optional<Duration> getAvailable() {
+        return available;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public Optional<String> getNonsensitiveTitle() {
+        return nonsensitiveTitle;
+    }
+
+    public Optional<String> getDescription() {
+        return description;
     }
 
 
-    public static Builder builder(PortalDocument document, PortalSigner... signers) {
-        return builder(document, Arrays.asList(signers));
+    /**
+     * Create a new signature job for portal flow.
+     *
+     * @param document    The {@link PortalDocument document} that should be signed.
+     * @param signer      The {@link PortalSigner signer} of the document.
+     *
+     * @return a builder to further customize the job
+     */
+    public static Builder builder(String title, PortalDocument document, PortalSigner signer) {
+        return builder(title, singletonList(document), singletonList(signer));
     }
 
-    public static Builder builder(PortalDocument document, List<PortalSigner> signers) {
-        return new Builder(signers, document);
+    /**
+     * Create a new signature job for portal flow.
+     *
+     * @param documents   The {@link PortalDocument documents} that should be signed.
+     * @param signers     The {@link PortalSigner signers} of the document.
+     *
+     * @return a builder to further customize the job
+     */
+    public static Builder builder(String title, List<PortalDocument> documents, List<PortalSigner> signers) {
+        return new Builder(title, documents, signers);
     }
 
     public static class Builder implements JobCustomizations<Builder> {
@@ -84,8 +130,8 @@ public class PortalJob implements SignatureJob {
         private final PortalJob target;
         private boolean built = false;
 
-        private Builder(List<PortalSigner> signers, PortalDocument document) {
-            target = new PortalJob(signers, document);
+        private Builder(String title, List<PortalDocument> documents, List<PortalSigner> signers) {
+            target = new PortalJob(title, documents, signers);
         }
 
         @Override
@@ -122,8 +168,18 @@ public class PortalJob implements SignatureJob {
             return this;
         }
 
-        public Builder availableFor(long duration, TimeUnit unit) {
-            target.availableSeconds = unit.toSeconds(duration);
+        public Builder availableFor(Duration duration) {
+            target.available = Optional.of(duration);
+            return this;
+        }
+
+        public Builder withNonsensitiveTitle(String nonsensitiveTitle) {
+            target.nonsensitiveTitle = Optional.of(nonsensitiveTitle);
+            return this;
+        }
+
+        public Builder withDescription(String description) {
+            target.description = Optional.of(description);
             return this;
         }
 

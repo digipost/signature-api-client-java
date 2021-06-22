@@ -3,6 +3,7 @@ package no.digipost.signature.client.asice.manifest;
 import no.digipost.signature.api.xml.XMLAvailability;
 import no.digipost.signature.api.xml.XMLEmail;
 import no.digipost.signature.api.xml.XMLEnabled;
+import no.digipost.signature.api.xml.XMLHref;
 import no.digipost.signature.api.xml.XMLNotifications;
 import no.digipost.signature.api.xml.XMLNotificationsUsingLookup;
 import no.digipost.signature.api.xml.XMLPortalDocument;
@@ -17,15 +18,16 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureType;
 import no.digipost.signature.client.portal.Notifications;
 import no.digipost.signature.client.portal.NotificationsUsingLookup;
-import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
 import static no.digipost.signature.client.core.exceptions.SignerNotSpecifiedException.SIGNER_NOT_SPECIFIED;
 
 public class CreatePortalManifest extends ManifestCreator<PortalJob> {
@@ -41,7 +43,6 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
         List<XMLPortalSigner> xmlSigners = new ArrayList<>();
         for (PortalSigner signer : job.getSigners()) {
             XMLPortalSigner xmlPortalSigner = generateSigner(signer);
-
             if (signer.getNotifications() != null) {
                 xmlPortalSigner.setNotifications(generateNotifications(signer.getNotifications()));
             } else if (signer.getNotificationsUsingLookup() != null) {
@@ -50,27 +51,25 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
             xmlSigners.add(xmlPortalSigner);
         }
 
-        PortalDocument document = job.getDocument();
-
         ZonedDateTime activationTime = job.getActivationTime().map(activation -> activation.atZone(clock.getZone())).orElse(null);
 
         return new XMLPortalSignatureJobManifest()
                 .withSigners(xmlSigners)
                 .withRequiredAuthentication(job.getRequiredAuthentication().map(AuthenticationLevel::getXmlEnumValue).orElse(null))
                 .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
-                .withDocument(new XMLPortalDocument()
-                        .withTitle(document.getTitle())
-                        .withNonsensitiveTitle(document.getNonsensitiveTitle())
-                        .withDescription(document.getMessage())
-                        .withHref(document.getFileName())
-                        .withMime(document.getMimeType())
-                )
+                .withTitle(job.getTitle())
+                .withNonsensitiveTitle(job.getNonsensitiveTitle().orElse(null))
+                .withDescription(job.getDescription().orElse(null))
+                .withDocuments(job.getDocuments().stream()
+                        .map(document -> new XMLPortalDocument()
+                                    .withTitle(document.getTitle())
+                                    .withHref(XMLHref.of(document.getFileName()))
+                                    .withMediaType(document.getMediaType()))
+                        .collect(toList()))
                 .withAvailability(new XMLAvailability()
                         .withActivationTime(activationTime)
-                        .withAvailableSeconds(job.getAvailableSeconds())
-                )
-                .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null))
-                ;
+                        .withAvailableSeconds(job.getAvailable().map(Duration::getSeconds).orElse(null)))
+                .withIdentifierInSignedDocuments(job.getIdentifierInSignedDocuments().map(IdentifierInSignedDocuments::getXmlEnumValue).orElse(null));
     }
 
     private XMLPortalSigner generateSigner(PortalSigner signer) {
