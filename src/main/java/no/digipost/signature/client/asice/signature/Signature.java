@@ -16,7 +16,7 @@ public class Signature implements ASiCEAttachable {
     }
 
     @Override
-    public byte[] getBytes() {
+    public byte[] getContent() {
         return xmlBytes;
     }
 

@@ -16,9 +16,9 @@ public class CreateZip {
             try (ZipOutputStream zipOutputStream = new ZipOutputStream(archive)) {
                 for (ASiCEAttachable file : files) {
                     ZipEntry zipEntry = new ZipEntry(file.getFileName());
-                    zipEntry.setSize(file.getBytes().length);
+                    zipEntry.setSize(file.getContent().length);
                     zipOutputStream.putNextEntry(zipEntry);
-                    zipOutputStream.write(file.getBytes());
+                    zipOutputStream.write(file.getContent());
                     zipOutputStream.closeEntry();
                 }
             }

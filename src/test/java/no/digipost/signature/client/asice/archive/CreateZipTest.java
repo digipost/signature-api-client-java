@@ -50,7 +50,7 @@ public class CreateZipTest {
             }
 
             @Override
-            public byte[] getBytes() {
+            public byte[] getContent() {
                 return contents.getBytes();
             }
 

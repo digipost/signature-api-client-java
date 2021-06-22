@@ -76,7 +76,7 @@ public class CreateSignatureTest {
                 "PAdNndCACJiWrkHNQ5gTJ+UWx8y2kuzZHEGGTJ+ip9KpCRohDfLapQAMTh0zMLrUNbYpq6kiYWrlxTNfdcVm4skBY0j9Q==";
 
         Signature signature = createSignature.createSignature(files, noekkelpar);
-        XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getBytes())));
+        XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
 
         assertThat(xAdESSignatures, where(XAdESSignatures::getSignatures, hasSize(1)));
         no.digipost.signature.api.xml.thirdparty.xmldsig.Signature dSignature = xAdESSignatures.getSignatures().get(0);
@@ -89,7 +89,7 @@ public class CreateSignatureTest {
     public void test_xades_signed_properties() {
         Signature signature = createSignature.createSignature(files, noekkelpar);
 
-        XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getBytes())));
+        XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
         no.digipost.signature.api.xml.thirdparty.xmldsig.Object object = xAdESSignatures.getSignatures().get(0).getObjects().get(0);
 
         QualifyingProperties xadesProperties = (QualifyingProperties) object.getContent().get(0);
@@ -108,7 +108,7 @@ public class CreateSignatureTest {
         );
 
         Signature signature = createSignature.createSignature(otherFiles, noekkelpar);
-        XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getBytes())));
+        XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
         String uri = xAdESSignatures.getSignatures().get(0).getSignedInfo().getReferences().get(0).getURI();
         assertThat(uri, is("dokument+%282%29.pdf"));
     }
@@ -166,7 +166,7 @@ public class CreateSignatureTest {
             @Override
             public String getFileName() { return fileName; }
             @Override
-            public byte[] getBytes() { return contents; }
+            public byte[] getContent() { return contents; }
             @Override
             public String getMediaType() { return mediaType; }
         };

@@ -11,13 +11,13 @@ public interface ASiCEAttachable extends SignableFileReference {
     @Override
     String getFileName();
 
-    byte[] getBytes();
+    byte[] getContent();
 
     @Override
     String getMediaType();
 
     @Override
     default byte[] getSha256() {
-        return sha256(getBytes());
+        return sha256(getContent());
     }
 }

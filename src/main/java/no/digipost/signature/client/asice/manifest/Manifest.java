@@ -16,7 +16,7 @@ public class Manifest implements ASiCEAttachable {
     }
 
     @Override
-    public byte[] getBytes() {
+    public byte[] getContent() {
         return xmlBytes;
     }
 

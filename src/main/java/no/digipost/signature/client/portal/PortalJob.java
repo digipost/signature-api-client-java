@@ -53,10 +53,10 @@ public class PortalJob implements SignatureJob {
     public List<Document> getDocuments() {
         List<Document> documents = new ArrayList<>();
         for (int i = 0; i < this.documents.size(); i++) {
-            PortalDocument doc = this.documents.get(i);
-            documents.add(new Document(doc.title, doc.type.getMediaType(),
-                    format("%04d", i) + "_" + reduceToFileNameSafeChars(doc.title) + "." + doc.type.getFileExtension(),
-                    doc.document));
+            PortalDocument document = this.documents.get(i);
+            documents.add(new Document(document.title, document.type.getMediaType(),
+                    format("%04d", i) + "_" + reduceToFileNameSafeChars(document.title) + "." + document.type.getFileExtension(),
+                    document.content));
         }
         return documents;
     }

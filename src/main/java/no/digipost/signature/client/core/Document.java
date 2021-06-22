@@ -7,13 +7,13 @@ public class Document implements ASiCEAttachable {
     private final String title;
     private final String mediaType;
     private final String fileName;
-    private final byte[] document;
+    private final byte[] content;
 
-    public Document(String title, String mediaType, String fileName, byte[] document) {
+    public Document(String title, String mediaType, String fileName, byte[] content) {
         this.title = title;
         this.mediaType = mediaType;
         this.fileName = fileName;
-        this.document = document;
+        this.content = content;
     }
 
     public String getTitle() {
@@ -31,8 +31,8 @@ public class Document implements ASiCEAttachable {
     }
 
     @Override
-    public byte[] getBytes() {
-        return document;
+    public byte[] getContent() {
+        return content;
     }
 
 }
