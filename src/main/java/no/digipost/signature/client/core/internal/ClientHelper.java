@@ -12,6 +12,7 @@ import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.DeleteDocumentsUrl;
+import no.digipost.signature.client.core.ResponseInputStream;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.exceptions.BrokerNotAuthorizedException;
 import no.digipost.signature.client.core.exceptions.CantQueryStatusException;
@@ -136,12 +137,16 @@ public class ClientHelper {
         });
     }
 
-    public InputStream getDataStream(URI uri, MediaType ... acceptedResponses) {
+    public ResponseInputStream getDataStream(URI uri, MediaType ... acceptedResponses) {
         return getDataStream(ignoredRoot -> httpClient.target(uri), acceptedResponses);
     }
 
-    public InputStream getDataStream(UnaryOperator<WebTarget> targetResolver, MediaType ... acceptedResponses) {
-        return call(() -> parseResponse(targetResolver.apply(httpClient.signatureServiceRoot()).request().accept(acceptedResponses).get(), InputStream.class));
+    public ResponseInputStream getDataStream(UnaryOperator<WebTarget> targetResolver, MediaType ... acceptedResponses) {
+        return call(() -> {
+            Response response = targetResolver.apply(httpClient.signatureServiceRoot()).request().accept(acceptedResponses).get();
+            InputStream inputStream = parseResponse(response, InputStream.class);
+            return new ResponseInputStream(inputStream, response.getLength());
+        });
     }
 
     public void cancel(final Cancellable cancellable) {
