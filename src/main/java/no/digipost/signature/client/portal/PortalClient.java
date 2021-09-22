@@ -10,6 +10,7 @@ import no.digipost.signature.client.asice.manifest.CreatePortalManifest;
 import no.digipost.signature.client.core.ConfirmationReference;
 import no.digipost.signature.client.core.DeleteDocumentsUrl;
 import no.digipost.signature.client.core.PAdESReference;
+import no.digipost.signature.client.core.ResponseInputStream;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.Cancellable;
@@ -17,7 +18,6 @@ import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
 
-import java.io.InputStream;
 import java.util.Optional;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
@@ -103,12 +103,12 @@ public class PortalClient {
     }
 
 
-    public InputStream getXAdES(XAdESReference xAdESReference) {
+    public ResponseInputStream getXAdES(XAdESReference xAdESReference) {
         return client.getDataStream(xAdESReference.getxAdESUrl(), APPLICATION_XML_TYPE);
     }
 
 
-    public InputStream getPAdES(PAdESReference pAdESReference) {
+    public ResponseInputStream getPAdES(PAdESReference pAdESReference) {
         return client.getDataStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM_TYPE, APPLICATION_XML_TYPE);
     }
 
