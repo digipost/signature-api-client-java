@@ -5,7 +5,6 @@ import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
 
-import java.io.InputStream;
 import java.util.Optional;
 
 public class ArchiveClient {
