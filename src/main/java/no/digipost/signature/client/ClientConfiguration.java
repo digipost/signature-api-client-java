@@ -15,8 +15,6 @@ import no.digipost.signature.client.core.internal.xml.JaxbMessageReaderWriterPro
 import no.digipost.signature.client.security.KeyStoreConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.ssl.PrivateKeyDetails;
-import org.apache.http.ssl.PrivateKeyStrategy;
 import org.apache.http.ssl.SSLContexts;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -31,7 +29,6 @@ import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.HttpHeaders;
 
 import java.io.InputStream;
-import java.net.Socket;
 import java.net.URI;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
@@ -41,7 +38,6 @@ import java.security.UnrecoverableKeyException;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -162,13 +158,8 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     @Override
     public SSLContext getSSLContext() {
         try {
-        return SSLContexts.custom()
-                .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), new PrivateKeyStrategy() {
-                    @Override
-                    public String chooseAlias(Map<String, PrivateKeyDetails> aliases, Socket socket) {
-                        return keyStoreConfig.alias;
-                    }
-                })
+            return SSLContexts.custom()
+                .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), (aliases, socket) -> keyStoreConfig.alias)
                 .loadTrustMaterial(TrustStoreLoader.build(this), serverTrustStrategy)
                 .build();
         } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException e) {
