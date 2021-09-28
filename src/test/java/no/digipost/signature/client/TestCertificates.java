@@ -2,6 +2,9 @@ package no.digipost.signature.client;
 
 import no.digipost.signature.client.security.KeyStoreConfig;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 public class TestCertificates {
 
     private static final String password = "yJPvczYAoirFfC9M";
@@ -29,17 +32,19 @@ public class TestCertificates {
      */
 
     public static KeyStoreConfig getJavaKeyStore() {
-        return KeyStoreConfig.fromOrganizationCertificate(
-                TestCertificates.class.getResourceAsStream("/bring-expired-certificate-for-testing.p12"),
-                password
-        );
+        try (InputStream p12InputStream = TestCertificates.class.getResourceAsStream("/bring-expired-certificate-for-testing.p12")) {
+            return KeyStoreConfig.fromOrganizationCertificate(p12InputStream, password);
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
     public static KeyStoreConfig getOrganizationCertificateKeyStore() {
-        return KeyStoreConfig.fromJavaKeyStore(
-                TestCertificates.class.getResourceAsStream("/bring-expired-keystore-for-testing.jks"),
-                "digipost testintegrasjon for digital post", password, password
-        );
+        try (InputStream jksInputStream = TestCertificates.class.getResourceAsStream("/bring-expired-keystore-for-testing.jks")) {
+            return KeyStoreConfig.fromJavaKeyStore(jksInputStream, "digipost testintegrasjon for digital post", password, password);
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
 
