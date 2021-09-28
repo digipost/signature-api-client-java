@@ -1,7 +1,6 @@
 package no.digipost.signature.client;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -25,18 +24,9 @@ public enum Certificates {
     final List<String> certificatePaths;
 
     Certificates(String ... certificatePaths) {
-        this.certificatePaths = Stream.of(certificatePaths).map(FullCertificateClassPathUri.instance).collect(toList());
+        this.certificatePaths = Stream.of(certificatePaths)
+                .map("classpath:/no/digipost/signature/client/certificates/"::concat)
+                .collect(toList());
     }
-}
 
-
-final class FullCertificateClassPathUri implements Function<String, String> {
-    static final FullCertificateClassPathUri instance = new FullCertificateClassPathUri();
-
-    private static final String root = "/" + Certificates.class.getPackage().getName().replace('.', '/') + "/certificates/";
-
-    @Override
-    public String apply(String resourceName) {
-        return "classpath:" + root + resourceName;
-    }
 }

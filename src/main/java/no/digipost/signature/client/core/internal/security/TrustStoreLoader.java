@@ -5,6 +5,7 @@ import no.digipost.signature.client.core.exceptions.ConfigurationException;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -76,7 +77,9 @@ public class TrustStoreLoader {
         @Override
         public void forEachFile(ForFile forEachFile) throws IOException {
             URL contentsUrl = Certificates.class.getResource(certificatePath);
-
+            if (contentsUrl == null) {
+                throw new ConfigurationException(certificatePath + " was not found");
+            }
             try (InputStream inputStream = contentsUrl.openStream()){
                 forEachFile.call(new File(contentsUrl.getFile()).getName(), inputStream);
             }
