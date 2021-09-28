@@ -7,13 +7,14 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.KeyException;
 import no.digipost.signature.client.core.internal.http.AddRequestHeaderFilter;
+import no.digipost.signature.client.core.internal.http.EnterpriseCertificateTrustStrategy;
 import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
-import no.digipost.signature.client.core.internal.http.PostenEnterpriseCertificateStrategy;
 import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
 import no.digipost.signature.client.core.internal.security.TrustStoreLoader;
 import no.digipost.signature.client.core.internal.xml.JaxbMessageReaderWriterProvider;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.ssl.PrivateKeyDetails;
 import org.apache.http.ssl.PrivateKeyStrategy;
 import org.apache.http.ssl.SSLContexts;
@@ -91,14 +92,13 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     private final Optional<Sender> sender;
     private final URI signatureServiceRoot;
     private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
+    private final TrustStrategy serverTrustStrategy;
     private final Clock clock;
-
-
 
     private ClientConfiguration(
             KeyStoreConfig keyStoreConfig, Configurable<? extends Configuration> jaxrsConfig,
             Optional<Sender> sender, URI serviceRoot, Iterable<String> certificatePaths,
-            Iterable<DocumentBundleProcessor> documentBundleProcessors, boolean preInitializeHttpClient, Clock clock) {
+            Iterable<DocumentBundleProcessor> documentBundleProcessors, TrustStrategy serverTrustStrategy, boolean preInitializeHttpClient, Clock clock) {
 
         this.jaxrsConfig = jaxrsConfig;
         this.preInitializeHttpClient = preInitializeHttpClient;
@@ -107,6 +107,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         this.sender = sender;
         this.signatureServiceRoot = serviceRoot;
         this.documentBundleProcessors = documentBundleProcessors;
+        this.serverTrustStrategy = serverTrustStrategy;
         this.clock = clock;
     }
 
@@ -168,7 +169,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
                         return keyStoreConfig.alias;
                     }
                 })
-                .loadTrustMaterial(TrustStoreLoader.build(this), new PostenEnterpriseCertificateStrategy())
+                .loadTrustMaterial(TrustStoreLoader.build(this), serverTrustStrategy)
                 .build();
         } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException e) {
             if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
@@ -203,6 +204,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         private URI serviceRoot = ServiceUri.PRODUCTION.uri;
         private Optional<Sender> globalSender = Optional.empty();
         private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
+        private TrustStrategy serverCertificateTrustStrategy = new EnterpriseCertificateTrustStrategy("984661185"); // Posten Norge AS organization number
         private Optional<LoggingFeature> loggingFeature = Optional.empty();
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
         private Clock clock = Clock.systemDefaultZone();
@@ -359,6 +361,37 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             return this;
         }
 
+
+        /**
+         * Override which organization number which is expected from the server's certificate.
+         * By default, this is the organization number of Posten Norge AS, and should <em>not</em>
+         * be overridden unless you have a specific need such as doing testing against your own
+         * stubbed implementation of the Posten signering API.
+         *
+         * @param serverOrganizationNumber the organization number expected in the server's enterprise certificate
+         */
+        public Builder serverOrganizationNumber(String serverOrganizationNumber) {
+            return serverCertificateTrustStrategy(new EnterpriseCertificateTrustStrategy(serverOrganizationNumber));
+        }
+
+
+        /**
+         * Override the strategy used for validating the server's certificate. This method is mainly
+         * intended for tests if you need to override (or even disable) the default
+         * validation that the server identifies itself as "Posten Norge AS".
+         *
+         * Calling this method for a production deployment is probably <em>not</em> what you intend to do!
+         *
+         * @param strategy the strategy for validating the server's certificate
+         */
+        public Builder serverCertificateTrustStrategy(TrustStrategy strategy) {
+            LOG.warn(
+                    "Overriding server certificate TrustStrategy! This should NOT be done for any production deployment, " +
+                    "or any integration with Posten Norge");
+            this.serverCertificateTrustStrategy = strategy;
+            return this;
+        }
+
         /**
          * Allows for overriding which {@link Clock} is used to convert between Java and XML,
          * may be useful for e.g. automated tests.
@@ -389,7 +422,9 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
             jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, createUserAgentString()));
             this.loggingFeature.ifPresent(jaxrsConfig::register);
-            return new ClientConfiguration(keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths, documentBundleProcessors, preInitializeHttpClient, clock);
+            return new ClientConfiguration(
+                    keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths,
+                    documentBundleProcessors, serverCertificateTrustStrategy, preInitializeHttpClient, clock);
         }
 
         String createUserAgentString() {
