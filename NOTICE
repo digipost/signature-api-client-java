@@ -8,28 +8,34 @@ Licensed under Apache 2 - http://www.apache.org/licenses/LICENSE-2.0.html
 
 This software includes third party software subject to the following licenses:
 
+  aopalliance version 1.0 repackaged as a module under EPL 2.0 or GPL2 w/ CPE
   Apache Commons Codec under Apache License, Version 2.0
   Apache Commons Lang under Apache License, Version 2.0
   Apache HttpClient under Apache License, Version 2.0
   Apache HttpCore under Apache License, Version 2.0
+  HK2 API module under EPL 2.0 or GPL2 w/ CPE
+  HK2 Implementation Utilities under EPL 2.0 or GPL2 w/ CPE
   istack common utility code runtime under Eclipse Distribution License - v 1.0
   Jakarta Activation under EDL 1.0
   Jakarta Activation API jar under EDL 1.0
   Jakarta Annotations API under EPL 2.0 or GPL2 w/ CPE
   Jakarta XML Binding API under Eclipse Distribution License - v 1.0
   jakarta.ws.rs-api under EPL 2.0 or GPL2 w/ CPE
+  Javassist under MPL 1.1 or LGPL 2.1 or Apache License 2.0
   javax.inject:1 as OSGi bundle under EPL 2.0 or GPL2 w/ CPE
   JAXB Runtime under Eclipse Distribution License - v 1.0
   JAXB2 Basics - Runtime under BSD-Style License
   JCL 1.2 implemented over SLF4J under Apache License, Version 2.0
   jersey-core-client under EPL 2.0 or GPL2 w/ CPE or EDL 1.0 or BSD 2-Clause or Apache License, 2.0 or Public Domain or Modified BSD or jQuery license or MIT license or W3C license
   jersey-core-common under EPL 2.0 or The GNU General Public License (GPL), Version 2, With Classpath Exception or Apache License, 2.0 or Public Domain
+  jersey-inject-hk2 under EPL 2.0 or GPL2 w/ CPE or EDL 1.0 or BSD 2-Clause or Apache License, 2.0 or Public Domain or Modified BSD or jQuery license or MIT license or W3C license
   jersey-media-multipart under EPL 2.0 or GPL2 w/ CPE or EDL 1.0 or BSD 2-Clause or Apache License, 2.0 or Public Domain or Modified BSD or jQuery license or MIT license or W3C license
   MIME streaming extension under Eclipse Distribution License - v 1.0
   OSGi resource locator under EPL 2.0 or GPL2 w/ CPE
   Posten signering - API JAXB Classes under The Apache Software License, Version 2.0
   Posten signering - API Schema under The Apache Software License, Version 2.0
   Posten signering - Java API Client Library under The Apache Software License, Version 2.0
+  ServiceLocator Default Implementation under EPL 2.0 or GPL2 w/ CPE
   SLF4J API Module under MIT License
   Spring AOP under Apache License, Version 2.0
   Spring Beans under Apache License, Version 2.0

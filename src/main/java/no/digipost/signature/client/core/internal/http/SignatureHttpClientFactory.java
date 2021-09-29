@@ -1,6 +1,7 @@
 package no.digipost.signature.client.core.internal.http;
 
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 
 import javax.ws.rs.client.Client;
@@ -12,11 +13,14 @@ public class SignatureHttpClientFactory {
 
 
     public static SignatureHttpClient create(HttpIntegrationConfiguration config) {
-        Client jerseyClient = JerseyClientBuilder.newBuilder()
+        JerseyClientBuilder jerseyBuilder = (JerseyClientBuilder) JerseyClientBuilder.newBuilder();
+        JerseyClient jerseyClient = jerseyBuilder
                 .withConfig(config.getJaxrsConfiguration())
                 .sslContext(config.getSSLContext())
                 .hostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
+
+        jerseyClient.preInitialize();
         return new DefaultClient(jerseyClient, config.getServiceRoot());
     }
 
