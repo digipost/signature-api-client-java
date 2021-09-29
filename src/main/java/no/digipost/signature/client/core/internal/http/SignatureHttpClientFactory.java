@@ -20,7 +20,17 @@ public class SignatureHttpClientFactory {
                 .hostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 
-        jerseyClient.preInitialize();
+        try {
+            jerseyClient.preInitialize();
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "Unable to pre-initialize Jersey Client, because " + e.getClass().getSimpleName() + " '" + e.getMessage() + "'. " +
+                    "This step is taken to ensure everything the client needs is available already on instantiation, " +
+                    "in particular the InjectionManager facilities used internally by Jersey. By default, the Signature API Client " +
+                    "should include the Jersey HK2 implementation, but if you need to control this yourself, consider excluding " +
+                    "org.glassfish.jersey.inject:jersey-hk2 when depending on the signature-api-client-java, and make sure to make the " +
+                    "InjectionManagerFactory of your choice discoverable by Jersey.", e);
+        }
         return new DefaultClient(jerseyClient, config.getServiceRoot());
     }
 

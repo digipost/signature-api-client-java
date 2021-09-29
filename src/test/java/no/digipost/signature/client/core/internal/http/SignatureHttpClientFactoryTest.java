@@ -24,8 +24,6 @@ public class SignatureHttpClientFactoryTest implements HttpIntegrationConfigurat
     }
 
 
-
-
     @Override
     public Configuration getJaxrsConfiguration() {
         return new ClientConfig();
