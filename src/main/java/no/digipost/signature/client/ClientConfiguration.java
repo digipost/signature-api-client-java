@@ -28,6 +28,7 @@ import javax.net.ssl.SSLContext;
 import javax.ws.rs.core.Configurable;
 import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.HttpHeaders;
+
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.URI;
@@ -83,6 +84,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
 
     private final Configurable<? extends Configuration> jaxrsConfig;
+    private final boolean preInitializeHttpClient;
     private final KeyStoreConfig keyStoreConfig;
 
     private final Iterable<String> certificatePaths;
@@ -96,13 +98,14 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     private ClientConfiguration(
             KeyStoreConfig keyStoreConfig, Configurable<? extends Configuration> jaxrsConfig,
             Optional<Sender> sender, URI serviceRoot, Iterable<String> certificatePaths,
-            Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
+            Iterable<DocumentBundleProcessor> documentBundleProcessors, boolean preInitializeHttpClient, Clock clock) {
 
-        this.keyStoreConfig = keyStoreConfig;
         this.jaxrsConfig = jaxrsConfig;
+        this.preInitializeHttpClient = preInitializeHttpClient;
+        this.keyStoreConfig = keyStoreConfig;
+        this.certificatePaths = certificatePaths;
         this.sender = sender;
         this.signatureServiceRoot = serviceRoot;
-        this.certificatePaths = certificatePaths;
         this.documentBundleProcessors = documentBundleProcessors;
         this.clock = clock;
     }
@@ -149,6 +152,11 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         return jaxrsConfig.getConfiguration();
     }
 
+    @Override
+    public boolean preInitializeClient() {
+        return preInitializeHttpClient;
+    }
+
 
     @Override
     public SSLContext getSSLContext() {
@@ -188,6 +196,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         private final Configurable<? extends Configuration> jaxrsConfig;
         private final KeyStoreConfig keyStoreConfig;
 
+        private boolean preInitializeHttpClient = true;
         private int socketTimeoutMs = DEFAULT_SOCKET_TIMEOUT_MS;
         private int connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS;
         private Optional<String> customUserAgentPart = Optional.empty();
@@ -361,6 +370,18 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             return this;
         }
 
+
+        /**
+         * Disable the pre-initialization step of the internal HTTP client (Jersey Client) when
+         * instantiating the Signature API Client.
+         *
+         * @see org.glassfish.jersey.client.JerseyClient#preInitialize()
+         */
+        public Builder disablePreInitializingHttpClient() {
+            this.preInitializeHttpClient = false;
+            return this;
+        }
+
         public ClientConfiguration build() {
             jaxrsConfig.property(ClientProperties.READ_TIMEOUT, socketTimeoutMs);
             jaxrsConfig.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutMs);
@@ -368,7 +389,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
             jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, createUserAgentString()));
             this.loggingFeature.ifPresent(jaxrsConfig::register);
-            return new ClientConfiguration(keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
+            return new ClientConfiguration(keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths, documentBundleProcessors, preInitializeHttpClient, clock);
         }
 
         String createUserAgentString() {
