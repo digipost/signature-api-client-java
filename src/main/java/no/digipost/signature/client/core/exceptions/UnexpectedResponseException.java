@@ -2,7 +2,10 @@ package no.digipost.signature.client.core.exceptions;
 
 import no.digipost.signature.api.xml.XMLError;
 
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.StatusType;
+
+import java.util.Objects;
 
 public class UnexpectedResponseException extends SignatureException {
 
@@ -31,6 +34,18 @@ public class UnexpectedResponseException extends SignatureException {
         return actualStatus;
     }
 
+    public boolean is(Status.Family family) {
+        return actualStatus != null && actualStatus.getFamily() == family;
+    }
+
+    public boolean isStatusCode(int statusCode) {
+        return actualStatus != null && actualStatus.getStatusCode() == statusCode;
+    }
+
+    public boolean isStatusCodeOf(StatusType status) {
+        return isStatusCode(status.getStatusCode());
+    }
+
     public String getErrorCode() {
         return error != null ? error.getErrorCode() : null;
     }
@@ -41,6 +56,10 @@ public class UnexpectedResponseException extends SignatureException {
 
     public String getErrorType() {
         return error != null ? error.getErrorType() : null;
+    }
+
+    public boolean isErrorCode(String errorCode) {
+        return error != null & Objects.equals(error.getErrorCode(), errorCode);
     }
 
     private static String prettyprintExpectedStatuses(StatusType ... statuses) {
