@@ -12,7 +12,7 @@ public enum Certificates {
             "test/Buypass_Class_3_Test4_Root_CA.cer",
             "test/commfides_test_ca.cer",
             "test/commfides_test_root_ca.cer",
-            "test/digipost_test_root_ca.pem"
+            "test/digipost_test_root_ca.cert.pem"
     ),
     PRODUCTION(
             "prod/BPClass3CA3.cer",
@@ -25,7 +25,7 @@ public enum Certificates {
 
     Certificates(String ... certificatePaths) {
         this.certificatePaths = Stream.of(certificatePaths)
-                .map("classpath:/no/digipost/signature/client/certificates/"::concat)
+                .map("classpath:/certificates/"::concat)
                 .collect(toList());
     }
 

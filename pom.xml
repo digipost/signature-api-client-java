@@ -216,11 +216,6 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
-            <resource>
-                <directory>src/main/certificates</directory>
-                <filtering>false</filtering>
-                <targetPath>no/digipost/signature/client/certificates</targetPath>
-            </resource>
         </resources>
         <pluginManagement>
             <plugins>
