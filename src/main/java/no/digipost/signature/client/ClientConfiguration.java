@@ -55,6 +55,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
     private static final String JAVA_DESCRIPTION = System.getProperty("java.vendor", "unknown Java") + ", " + System.getProperty("java.version", "unknown version");
 
+
     /**
      * The {@link HttpHeaders#USER_AGENT User-Agent} header which will be included in all requests. You may include a custom part
      * using {@link Builder#includeInUserAgent(String)}.
@@ -82,7 +83,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
 
     private final Configurable<? extends Configuration> jaxrsConfig;
-    private final boolean preInitializeHttpClient;
     private final KeyStoreConfig keyStoreConfig;
 
     private final Iterable<String> certificatePaths;
@@ -95,10 +95,9 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     private ClientConfiguration(
             KeyStoreConfig keyStoreConfig, Configurable<? extends Configuration> jaxrsConfig,
             Optional<Sender> sender, URI serviceRoot, Iterable<String> certificatePaths,
-            Iterable<DocumentBundleProcessor> documentBundleProcessors, CertificateChainValidation serverCertificateValidation, boolean preInitializeHttpClient, Clock clock) {
+            Iterable<DocumentBundleProcessor> documentBundleProcessors, CertificateChainValidation serverCertificateValidation, Clock clock) {
 
         this.jaxrsConfig = jaxrsConfig;
-        this.preInitializeHttpClient = preInitializeHttpClient;
         this.keyStoreConfig = keyStoreConfig;
         this.certificatePaths = certificatePaths;
         this.sender = sender;
@@ -150,11 +149,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         return jaxrsConfig.getConfiguration();
     }
 
-    @Override
-    public boolean preInitializeClient() {
-        return preInitializeHttpClient;
-    }
-
 
     @Override
     public SSLContext getSSLContext() {
@@ -189,7 +183,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         private final Configurable<? extends Configuration> jaxrsConfig;
         private final KeyStoreConfig keyStoreConfig;
 
-        private boolean preInitializeHttpClient = true;
         private int socketTimeoutMs = DEFAULT_SOCKET_TIMEOUT_MS;
         private int connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS;
         private Optional<String> customUserAgentPart = Optional.empty();
@@ -401,7 +394,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * @see org.glassfish.jersey.client.JerseyClient#preInitialize()
          */
         public Builder disablePreInitializingHttpClient() {
-            this.preInitializeHttpClient = false;
+            this.jaxrsConfig.property(PRE_INIT_CLIENT, false);
             return this;
         }
 
@@ -414,7 +407,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             this.loggingFeature.ifPresent(jaxrsConfig::register);
             return new ClientConfiguration(
                     keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths,
-                    documentBundleProcessors, serverCertificateTrustStrategy, preInitializeHttpClient, clock);
+                    documentBundleProcessors, serverCertificateTrustStrategy, clock);
         }
 
         String createUserAgentString() {
