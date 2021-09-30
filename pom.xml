@@ -60,6 +60,17 @@
             <version>${signature.api.version}</version>
         </dependency>
         <dependency>
+            <groupId>no.digipost</groupId>
+            <artifactId>certificate-validator</artifactId>
+            <version>2.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.13</version>
@@ -270,6 +281,37 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <!--
+                        Version 3.2.2 introduces a warning about target/classes being a directory when minimizing the resulting JAR,
+                        and warning is still present in v3.2.4, so keeping the version on 3.2.1 until https://github.com/apache/maven-shade-plugin/pull/83
+                        is hopefully resolved. Judging by the discussion, it is not happening anytime soon.
+                    -->
+                    <version>3.2.1</version>
+                    <configuration>
+                        <minimizeJar>true</minimizeJar>
+                        <artifactSet>
+                            <includes>
+                                <include>no.digipost:certificate-validator</include>
+                            </includes>
+                        </artifactSet>
+                        <filters>
+                            <filter>
+                                <artifact>no.digipost.*</artifact>
+                                <excludes>
+                                    <exclude>META-INF/*.MF</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+                        <relocations>
+                            <relocation>
+                                <pattern>no.digipost.security</pattern>
+                                <shadedPattern>no.digipost.signature.client.core.internal.security.certificate_validator</shadedPattern>
+                            </relocation>
+                        </relocations>
+                    </configuration>
+                </plugin>
+                <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.0.0-M5</version>
                 </plugin>
@@ -359,6 +401,16 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>shade</goal>
                         </goals>
                     </execution>
                 </executions>
