@@ -2,63 +2,114 @@ package no.digipost.signature.client.core.internal.security;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.TestKonfigurasjon;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.util.List;
 
+import static java.util.Collections.list;
 import static no.digipost.signature.client.Certificates.PRODUCTION;
 import static no.digipost.signature.client.Certificates.TEST;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TrustStoreLoaderTest {
+class TrustStoreLoaderTest {
 
     private ClientConfiguration.Builder configBuilder;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         configBuilder = ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE);
     }
 
     @Test
-    public void loads_productions_certificates_by_default() throws KeyStoreException {
-        KeyStore keyStore = TrustStoreLoader.build(configBuilder.build());
+    void loads_productions_certificates_by_default() throws KeyStoreException {
+        KeyStore trustStore = TrustStoreLoader.build(configBuilder.build());
 
-        assertThat(keyStore.size(), is(4));
-        assertTrue(keyStore.containsAlias("bpclass3rootca.cer"), "Trust store should contain BuyPass root CA");
+        assertTrue(trustStore.containsAlias("prod:bpclass3rootca.cer"), "Trust store should contain BuyPass root CA");
+        assertThat(trustStore.size(), is(8));
     }
 
     @Test
-    public void loads_productions_certificates() throws KeyStoreException {
+    void loads_productions_certificates() throws KeyStoreException {
         ClientConfiguration config = configBuilder.trustStore(PRODUCTION).build();
-        KeyStore keyStore = TrustStoreLoader.build(config);
+        KeyStore trustStore = TrustStoreLoader.build(config);
 
-        assertThat(keyStore.size(), is(4));
-        assertTrue(keyStore.containsAlias("bpclass3rootca.cer"), "Trust store should contain bp root ca");
-        assertFalse(keyStore.containsAlias("buypass_class_3_test4_root_ca.cer"), "Trust store should not contain buypass test root ca");
+        assertThat(trustStore, containsExactlyTheAliases(
+                "prod:bpclass3rootca.cer",
+                "prod:bpclass3ca3.cer",
+                "prod:bpcl3rootcag2st.cer",
+                "prod:bpcl3cag2stbs.cer",
+                "prod:bpcl3rootcag2ht.cer",
+                "prod:bpcl3cag2htbs.cer",
+                "prod:commfides_root_ca.cer",
+                "prod:commfides_ca.cer"));
     }
 
     @Test
-    public void loads_test_certificates() throws KeyStoreException {
+    void loads_test_certificates() throws KeyStoreException {
         ClientConfiguration config = configBuilder.trustStore(TEST).build();
-        KeyStore keyStore = TrustStoreLoader.build(config);
+        KeyStore trustStore = TrustStoreLoader.build(config);
 
-        assertThat(keyStore.size(), is(5));
-        assertFalse(keyStore.containsAlias("bpclass3rootca.cer"), "Trust store should not buypass root ca");
-        assertTrue(keyStore.containsAlias("buypass_class_3_test4_root_ca.cer"), "Trust store should contain buypass test root ca");
+        assertThat(trustStore, containsExactlyTheAliases(
+                "test:buypass_class_3_test4_root_ca.cer",
+                "test:buypass_class_3_test4_ca_3.cer",
+                "test:bpcl3rootcag2st.cer",
+                "test:bpcl3cag2stbs.cer",
+                "test:bpcl3rootcag2ht.cer",
+                "test:bpcl3cag2htbs.cer",
+                "test:commfides_test_root_ca.cer",
+                "test:commfides_test_ca.cer",
+                "test:digipost_test_root_ca.cert.pem"));
     }
 
     @Test
-    public void loads_certificates_from_file_location() throws KeyStoreException {
+    void loads_certificates_from_file_location() throws KeyStoreException {
         ClientConfiguration config = configBuilder.trustStore("./src/test/files/certificateTest").build();
-        KeyStore keyStore = TrustStoreLoader.build(config);
+        KeyStore trustStore = TrustStoreLoader.build(config);
 
-        assertThat(keyStore.size(), is(1));
+        assertThat(trustStore, containsExactlyTheAliases("certificatetest:commfides_test_ca.cer"));
     }
 
+
+    private static Matcher<KeyStore> containsExactlyTheAliases(String ... certAliases) {
+        return new TypeSafeDiagnosingMatcher<KeyStore>() {
+
+            @Override
+            public void describeTo(Description description) {
+                description
+                    .appendText("key store containing " + certAliases.length + " certificates with aliases: ")
+                    .appendValueList("", ", ", "", certAliases);
+            }
+
+            @Override
+            protected boolean matchesSafely(KeyStore keyStore, Description mismatchDescription) {
+                try {
+                    List<String> actualAliases = list(keyStore.aliases());
+                    Matcher<Iterable<? extends String>> expectedAliases = containsInAnyOrder(certAliases);
+                    if (!expectedAliases.matches(actualAliases)) {
+                        expectedAliases.describeMismatch(actualAliases, mismatchDescription);
+                        return false;
+                    } else if (keyStore.size() != certAliases.length) {
+                        mismatchDescription.appendText("contained " + keyStore.size() + " certificates");
+                    }
+                    return true;
+                } catch (KeyStoreException e) {
+                    mismatchDescription
+                        .appendText("threw exception retrieving the aliases from the key store: ")
+                        .appendValue(e.getClass().getSimpleName());
+                    throw new RuntimeException(e.getMessage(), e);
+                }
+            }
+
+        };
+    }
 
 }
