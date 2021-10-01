@@ -9,7 +9,7 @@ public interface CertificateChainValidation {
     enum Result {
         /**
          * Indicates that the certificate chain is trusted by this particular
-         * validation, but is subject to furher validation by the {@link SSLContext}'s
+         * validation, but is subject to further validation by the {@link SSLContext}'s
          * configured trust manager. This should be considered as the default result
          * from a successful validation.
          */
