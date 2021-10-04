@@ -8,14 +8,14 @@ import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.KeyException;
 import no.digipost.signature.client.core.internal.http.AddRequestHeaderFilter;
 import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
-import no.digipost.signature.client.core.internal.http.PostenEnterpriseCertificateStrategy;
+import no.digipost.signature.client.core.internal.http.SignatureApiTrustStrategy;
 import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
 import no.digipost.signature.client.core.internal.security.TrustStoreLoader;
 import no.digipost.signature.client.core.internal.xml.JaxbMessageReaderWriterProvider;
+import no.digipost.signature.client.security.CertificateChainValidation;
 import no.digipost.signature.client.security.KeyStoreConfig;
+import no.digipost.signature.client.security.OrganizationNumberValidation;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.ssl.PrivateKeyDetails;
-import org.apache.http.ssl.PrivateKeyStrategy;
 import org.apache.http.ssl.SSLContexts;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -30,7 +30,6 @@ import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.HttpHeaders;
 
 import java.io.InputStream;
-import java.net.Socket;
 import java.net.URI;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
@@ -40,7 +39,6 @@ import java.security.UnrecoverableKeyException;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -56,6 +54,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
 
     private static final String JAVA_DESCRIPTION = System.getProperty("java.vendor", "unknown Java") + ", " + System.getProperty("java.version", "unknown version");
+
 
     /**
      * The {@link HttpHeaders#USER_AGENT User-Agent} header which will be included in all requests. You may include a custom part
@@ -84,29 +83,27 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
 
     private final Configurable<? extends Configuration> jaxrsConfig;
-    private final boolean preInitializeHttpClient;
     private final KeyStoreConfig keyStoreConfig;
 
     private final Iterable<String> certificatePaths;
     private final Optional<Sender> sender;
     private final URI signatureServiceRoot;
     private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
+    private final CertificateChainValidation serverCertificateValidation;
     private final Clock clock;
-
-
 
     private ClientConfiguration(
             KeyStoreConfig keyStoreConfig, Configurable<? extends Configuration> jaxrsConfig,
             Optional<Sender> sender, URI serviceRoot, Iterable<String> certificatePaths,
-            Iterable<DocumentBundleProcessor> documentBundleProcessors, boolean preInitializeHttpClient, Clock clock) {
+            Iterable<DocumentBundleProcessor> documentBundleProcessors, CertificateChainValidation serverCertificateValidation, Clock clock) {
 
         this.jaxrsConfig = jaxrsConfig;
-        this.preInitializeHttpClient = preInitializeHttpClient;
         this.keyStoreConfig = keyStoreConfig;
         this.certificatePaths = certificatePaths;
         this.sender = sender;
         this.signatureServiceRoot = serviceRoot;
         this.documentBundleProcessors = documentBundleProcessors;
+        this.serverCertificateValidation = serverCertificateValidation;
         this.clock = clock;
     }
 
@@ -152,23 +149,13 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         return jaxrsConfig.getConfiguration();
     }
 
-    @Override
-    public boolean preInitializeClient() {
-        return preInitializeHttpClient;
-    }
-
 
     @Override
     public SSLContext getSSLContext() {
         try {
-        return SSLContexts.custom()
-                .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), new PrivateKeyStrategy() {
-                    @Override
-                    public String chooseAlias(Map<String, PrivateKeyDetails> aliases, Socket socket) {
-                        return keyStoreConfig.alias;
-                    }
-                })
-                .loadTrustMaterial(TrustStoreLoader.build(this), new PostenEnterpriseCertificateStrategy())
+            return SSLContexts.custom()
+                .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), (aliases, socket) -> keyStoreConfig.alias)
+                .loadTrustMaterial(TrustStoreLoader.build(this), new SignatureApiTrustStrategy(serverCertificateValidation))
                 .build();
         } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException e) {
             if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
@@ -196,13 +183,13 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         private final Configurable<? extends Configuration> jaxrsConfig;
         private final KeyStoreConfig keyStoreConfig;
 
-        private boolean preInitializeHttpClient = true;
         private int socketTimeoutMs = DEFAULT_SOCKET_TIMEOUT_MS;
         private int connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS;
         private Optional<String> customUserAgentPart = Optional.empty();
         private URI serviceRoot = ServiceUri.PRODUCTION.uri;
         private Optional<Sender> globalSender = Optional.empty();
         private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
+        private CertificateChainValidation serverCertificateTrustStrategy = new OrganizationNumberValidation("984661185"); // Posten Norge AS organization number
         private Optional<LoggingFeature> loggingFeature = Optional.empty();
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
         private Clock clock = Clock.systemDefaultZone();
@@ -359,6 +346,35 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             return this;
         }
 
+
+        /**
+         * Override which organization number which is expected from the server's certificate.
+         * By default, this is the organization number of Posten Norge AS, and should <em>not</em>
+         * be overridden unless you have a specific need such as doing testing against your own
+         * stubbed implementation of the Posten signering API.
+         *
+         * @param serverOrganizationNumber the organization number expected in the server's enterprise certificate
+         */
+        public Builder serverOrganizationNumber(String serverOrganizationNumber) {
+            return serverCertificateTrustStrategy(new OrganizationNumberValidation(serverOrganizationNumber));
+        }
+
+
+        /**
+         * Override the validation of the server's certificate. This method is mainly
+         * intended for tests if you need to override (or even disable) the default
+         * validation that the server identifies itself as "Posten Norge AS".
+         *
+         * Calling this method for a production deployment is probably <em>not</em> what you intend to do!
+         *
+         * @param certificateChainValidation the validation for the server's certificate
+         */
+        public Builder serverCertificateTrustStrategy(CertificateChainValidation certificateChainValidation) {
+            LOG.warn("Overriding server certificate TrustStrategy! This should NOT be done for any integration with Posten signering.");
+            this.serverCertificateTrustStrategy = certificateChainValidation;
+            return this;
+        }
+
         /**
          * Allows for overriding which {@link Clock} is used to convert between Java and XML,
          * may be useful for e.g. automated tests.
@@ -378,7 +394,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * @see org.glassfish.jersey.client.JerseyClient#preInitialize()
          */
         public Builder disablePreInitializingHttpClient() {
-            this.preInitializeHttpClient = false;
+            this.jaxrsConfig.property(PRE_INIT_CLIENT, false);
             return this;
         }
 
@@ -389,7 +405,9 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
             jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, createUserAgentString()));
             this.loggingFeature.ifPresent(jaxrsConfig::register);
-            return new ClientConfiguration(keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths, documentBundleProcessors, preInitializeHttpClient, clock);
+            return new ClientConfiguration(
+                    keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths,
+                    documentBundleProcessors, serverCertificateTrustStrategy, clock);
         }
 
         String createUserAgentString() {

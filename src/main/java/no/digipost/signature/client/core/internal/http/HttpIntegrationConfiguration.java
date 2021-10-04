@@ -7,14 +7,12 @@ import java.net.URI;
 
 public interface HttpIntegrationConfiguration {
 
+    String PRE_INIT_CLIENT = "no.posten.signering.client.preInit";
+
     Configuration getJaxrsConfiguration();
 
     SSLContext getSSLContext();
 
     URI getServiceRoot();
-
-    default boolean preInitializeClient() {
-        return true;
-    }
 
 }

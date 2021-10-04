@@ -8,22 +8,28 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Configuration;
 
 import java.net.URI;
+
+import static java.lang.Boolean.parseBoolean;
+import static no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration.PRE_INIT_CLIENT;
 
 public class SignatureHttpClientFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(SignatureHttpClientFactory.class);
 
     public static SignatureHttpClient create(HttpIntegrationConfiguration config) {
+        Configuration jaxrsConfiguration = config.getJaxrsConfiguration();
         JerseyClientBuilder jerseyBuilder = (JerseyClientBuilder) JerseyClientBuilder.newBuilder();
         JerseyClient jerseyClient = jerseyBuilder
-                .withConfig(config.getJaxrsConfiguration())
+                .withConfig(jaxrsConfiguration)
                 .sslContext(config.getSSLContext())
                 .hostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 .build();
 
-        if (config.preInitializeClient()) {
+        Object configuredPreInit = jaxrsConfiguration.getProperty(PRE_INIT_CLIENT);
+        if (configuredPreInit == null || parseBoolean(String.valueOf(configuredPreInit))) {
             try {
                 jerseyClient.preInitialize();
             } catch (Exception e) {
@@ -37,7 +43,8 @@ public class SignatureHttpClientFactory {
             }
         } else {
             LOG.warn(
-                    "Pre-initializing the Signature API Client HTTP integration is disabled. " +
+                    "Pre-initializing the Signature API Jersey Client is disabled, because of the property " +
+                    PRE_INIT_CLIENT + "=" + configuredPreInit + " is set in the JAX-RS configuration. " +
                     "There is a chance that requests done by Jersey Client will break, and we don't yet know about it. " +
                     "If this is intended configured behavior, this warning may be ignored.");
         }
