@@ -6,19 +6,33 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.Collections.list;
+import static java.util.stream.Collectors.toList;
 import static no.digipost.signature.client.Certificates.PRODUCTION;
 import static no.digipost.signature.client.Certificates.TEST;
+import static no.digipost.signature.client.core.internal.security.TrustStoreLoader.generateAlias;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesRegex;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.quicktheories.QuickTheory.qt;
+import static org.quicktheories.generators.SourceDSL.strings;
+import static uk.co.probablyfine.matchers.Java8Matchers.where;
 
 class TrustStoreLoaderTest {
 
@@ -76,6 +90,50 @@ class TrustStoreLoaderTest {
         KeyStore trustStore = TrustStoreLoader.build(config);
 
         assertThat(trustStore, containsExactlyTheAliases("certificatetest:commfides_test_ca.cer"));
+    }
+
+    @Nested
+    class GenerateAlias {
+        @Test
+        void generateAliasFromUnixPath() {
+            assertThat(generateAlias(Paths.get("/blah/blah/funny/env/MyCert.cer")), is("env:MyCert.cer"));
+        }
+
+        @Test
+        void generateAliasFromWindowsPath() {
+            assertThat(generateAlias(Paths.get("C:/blah/blah/funny/env/MyCert.cer")), is("env:MyCert.cer"));
+        }
+
+        @Test
+        void generateAliasFromUnixFileInJarUrlString() {
+            assertThat(generateAlias("/blah/fun/prod/WEB-INF/lib/mylib.jar!/certificates/env/MyCert.cer"), is("env:MyCert.cer"));
+        }
+
+        @Test
+        void generateAliasFromWindowsFileInJarUrlString() {
+            assertThat(generateAlias("file:/C:/blah/fun/prod/WEB-INF/lib/mylib.jar!/certificates/env/MyCert.cer"), is("env:MyCert.cer"));
+        }
+
+        @Test
+        void generateUniqueDefaultAliasesForNullsAndEmptyStrings() {
+            List<String> defaultAliases = Stream.<String>of(null, "", " ", "   \n ").map(s -> TrustStoreLoader.generateAlias(s)).collect(toList());
+            int aliasCount = defaultAliases.size();
+            assertAll("default aliases",
+                    () -> assertThat(defaultAliases, everyItem(matchesRegex("certificate-alias-\\d+"))),
+                    () -> assertAll(IntStream.range(0, aliasCount).mapToObj(defaultAliases::get).map(alias -> () -> {
+                        List<String> otherAliases = defaultAliases.stream().filter(a -> !alias.equals(a)).collect(toList());
+                        assertThat("other alises than '" + alias + "'", otherAliases, hasSize(aliasCount - 1));
+                    })));
+        }
+
+        @Test
+        void alwaysGeneratesAnAlias() {
+            qt()
+                .forAll(strings().allPossible().ofLengthBetween(0, 100))
+                .checkAssert(s -> assertThat(s, where(TrustStoreLoader::generateAlias, notNullValue())));
+        }
+
+
     }
 
 
