@@ -19,12 +19,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static java.nio.file.Files.isDirectory;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.StreamSupport.stream;
 
 public class TrustStoreLoader {
 
@@ -86,7 +84,7 @@ public class TrustStoreLoader {
             }
 
             try (InputStream inputStream = resourceUrl.openStream()) {
-                forEachFile.call(generateAlias(Paths.get(resourceUrl.getPath())), inputStream);
+                forEachFile.call(generateAlias(resourceName), inputStream);
             } catch (Exception e) {
                 throw new ConfigurationException("Unable to load certificate from classpath: " + resourceName, e);
             }
@@ -130,12 +128,25 @@ public class TrustStoreLoader {
         void call(String fileName, InputStream contents) throws IOException, GeneralSecurityException;
     }
 
-    private static String generateAlias(Path location) {
-        return stream(location.normalize().spliterator(), false)
-                .reduce((e1, e2) -> e1.getFileName().resolve(e2))
-                .map(nameBase -> stream(nameBase.spliterator(), false).map(Path::toString).collect(joining(":")))
-                .orElseGet(() -> UUID.randomUUID().toString());
+    static String generateAlias(Path location) {
+        return generateAlias(location.toString());
     }
+
+    private static final AtomicInteger aliasSequence = new AtomicInteger();
+
+    static String generateAlias(String resourceName) {
+        if (resourceName == null || resourceName.trim().isEmpty()) {
+            return "certificate-alias-" + aliasSequence.getAndIncrement();
+        }
+        String[] splitOnSlashes = resourceName.split("/");
+        int size = splitOnSlashes.length;
+        if (size == 1) {
+            return splitOnSlashes[0];
+        } else {
+            return splitOnSlashes[size - 2] + ":" + splitOnSlashes[size - 1];
+        }
+    }
+
 
 }
 
