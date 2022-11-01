@@ -284,10 +284,10 @@
                     <artifactId>maven-shade-plugin</artifactId>
                     <!--
                         Version 3.2.2 introduces a warning about target/classes being a directory when minimizing the resulting JAR,
-                        and warning is still present in v3.2.4, so keeping the version on 3.2.1 until https://github.com/apache/maven-shade-plugin/pull/83
+                        and warning is still present in v3.2.4, so keeping the version on 3.4.1 until https://github.com/apache/maven-shade-plugin/pull/83
                         is hopefully resolved. Judging by the discussion, it is not happening anytime soon.
                     -->
-                    <version>3.2.1</version>
+                    <version>3.4.1</version>
                     <configuration>
                         <minimizeJar>true</minimizeJar>
                         <artifactSet>
