@@ -6,7 +6,7 @@ import no.digipost.signature.client.core.internal.http.ResponseStatus.Custom;
 import no.digipost.signature.client.core.internal.http.ResponseStatus.Unknown;
 import org.junit.jupiter.api.Test;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

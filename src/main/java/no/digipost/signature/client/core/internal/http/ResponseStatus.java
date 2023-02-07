@@ -2,9 +2,9 @@ package no.digipost.signature.client.core.internal.http;
 
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.Response.Status.Family;
-import javax.ws.rs.core.Response.StatusType;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status.Family;
+import jakarta.ws.rs.core.Response.StatusType;
 
 import java.util.Objects;
 import java.util.function.BiPredicate;

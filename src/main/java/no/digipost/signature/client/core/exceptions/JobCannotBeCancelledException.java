@@ -2,7 +2,7 @@ package no.digipost.signature.client.core.exceptions;
 
 import no.digipost.signature.api.xml.XMLError;
 
-import javax.ws.rs.core.Response.StatusType;
+import jakarta.ws.rs.core.Response.StatusType;
 
 public class JobCannotBeCancelledException extends SignatureException {
 

@@ -5,7 +5,7 @@ import no.digipost.signature.client.core.exceptions.SignatureException;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
-import javax.ws.rs.ProcessingException;
+import jakarta.ws.rs.ProcessingException;
 import java.util.function.Supplier;
 
 class ClientExceptionMapper {

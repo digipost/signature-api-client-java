@@ -1,13 +1,15 @@
 package no.digipost.signature.client.core.internal.http;
 
-import javax.ws.rs.client.WebTarget;
-
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.time.Duration;
 
 public interface SignatureHttpClient {
 
-    WebTarget signatureServiceRoot();
+    URI signatureServiceRoot();
 
-    WebTarget target(URI uri);
+    HttpClient httpClient();
+
+    Duration socketTimeout();
 
 }

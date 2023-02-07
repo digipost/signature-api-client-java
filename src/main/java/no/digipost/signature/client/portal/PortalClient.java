@@ -20,8 +20,8 @@ import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactor
 
 import java.util.Optional;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
 import static no.digipost.signature.client.portal.PortalJobStatusChanged.noUpdatedStatus;

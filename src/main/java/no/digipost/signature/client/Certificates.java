@@ -35,7 +35,7 @@ public enum Certificates {
             "prod/commfides_root_ca.cer"
     );
 
-    final List<String> certificatePaths;
+    public final List<String> certificatePaths;
 
     Certificates(String ... certificatePaths) {
         this.certificatePaths = Stream.of(certificatePaths)

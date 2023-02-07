@@ -1,6 +1,6 @@
 package no.digipost.signature.client.core.exceptions;
 
-import javax.ws.rs.core.Response.StatusType;
+import jakarta.ws.rs.core.Response.StatusType;
 
 public class CantQueryStatusException extends SignatureException {
 

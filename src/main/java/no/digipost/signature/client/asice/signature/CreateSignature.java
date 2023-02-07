@@ -4,50 +4,53 @@ import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import no.digipost.signature.client.core.exceptions.XmlConfigurationException;
 import no.digipost.signature.client.core.exceptions.XmlValidationException;
 import no.digipost.signature.client.security.KeyStoreConfig;
+import no.digipost.signature.jaxb.JaxbMarshaller;
 import no.digipost.signature.xsd.SignatureApiSchemas;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.xml.validation.SchemaLoaderUtils;
-import org.springframework.xml.validation.XmlValidatorFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
+import javax.xml.XMLConstants;
 import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.NodeSetData;
 import javax.xml.crypto.URIDereferencer;
 import javax.xml.crypto.dom.DOMStructure;
-import javax.xml.crypto.dsig.CanonicalizationMethod;
-import javax.xml.crypto.dsig.DigestMethod;
-import javax.xml.crypto.dsig.Reference;
-import javax.xml.crypto.dsig.SignatureMethod;
-import javax.xml.crypto.dsig.SignedInfo;
-import javax.xml.crypto.dsig.Transform;
-import javax.xml.crypto.dsig.XMLObject;
-import javax.xml.crypto.dsig.XMLSignature;
-import javax.xml.crypto.dsig.XMLSignatureException;
-import javax.xml.crypto.dsig.XMLSignatureFactory;
+import javax.xml.crypto.dsig.*;
 import javax.xml.crypto.dsig.dom.DOMSignContext;
 import javax.xml.crypto.dsig.keyinfo.KeyInfo;
 import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
 import javax.xml.crypto.dsig.keyinfo.X509Data;
 import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
 import javax.xml.crypto.dsig.spec.TransformParameterSpec;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.validation.Schema;
-
+import javax.xml.validation.SchemaFactory;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 
 public class CreateSignature {
 
@@ -82,12 +85,49 @@ public class CreateSignature {
         schema = loadSchema();
     }
 
-    private Schema loadSchema() {
-        try {
-            return SchemaLoaderUtils.loadSchema(new Resource[]{new ClassPathResource(SignatureApiSchemas.XMLDSIG_SCHEMA), new ClassPathResource(SignatureApiSchemas.ASICE_SCHEMA)}, XmlValidatorFactory.SCHEMA_W3C_XML);
-        } catch (IOException | SAXException e) {
-            throw new ConfigurationException("Failed to load schemas for validating signatures", e);
+    private static InputSource createInputSource(String resource) {
+        URL resourceUrl = requireNonNull(JaxbMarshaller.class.getResource(resource), resource);
+        try (InputStream inputStream = resourceUrl.openStream()) {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+            final int bufLen = 1024;
+            byte[] buf = new byte[bufLen];
+            int readLen;
+            while ((readLen = inputStream.read(buf, 0, bufLen)) != -1)
+                outputStream.write(buf, 0, readLen);
+
+            InputSource source = new InputSource(new ByteArrayInputStream(outputStream.toByteArray()));
+            source.setSystemId(resourceUrl.toString());
+            return source;
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Unable to resolve " + resource + " from " + resourceUrl + ", " +
+                            "because " + e.getClass().getSimpleName() + " '" + e.getMessage() + "'", e);
         }
+    }
+
+    private static Schema createSchema(Collection<String> resources) {
+        try {
+            SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+            parserFactory.setNamespaceAware(true);
+            parserFactory.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+
+            SAXParser saxParser = parserFactory.newSAXParser();
+            XMLReader xmlReader = saxParser.getXMLReader();
+            Source[] schemaSources = resources.stream()
+                    .map(resource -> new SAXSource(xmlReader, createInputSource(resource)))
+                    .toArray(Source[]::new);
+
+            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            Schema schema = schemaFactory.newSchema(schemaSources);
+            return schema;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not create schema from resources [" + String.join(", ", resources) + "]", e);
+        }
+    }
+
+    private Schema loadSchema() {
+        return createSchema(Set.of(SignatureApiSchemas.XMLDSIG_SCHEMA, SignatureApiSchemas.ASICE_SCHEMA));
     }
 
     public Signature createSignature(final List<? extends SignableFileReference> attachedFiles, final KeyStoreConfig keyStoreConfig) {

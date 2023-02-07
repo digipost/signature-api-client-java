@@ -1,20 +1,18 @@
 package no.digipost.signature.client.core.internal.xml;
 
-import no.digipost.signature.jaxb.spring.SignatureJaxb2Marshaller;
+import no.digipost.signature.jaxb.JaxbMarshaller;
 
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public final class Marshalling {
 
     public static void marshal(Object object, OutputStream entityStream) {
-        SignatureJaxb2Marshaller.ForRequestsOfAllApis.singleton().marshal(object, new StreamResult(entityStream));
+        JaxbMarshaller.ForRequestsOfAllApis.singleton().marshal(object, entityStream);
     }
 
-    public static Object unmarshal(InputStream entityStream) {
-        return SignatureJaxb2Marshaller.ForResponsesOfAllApis.singleton().unmarshal(new StreamSource(entityStream));
+    public static <T> T unmarshal(InputStream entityStream, Class<T> type) {
+        return JaxbMarshaller.ForResponsesOfAllApis.singleton().unmarshal(entityStream, type);
     }
 
     private Marshalling() { }
