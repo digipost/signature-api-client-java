@@ -147,7 +147,7 @@
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
             <artifactId>equalsverifier</artifactId>
-            <version>3.10</version>
+            <version>3.12.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -171,7 +171,7 @@
         <dependency>
             <groupId>no.digipost</groupId>
             <artifactId>digg</artifactId>
-            <version>0.30</version>
+            <version>0.33</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -215,7 +215,7 @@
                 <plugin>
                     <groupId>com.github.siom79.japicmp</groupId>
                     <artifactId>japicmp-maven-plugin</artifactId>
-                    <version>0.15.7</version>
+                    <version>0.17.1</version>
                     <configuration>
                         <oldVersion>
                             <dependency>
@@ -278,7 +278,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>3.0.0-M2</version>
+                    <version>3.0.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
@@ -286,23 +286,23 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.5.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-install-plugin</artifactId>
-                    <version>3.0.0-M1</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.4.0</version>
+                    <version>3.4.1</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.2</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-enforcer-plugin</artifactId>
@@ -374,25 +374,6 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>jdk11+</id>
-            <activation>
-                <jdk>[11,)</jdk>
-            </activation>
-            <properties>
-                <!--
-                    This is to skip the check if NOTICE is up to date.
-                    Jersey 2.29 depends on com.sun.activation:jakarta.activation only when building with
-                    JDK 11 or later, making the expected NOTICE file a bit... dynamic. Instead of artificially
-                    adding jakarta.activation as a runtime dependency when building with Java 8, let's just skip
-                    the check on JDK 11 and later.
-                -->
-                <skip.checks>true</skip.checks>
-            </properties>
-        </profile>
-    </profiles>
 
     <scm>
         <connection>scm:git:git@github.com:digipost/signature-api-client-java.git</connection>
