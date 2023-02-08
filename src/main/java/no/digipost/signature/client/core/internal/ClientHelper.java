@@ -204,8 +204,11 @@ public class ClientHelper {
             try {
                 HttpResponse<InputStream> response = httpClient.httpClient().send(requestBuilder.build(), BodyHandlers.ofInputStream());
                 ResponseStatus.resolve(response.statusCode()).expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
-                // TODO: Hvordan bør det løses med content_length?
-                return new ResponseInputStream(response.body(), Integer.parseInt(response.headers().firstValue(CONTENT_LENGTH).orElseThrow()));
+                return new ResponseInputStream(
+                        response.body(),
+                        Integer.parseInt(response.headers()
+                            .firstValue(CONTENT_LENGTH)
+                            .orElseThrow(() -> new RuntimeException("Expected header " + CONTENT_LENGTH + " to exist"))));
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             } catch (InterruptedException e) {
