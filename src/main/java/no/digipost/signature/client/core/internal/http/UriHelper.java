@@ -3,7 +3,7 @@ package no.digipost.signature.client.core.internal.http;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class UriBuilder {
+public class UriHelper {
 
     public static URI addQuery(URI uri, String query) {
         String newQuery = uri.getQuery();

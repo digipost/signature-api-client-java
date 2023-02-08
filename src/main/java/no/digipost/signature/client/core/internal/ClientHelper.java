@@ -25,7 +25,7 @@ import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
-import no.digipost.signature.client.core.internal.http.UriBuilder;
+import no.digipost.signature.client.core.internal.http.UriHelper;
 import no.digipost.signature.client.core.internal.xml.Marshalling;
 import no.digipost.signature.client.direct.WithSignerUrl;
 import org.apache.commons.lang3.StringUtils;
@@ -240,7 +240,7 @@ public class ClientHelper {
         return call(() -> {
             Sender actualSender = getActualSender(sender, globalSender);
             var request = HttpRequest.newBuilder()
-                    .uri(UriBuilder.addQuery(httpClient.signatureServiceRoot().resolve(target.path(actualSender)), POLLING_QUEUE_QUERY_PARAMETER + "=" + actualSender.getPollingQueue().value))
+                    .uri(UriHelper.addQuery(httpClient.signatureServiceRoot().resolve(target.path(actualSender)), POLLING_QUEUE_QUERY_PARAMETER + "=" + actualSender.getPollingQueue().value))
                     .header(ACCEPT, APPLICATION_XML_TYPE.getType())
                     .GET()
                     .build();
