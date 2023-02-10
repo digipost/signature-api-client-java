@@ -1,6 +1,6 @@
 package no.digipost.signature.client.direct;
 
-import no.digipost.signature.client.core.internal.http.UriHelper;
+import jakarta.ws.rs.core.UriBuilder;
 
 import java.net.URI;
 import java.util.Objects;
@@ -54,7 +54,7 @@ public class StatusReference {
     }
 
     public URI getStatusUrl() {
-        return UriHelper.addQuery(statusUrl,STATUS_QUERY_TOKEN_PARAM_NAME + "=" + statusQueryToken);
+        return UriBuilder.fromUri(statusUrl).queryParam(STATUS_QUERY_TOKEN_PARAM_NAME, statusQueryToken).build();
     }
 
     public static abstract class StatusUrlContruction {

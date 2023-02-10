@@ -1,5 +1,9 @@
 package no.digipost.signature.client.core.internal;
 
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.StatusType;
+import jakarta.ws.rs.core.UriBuilder;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobStatusResponse;
@@ -25,16 +29,11 @@ import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
-import no.digipost.signature.client.core.internal.http.UriHelper;
 import no.digipost.signature.client.core.internal.xml.Marshalling;
 import no.digipost.signature.client.direct.WithSignerUrl;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response.StatusType;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -54,17 +53,18 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
-import static jakarta.ws.rs.core.HttpHeaders.*;
-import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static jakarta.ws.rs.core.HttpHeaders.ACCEPT;
+import static jakarta.ws.rs.core.HttpHeaders.CONTENT_LENGTH;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static jakarta.ws.rs.core.Response.Status.CONFLICT;
 import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static jakarta.ws.rs.core.Response.Status.NO_CONTENT;
 import static jakarta.ws.rs.core.Response.Status.OK;
 import static jakarta.ws.rs.core.Response.Status.TOO_MANY_REQUESTS;
-import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static no.digipost.signature.client.core.internal.ActualSender.getActualSender;
 import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_AUTHORIZED;
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
@@ -100,6 +100,7 @@ public class ClientHelper {
         return multipartSignatureJobRequest(signatureJobRequest, documentBundle, actualSender, XMLPortalSignatureJobResponse.class);
     }
 
+    // TODO: Add TARGET, not only use DIRECT
     private <RESPONSE, REQUEST> RESPONSE multipartSignatureJobRequest(REQUEST signatureJobRequest, DocumentBundle documentBundle, Sender actualSender, Class<RESPONSE> responseClass) {
         return call(() -> {
             try {
@@ -124,8 +125,8 @@ public class ClientHelper {
                 byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
 
                 var request = HttpRequest.newBuilder()
-                        .uri(httpClient.signatureServiceRoot().resolve(DIRECT.path(actualSender)))
-                        .header("Content-Type", "multipart/form-data;boundary=" + boundary)
+                        .uri(UriBuilder.fromUri(httpClient.signatureServiceRoot()).path(DIRECT.path(actualSender)).build())
+                        .header("Content-Type", "multipart/mixed;boundary=" + boundary)
                         .header(ACCEPT, APPLICATION_XML_TYPE.getType())
                         .POST(HttpRequest.BodyPublishers.ofByteArrays(byteArrays))
                         .build();
@@ -162,7 +163,7 @@ public class ClientHelper {
     public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(final URI statusUrl) {
         return call(() -> {
             var request = HttpRequest.newBuilder()
-                    .uri(httpClient.signatureServiceRoot().resolve(statusUrl))
+                    .uri(statusUrl)
                     .header(ACCEPT, APPLICATION_XML_TYPE.getType())
                     .GET()
                     .build();
@@ -243,7 +244,7 @@ public class ClientHelper {
         return call(() -> {
             Sender actualSender = getActualSender(sender, globalSender);
             var request = HttpRequest.newBuilder()
-                    .uri(UriHelper.addQuery(httpClient.signatureServiceRoot().resolve(target.path(actualSender)), POLLING_QUEUE_QUERY_PARAMETER + "=" + actualSender.getPollingQueue().value))
+                    .uri(UriBuilder.fromUri(httpClient.signatureServiceRoot()).path(target.path(actualSender)).queryParam(POLLING_QUEUE_QUERY_PARAMETER, actualSender.getPollingQueue().value).build())
                     .header(ACCEPT, APPLICATION_XML_TYPE.getType())
                     .GET()
                     .build();
@@ -382,5 +383,5 @@ public class ClientHelper {
         }
         return error;
     }
-
+    
 }
