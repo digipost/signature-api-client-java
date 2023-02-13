@@ -1,12 +1,7 @@
 package no.digipost.signature.client.core.internal.http;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
-import no.digipost.signature.client.core.internal.http.ResponseStatus.Custom;
-import no.digipost.signature.client.core.internal.http.ResponseStatus.Unknown;
+import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.Test;
-
-import jakarta.ws.rs.core.Response.Status;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -17,18 +12,17 @@ import static org.quicktheories.generators.SourceDSL.integers;
 public class ResponseStatusTest {
 
     @Test
-    public void resolveStandardHttpStatus() {
-        assertThat(ResponseStatus.resolve(200).get(), is(Status.OK));
+    public void resolveSuccessfulHttpStatus() {
+        assertThat(ResponseStatus.resolve(200).get().family(), is(StatusCodeFamily.SUCCESSFUL));
+        assertThat(ResponseStatus.resolve(204).get().family(), is(StatusCodeFamily.SUCCESSFUL));
     }
 
     @Test
-    public void resolveCustomHttpStatus() {
-        assertThat(ResponseStatus.resolve(422).get(), is(Custom.UNPROCESSABLE_ENTITY));
-    }
-
-    @Test
-    public void resolveUnknownHttpStatus() {
-        assertThat(ResponseStatus.resolve(478).get(), is(ResponseStatus.unknown(478)));
+    public void resolveClientError() {
+        assertThat(ResponseStatus.resolve(400).get().family(), is(StatusCodeFamily.CLIENT_ERROR));
+        assertThat(ResponseStatus.resolve(404).get().family(), is(StatusCodeFamily.CLIENT_ERROR));
+        assertThat(ResponseStatus.resolve(409).get().family(), is(StatusCodeFamily.CLIENT_ERROR));
+        assertThat(ResponseStatus.resolve(422).get().family(), is(StatusCodeFamily.CLIENT_ERROR));
     }
 
     @Test
@@ -41,8 +35,4 @@ public class ResponseStatusTest {
         });
     }
 
-    @Test
-    public void correctEqualsHashCodeForUnknownStatus() {
-        EqualsVerifier.forClass(Unknown.class).suppress(Warning.ALL_FIELDS_SHOULD_BE_USED).verify();
-    }
 }

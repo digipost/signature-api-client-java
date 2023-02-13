@@ -1,9 +1,5 @@
 package no.digipost.signature.client.core.internal;
 
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response.StatusType;
-import jakarta.ws.rs.core.UriBuilder;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobStatusResponse;
@@ -29,47 +25,52 @@ import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
+import no.digipost.signature.client.core.internal.http.StatusCode;
+import no.digipost.signature.client.core.internal.http.StatusCodeFamily;
 import no.digipost.signature.client.core.internal.xml.Marshalling;
 import no.digipost.signature.client.direct.WithSignerUrl;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.mime.ByteArrayBody;
+import org.apache.hc.client5.http.entity.mime.InputStreamBody;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.entity.mime.MultipartPartBuilder;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
+import org.apache.hc.core5.net.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.math.BigInteger;
 import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Random;
 import java.util.function.Supplier;
 
-import static jakarta.ws.rs.core.HttpHeaders.ACCEPT;
-import static jakarta.ws.rs.core.HttpHeaders.CONTENT_LENGTH;
-import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static jakarta.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
-import static jakarta.ws.rs.core.Response.Status.CONFLICT;
-import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
-import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
-import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
-import static jakarta.ws.rs.core.Response.Status.NO_CONTENT;
-import static jakarta.ws.rs.core.Response.Status.OK;
-import static jakarta.ws.rs.core.Response.Status.TOO_MANY_REQUESTS;
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static no.digipost.signature.client.core.internal.ActualSender.getActualSender;
 import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_AUTHORIZED;
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
 import static no.digipost.signature.client.core.internal.Target.DIRECT;
 import static no.digipost.signature.client.core.internal.Target.PORTAL;
+import static org.apache.hc.core5.http.ContentType.APPLICATION_OCTET_STREAM;
+import static org.apache.hc.core5.http.ContentType.APPLICATION_XML;
+import static org.apache.hc.core5.http.ContentType.MULTIPART_MIXED;
+import static org.apache.hc.core5.http.HttpHeaders.ACCEPT;
+import static org.apache.hc.core5.http.HttpHeaders.CONTENT_TYPE;
 
 public class ClientHelper {
 
@@ -91,129 +92,106 @@ public class ClientHelper {
     public XMLDirectSignatureJobResponse sendSignatureJobRequest(XMLDirectSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
         final Sender actualSender = getActualSender(sender, globalSender);
 
-        return multipartSignatureJobRequest(signatureJobRequest, documentBundle, actualSender, XMLDirectSignatureJobResponse.class);
+        return multipartSignatureJobRequest(signatureJobRequest, documentBundle, actualSender, DIRECT, XMLDirectSignatureJobResponse.class);
     }
 
     public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(XMLPortalSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
         final Sender actualSender = getActualSender(sender, globalSender);
 
-        return multipartSignatureJobRequest(signatureJobRequest, documentBundle, actualSender, XMLPortalSignatureJobResponse.class);
+        return multipartSignatureJobRequest(signatureJobRequest, documentBundle, actualSender, PORTAL, XMLPortalSignatureJobResponse.class);
     }
 
-    // TODO: Add TARGET, not only use DIRECT
-    private <RESPONSE, REQUEST> RESPONSE multipartSignatureJobRequest(REQUEST signatureJobRequest, DocumentBundle documentBundle, Sender actualSender, Class<RESPONSE> responseClass) {
+    private <RESPONSE, REQUEST> RESPONSE multipartSignatureJobRequest(REQUEST signatureJobRequest, DocumentBundle documentBundle, Sender actualSender, Target target, Class<RESPONSE> responseClass) {
         return call(() -> {
             try {
-                String boundary = new BigInteger(256, new Random()).toString();
-                var byteArrays = new ArrayList<byte[]>();
-                byte[] separator = ("--" + boundary + "\r\nContent-Disposition: form-data; name=")
-                        .getBytes(StandardCharsets.UTF_8);
-
-                byteArrays.add(separator);
+                var multipartEntityBuilder = MultipartEntityBuilder.create();
+                multipartEntityBuilder.setContentType(MULTIPART_MIXED);
 
                 try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
                     Marshalling.marshal(signatureJobRequest, os);
-                    byteArrays.add(("\"\r\nContent-Type: " + APPLICATION_XML_TYPE.getType() + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
-                    byteArrays.add(os.toByteArray());
+                    multipartEntityBuilder.addPart(MultipartPartBuilder.create()
+                            .setBody(new ByteArrayBody(os.toByteArray(), APPLICATION_XML, ""))
+                            .addHeader(CONTENT_TYPE, APPLICATION_XML.getMimeType())
+                            .build());
                 }
+                multipartEntityBuilder.addPart(MultipartPartBuilder.create()
+                        .setBody(new InputStreamBody(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM, ""))
+                        .addHeader(CONTENT_TYPE, APPLICATION_OCTET_STREAM.getMimeType()).build());
 
-                byteArrays.add(separator);
+                try (HttpEntity multiPart = multipartEntityBuilder.build()) {
+                    var request = ClassicRequestBuilder
+                            .post(new URIBuilder(httpClient.signatureServiceRoot()).appendPath(target.path(actualSender)).build())
+                            .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
+                            .build();
 
-                byteArrays.add(("\"\r\nContent-Type: " + APPLICATION_OCTET_STREAM_TYPE.getType() + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
-                byteArrays.add(documentBundle.getInputStream().readAllBytes());
+                    request.setEntity(multiPart);
 
-                byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
-
-                var request = HttpRequest.newBuilder()
-                        .uri(UriBuilder.fromUri(httpClient.signatureServiceRoot()).path(DIRECT.path(actualSender)).build())
-                        .header("Content-Type", "multipart/mixed;boundary=" + boundary)
-                        .header(ACCEPT, APPLICATION_XML_TYPE.getType())
-                        .POST(HttpRequest.BodyPublishers.ofByteArrays(byteArrays))
-                        .build();
-
-                var response = httpClient.httpClient().send(request, BodyHandlers.ofInputStream());
-                return parseResponse(response, responseClass);
+                    return httpClient.httpClient().execute(request, response -> parseResponse(response, responseClass));
+                }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
-            } catch (InterruptedException e) {
+            } catch (URISyntaxException e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
     public XMLDirectSignerResponse requestNewRedirectUrl(WithSignerUrl url) {
-        // TODO: Er det noe annet å bruke i stede for?
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             Marshalling.marshal(new XMLDirectSignerUpdateRequest().withRedirectUrl(new XMLEmptyElement()), os);
-            var request = HttpRequest.newBuilder()
-                    .uri(url.getSignerUrl())
-                    .header(ACCEPT, APPLICATION_XML_TYPE.getType())
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(os.toByteArray()))
-                    .build();
+            var request = new HttpPost(url.getSignerUrl());
+            request.addHeader(ACCEPT, APPLICATION_XML.getMimeType());
 
-            var result = httpClient.httpClient().send(request, BodyHandlers.ofInputStream());
-            return parseResponse(result, XMLDirectSignerResponse.class);
+            return httpClient.httpClient().execute(request, response -> parseResponse(response, XMLDirectSignerResponse.class));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 
     public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(final URI statusUrl) {
         return call(() -> {
-            var request = HttpRequest.newBuilder()
-                    .uri(statusUrl)
-                    .header(ACCEPT, APPLICATION_XML_TYPE.getType())
-                    .GET()
-                    .build();
+            var request = new HttpGet(statusUrl);
+            request.addHeader(ACCEPT, APPLICATION_XML.getMimeType());
+
             try {
-                var result = httpClient.httpClient().send(request, BodyHandlers.ofInputStream());
-                ResponseStatus.resolve(result.statusCode()).expect(SUCCESSFUL).orThrow(status -> {
-                    if (status == FORBIDDEN) {
-                        XMLError error = extractError(result);
-                        if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
-                            return new InvalidStatusQueryTokenException(statusUrl, error.getErrorMessage());
+                return httpClient.httpClient().execute(request, response -> {
+                    ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(status -> {
+                        if (status.value() == HttpStatus.SC_FORBIDDEN) {
+                            XMLError error = extractError(response);
+                            if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
+                                return new InvalidStatusQueryTokenException(statusUrl, error.getErrorMessage());
+                            }
+                        } else if (status.value() == HttpStatus.SC_NOT_FOUND) {
+                            XMLError error = extractError(response);
+                            if (SIGNING_CEREMONY_NOT_COMPLETED.sameAs(error.getErrorCode())) {
+                                return new CantQueryStatusException(status, error.getErrorMessage());
+                            }
                         }
-                    } else if (status == NOT_FOUND) {
-                        XMLError error = extractError(result);
-                        if (SIGNING_CEREMONY_NOT_COMPLETED.sameAs(error.getErrorCode())) {
-                            return new CantQueryStatusException(status, error.getErrorMessage());
-                        }
-                    }
-                    return exceptionForGeneralError(result);
+                        return exceptionForGeneralError(response);
+                    });
+                    return parseResponse(response, XMLDirectSignatureJobStatusResponse.class);
                 });
-                return parseResponse(result, XMLDirectSignatureJobStatusResponse.class);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         });
     }
 
-    public ResponseInputStream getDataStream(URI uri, MediaType ... acceptedResponses) {
+    public ResponseInputStream getDataStream(URI uri, ContentType ... acceptedResponses) {
         return call(() -> {
-            var requestBuilder = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .GET();
+            var request = new HttpGet(uri);
 
-            Arrays.stream(acceptedResponses).forEach(mediaType -> {
-                requestBuilder.header(ACCEPT, mediaType.getType());
-            });
+            Arrays.stream(acceptedResponses).forEach(mediaType -> request.addHeader(ACCEPT, mediaType.getMimeType()));
 
             try {
-                HttpResponse<InputStream> response = httpClient.httpClient().send(requestBuilder.build(), BodyHandlers.ofInputStream());
-                ResponseStatus.resolve(response.statusCode()).expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
-                return new ResponseInputStream(
-                        response.body(),
-                        Integer.parseInt(response.headers()
-                            .firstValue(CONTENT_LENGTH)
-                            .orElseThrow(() -> new RuntimeException("Expected header " + CONTENT_LENGTH + " to exist"))));
+                return httpClient.httpClient().execute(request, response -> {
+                    ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
+                    return new ResponseInputStream(
+                            response.getEntity().getContent(),
+                            Math.toIntExact(response.getEntity().getContentLength()));
+                });
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
         });
     }
@@ -221,11 +199,14 @@ public class ClientHelper {
     public void cancel(final Cancellable cancellable) {
         call(() -> {
             if (cancellable.getCancellationUrl() != null) {
-                var response = postEmptyEntity(cancellable.getCancellationUrl().getUrl());
-                ResponseStatus.resolve(response.statusCode())
-                        .throwIf(CONFLICT, status -> new JobCannotBeCancelledException(status, extractError(response)))
-                        .expect(SUCCESSFUL)
-                        .orThrow(status -> exceptionForGeneralError(response));
+                try(var response = postEmptyEntity(cancellable.getCancellationUrl().getUrl())) {
+                    ResponseStatus.resolve(response.getCode())
+                            .throwIf(HttpStatus.SC_CONFLICT, status -> new JobCannotBeCancelledException(status, extractError(response)))
+                            .expect(StatusCodeFamily.SUCCESSFUL)
+                            .orThrow(status -> exceptionForGeneralError(response));
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             } else {
                 throw new NotCancellableException();
             }
@@ -243,29 +224,32 @@ public class ClientHelper {
     private <RESPONSE_CLASS> JobStatusResponse<RESPONSE_CLASS> getStatusChange(final Optional<Sender> sender, final Target target, final Class<RESPONSE_CLASS> responseClass) {
         return call(() -> {
             Sender actualSender = getActualSender(sender, globalSender);
-            var request = HttpRequest.newBuilder()
-                    .uri(UriBuilder.fromUri(httpClient.signatureServiceRoot()).path(target.path(actualSender)).queryParam(POLLING_QUEUE_QUERY_PARAMETER, actualSender.getPollingQueue().value).build())
-                    .header(ACCEPT, APPLICATION_XML_TYPE.getType())
-                    .GET()
-                    .build();
+
             try {
-                HttpResponse<InputStream> response = httpClient.httpClient().send(request, BodyHandlers.ofInputStream());
-                StatusType status = ResponseStatus.resolve(response.statusCode())
-                        .throwIf(TOO_MANY_REQUESTS, s -> new TooEagerPollingException())
-                        .expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
-                return new JobStatusResponse<>(status == NO_CONTENT ? null : Marshalling.unmarshal(response.body(), responseClass), getNextPermittedPollTime(response));
+                var uri = new URIBuilder(httpClient.signatureServiceRoot())
+                        .appendPath(target.path(actualSender))
+                        .addParameter(POLLING_QUEUE_QUERY_PARAMETER, actualSender.getPollingQueue().value)
+                        .build();
+                var get = ClassicRequestBuilder
+                        .get(uri)
+                        .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
+                        .build();
+                return httpClient.httpClient().execute(get, response -> {
+                    var status = ResponseStatus.resolve(response.getCode())
+                            .throwIf(HttpStatus.SC_TOO_MANY_REQUESTS, s -> new TooEagerPollingException())
+                            .expect(StatusCodeFamily.SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
+                    return new JobStatusResponse<>(status.value() == HttpStatus.SC_NO_CONTENT ? null : Marshalling.unmarshal(response.getEntity().getContent(), responseClass), getNextPermittedPollTime(response));
+                });
+            } catch (URISyntaxException e) {
+                throw new RuntimeException("Could not create uri, because " + e.getMessage(), e);
             } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                throw new UncheckedIOException(e);
             }
         });
     }
 
-    private static Instant getNextPermittedPollTime(HttpResponse<?> response) {
-        return response.headers().firstValue(NEXT_PERMITTED_POLL_TIME_HEADER)
-                .map(nextPermittedPollTime -> ZonedDateTime.parse(nextPermittedPollTime, ISO_DATE_TIME).toInstant())
-                .orElseThrow(() -> new RuntimeException("Expected header " + NEXT_PERMITTED_POLL_TIME_HEADER + " to exist"));
+    private static Instant getNextPermittedPollTime(ClassicHttpResponse response) throws ProtocolException {
+        return ZonedDateTime.parse(response.getHeader(NEXT_PERMITTED_POLL_TIME_HEADER).getValue(), ISO_DATE_TIME).toInstant();
     }
 
     public void confirm(final Confirmable confirmable) {
@@ -273,8 +257,11 @@ public class ClientHelper {
             if (confirmable.getConfirmationReference() != null) {
                 URI url = confirmable.getConfirmationReference().getConfirmationUrl();
                 LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
-                var response = postEmptyEntity(url);
-                ResponseStatus.resolve(response.statusCode()).expect(SUCCESSFUL).orThrow(status -> exceptionForGeneralError(response));
+                try (var response = postEmptyEntity(url)) {
+                    ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(status -> exceptionForGeneralError(response));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             } else {
                 LOG.info("Does not need to send confirmation for '{}'", confirmable);
             }
@@ -293,95 +280,91 @@ public class ClientHelper {
         call(() -> {
             if (deleteDocumentsUrl != null) {
                 var url = deleteDocumentsUrl.getUrl();
-                var response = delete(url);
-                ResponseStatus.resolve(response.statusCode()).expect(SUCCESSFUL).orThrow(status -> exceptionForGeneralError(response));
+                try (var response = delete(url)) {
+                    ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(status -> exceptionForGeneralError(response));
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             } else {
                 throw new DocumentsNotDeletableException();
             }
         });
     }
 
-    private HttpResponse<InputStream> postEmptyEntity(URI uri) {
+    private ClassicHttpResponse postEmptyEntity(URI uri) {
         try {
-            var request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .header(ACCEPT, APPLICATION_XML_TYPE.getType())
-                    .POST(HttpRequest.BodyPublishers.noBody())
+            var request = ClassicRequestBuilder
+                    .post(uri)
+                    .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
                     .build();
 
-            return httpClient.httpClient().send(request, BodyHandlers.ofInputStream());
+            return httpClient.httpClient().execute(request, response -> response);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 
-    private HttpResponse<InputStream> delete(URI uri) {
+    private ClassicHttpResponse delete(URI uri) {
         try {
-            var request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .header(ACCEPT, APPLICATION_XML_TYPE.getType())
-                    .DELETE()
+            var request = ClassicRequestBuilder
+                    .delete(uri)
+                    .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
                     .build();
 
-            return httpClient.httpClient().send(request, BodyHandlers.ofInputStream());
+            return httpClient.httpClient().execute(request, response -> response);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 
-    private static <T> T parseResponse(HttpResponse<InputStream> response, Class<T> responseType) {
-        ResponseStatus.resolve(response.statusCode()).expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
-        try(var body = response.body()) {
+    private static <T> T parseResponse(ClassicHttpResponse response, Class<T> responseType) {
+        ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
+        try(var body = response.getEntity().getContent()) {
             return Marshalling.unmarshal(body, responseType);
         } catch (IOException e) {
             throw new UncheckedIOException("Could not parse response.", e);
         }
     }
 
-    private static SignatureException exceptionForGeneralError(HttpResponse<InputStream> response) {
+    private static SignatureException exceptionForGeneralError(ClassicHttpResponse response) {
         XMLError error = extractError(response);
         if (BROKER_NOT_AUTHORIZED.sameAs(error.getErrorCode())) {
             return new BrokerNotAuthorizedException(error);
         }
-        return new UnexpectedResponseException(error, ResponseStatus.resolve(response.statusCode()).get(), OK);
+        return new UnexpectedResponseException(error, ResponseStatus.resolve(response.getCode()).get(), StatusCode.from(HttpStatus.SC_OK));
     }
 
-    private static XMLError extractError(HttpResponse<InputStream> response) {
-        XMLError error;
-        Optional<String> responseContentType = response.headers().firstValue(HttpHeaders.CONTENT_TYPE);
-        if (responseContentType.isPresent() && MediaType.valueOf(responseContentType.get()).equals(APPLICATION_XML_TYPE)) {
-            try(var body = response.body()) {
-                error = Marshalling.unmarshal(body, XMLError.class);
-            } catch (IOException e) {
-                throw new UncheckedIOException("Could not extract error from body.", e);
-            }
-        } else {
-            String errorAsString;
-            try(var body = response.body()) {
-                ByteArrayOutputStream result = new ByteArrayOutputStream();
-                byte[] buffer = new byte[1024];
-                for (int length; (length = body.read(buffer)) != -1; ) {
-                    result.write(buffer, 0, length);
+    private static XMLError extractError(ClassicHttpResponse response) {
+        try {
+            XMLError error;
+            var contentType = Optional.ofNullable(response.getHeader(HttpHeaders.CONTENT_TYPE)).map(NameValuePair::getValue).map(ContentType::create);
+            if (contentType.map(type -> type.equals(APPLICATION_XML)).orElse(false)) {
+                try(var body = response.getEntity().getContent()) {
+                    error = Marshalling.unmarshal(body, XMLError.class);
+                } catch (IOException e) {
+                    throw new UncheckedIOException("Could not extract error from body.", e);
                 }
-                errorAsString = result.toString(StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                // TODO: Kan tolke dette som en empty errorAsString? Dvs ignorere feilen?
-                throw new UncheckedIOException("Could not read body as string.", e);
+            } else {
+                String errorAsString;
+                try(var body = response.getEntity().getContent()) {
+                    ByteArrayOutputStream result = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    for (int length; (length = body.read(buffer)) != -1; ) {
+                        result.write(buffer, 0, length);
+                    }
+                    errorAsString = result.toString(StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                    throw new UncheckedIOException("Could not read body as string.", e);
+                }
+                throw new UnexpectedResponseException(
+                        HttpHeaders.CONTENT_TYPE + " " + contentType.map(ContentType::getMimeType).orElse("unknown") + ": " +
+                        Optional.ofNullable(errorAsString).filter(StringUtils::isNoneBlank).orElse("<no content in response>"),
+                        ResponseStatus.resolve(response.getCode()).get(), StatusCode.from(HttpStatus.SC_OK));
             }
-            throw new UnexpectedResponseException(
-                    HttpHeaders.CONTENT_TYPE + " " + responseContentType.orElse("unknown") + ": " +
-                    Optional.ofNullable(errorAsString).filter(StringUtils::isNoneBlank).orElse("<no content in response>"),
-                    ResponseStatus.resolve(response.statusCode()).get(), OK);
+            return error;
+        } catch (ProtocolException e) {
+            throw new RuntimeException(e);
         }
-        // TODO: Dette skjer vel bare hvis vi ignorere IOExceptions?
-        if (error == null) {
-            throw new UnexpectedResponseException(null, ResponseStatus.resolve(response.statusCode()).get(), OK);
-        }
-        return error;
     }
-    
+
 }

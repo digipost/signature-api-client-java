@@ -3,7 +3,7 @@ package no.digipost.signature.client.core.internal.http;
 import no.digipost.signature.client.core.exceptions.SecurityException;
 import no.digipost.signature.client.security.CertificateChainValidation;
 import no.digipost.signature.client.security.CertificateChainValidation.Result;
-import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.hc.core5.ssl.TrustStrategy;
 
 import java.security.cert.X509Certificate;
 

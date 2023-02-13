@@ -1,10 +1,10 @@
 package no.digipost.signature.client.core.internal.http;
 
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.time.Duration;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -20,17 +20,12 @@ public class SignatureHttpClientFactoryTest implements HttpIntegrationConfigurat
 
     @Override
     public HttpClient httpClient() {
-        return HttpClient.newHttpClient();
+        return HttpClientBuilder.create().build();
     }
 
     @Override
     public URI getServiceRoot() {
         return URI.create("localhost");
-    }
-
-    @Override
-    public Duration socketTimeout() {
-        return Duration.ofSeconds(10);
     }
 
 }

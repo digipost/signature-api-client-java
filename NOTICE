@@ -11,13 +11,13 @@ This software includes third party software subject to the following licenses:
   Apache Commons Codec under Apache License, Version 2.0
   Apache Commons Lang under Apache License, Version 2.0
   Apache HttpClient under Apache License, Version 2.0
+  Apache HttpComponents Core HTTP/1.1 under Apache License, Version 2.0
+  Apache HttpComponents Core HTTP/2 under Apache License, Version 2.0
   Apache HttpCore under Apache License, Version 2.0
   Digipost Certificate Validator under The Apache Software License, Version 2.0
   istack common utility code runtime under Eclipse Distribution License - v 1.0
   Jakarta Activation under EDL 1.0
   Jakarta Activation API jar under EDL 1.0
-  Jakarta Annotations API under EPL 2.0 or GPL2 w/ CPE
-  Jakarta RESTful WS API under EPL-2.0 or GPL-2.0-with-classpath-exception
   Jakarta XML Binding API under Eclipse Distribution License - v 1.0
   JAXB Runtime under Eclipse Distribution License - v 1.0
   JAXB2 Basics - Runtime under BSD-Style License

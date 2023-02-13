@@ -17,14 +17,15 @@ import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
+import org.apache.hc.core5.http.ContentType;
 
 import java.util.Optional;
 
-import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static jakarta.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
 import static no.digipost.signature.client.portal.PortalJobStatusChanged.noUpdatedStatus;
+import static org.apache.hc.core5.http.ContentType.APPLICATION_OCTET_STREAM;
+import static org.apache.hc.core5.http.ContentType.APPLICATION_XML;
 
 public class PortalClient {
 
@@ -104,12 +105,12 @@ public class PortalClient {
 
 
     public ResponseInputStream getXAdES(XAdESReference xAdESReference) {
-        return client.getDataStream(xAdESReference.getxAdESUrl(), APPLICATION_XML_TYPE);
+        return client.getDataStream(xAdESReference.getxAdESUrl(), APPLICATION_XML);
     }
 
 
     public ResponseInputStream getPAdES(PAdESReference pAdESReference) {
-        return client.getDataStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM_TYPE, APPLICATION_XML_TYPE);
+        return client.getDataStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM, APPLICATION_XML);
     }
 
     public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {
