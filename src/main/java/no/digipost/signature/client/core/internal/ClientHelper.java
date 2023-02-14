@@ -313,7 +313,7 @@ public class ClientHelper {
                     .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
                     .build();
 
-            return httpClient.httpClient().execute(request, response -> response);
+            return httpClient.httpClient().execute(null, request);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -326,7 +326,7 @@ public class ClientHelper {
                     .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
                     .build();
 
-            return httpClient.httpClient().execute(request, response -> response);
+            return httpClient.httpClient().execute(null, request);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
