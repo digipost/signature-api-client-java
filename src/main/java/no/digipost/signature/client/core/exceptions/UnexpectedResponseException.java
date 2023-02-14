@@ -45,7 +45,7 @@ public class UnexpectedResponseException extends SignatureException {
     }
 
     public boolean isErrorCode(String errorCode) {
-        return error != null & Objects.equals(error.getErrorCode(), errorCode);
+        return error != null && Objects.equals(error.getErrorCode(), errorCode);
     }
 
     private static String prettyprintExpectedStatuses(StatusCode ... statuses) {
