@@ -66,6 +66,7 @@ import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_A
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
 import static no.digipost.signature.client.core.internal.Target.DIRECT;
 import static no.digipost.signature.client.core.internal.Target.PORTAL;
+import static no.digipost.signature.client.core.internal.http.StatusCodeFamily.SUCCESSFUL;
 import static org.apache.hc.core5.http.ContentType.APPLICATION_OCTET_STREAM;
 import static org.apache.hc.core5.http.ContentType.APPLICATION_XML;
 import static org.apache.hc.core5.http.ContentType.MULTIPART_MIXED;
@@ -179,19 +180,31 @@ public class ClientHelper {
 
     public ResponseInputStream getDataStream(URI uri, ContentType ... acceptedResponses) {
         return call(() -> {
-            var request = new HttpGet(uri);
+            var request = ClassicRequestBuilder.get(uri).build();
 
             Arrays.stream(acceptedResponses).forEach(mediaType -> request.addHeader(ACCEPT, mediaType.getMimeType()));
 
+            ClassicHttpResponse response = null;
             try {
-                return httpClient.httpClient().execute(request, response -> {
-                    ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
-                    return new ResponseInputStream(
-                            response.getEntity().getContent(),
-                            Math.toIntExact(response.getEntity().getContentLength()));
-                });
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                response = httpClient.httpClient().execute(null, request);
+                var statusCode = StatusCode.from(response.getCode());
+                if (!statusCode.is(SUCCESSFUL)) {
+                    throw exceptionForGeneralError(response);
+                }
+                return new ResponseInputStream(
+                        response.getEntity().getContent(),
+                        Math.toIntExact(response.getEntity().getContentLength()));
+            } catch (Exception e) {
+                if (response != null) {
+                    try {
+                        response.close();
+                    } catch (IOException closingException) {
+                        e.addSuppressed(closingException);
+                    }
+                }
+                throw e instanceof RuntimeException
+                    ? (RuntimeException) e
+                    : new RuntimeException("uri: " + uri + ": " + e.getClass().getSimpleName() + " '" + e.getMessage() + "'", e);
             }
         });
     }
