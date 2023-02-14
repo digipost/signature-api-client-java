@@ -35,7 +35,7 @@ public final class SignatureApiTrustStrategy implements TrustStrategy {
             case TRUSTED_AND_SKIP_FURTHER_VALIDATION: return true;
             case TRUSTED: return false;
             case UNTRUSTED: default:
-                String subjectDN = chain[0].getSubjectDN().getName();
+                String subjectDN = chain[0].getSubjectX500Principal().getName();
                 throw new SecurityException(
                     "Untrusted server certificate, according to " + certificateChainValidation + ". " +
                     "Make sure the server URI is correct. Actual certificate: " + subjectDN + ". " +

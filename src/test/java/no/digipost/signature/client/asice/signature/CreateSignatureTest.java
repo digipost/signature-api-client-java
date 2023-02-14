@@ -75,10 +75,10 @@ public class CreateSignatureTest {
          * If this changes, something has changed in the signature implementation, and must be investigated!
          */
         final String expectedBase64EncodedSignatureValue =
-                "GELdAv4Dc+w5RnN3Hd2Fk9KjRh8LyNaiLM8PZLvFriuahHoZcb3OBTdCJhaxoup1tgmOUspMGgJ7Zgl6/hh" +
-                "G+zuZ0UjT521mqH4PrupH464B9ztBFnPScedvJpSAwROqSn7eCG78J+ittKBhKxPkBmfStaGPxnvqm2reug" +
-                "I3vbFem+KDiFU+Q4T26OWXapLQC2fhEttH/pUYND1PZN8pNaMiKgzaG7aHurMQCoB5qxfKEL9YEe4pF7H0T" +
-                "PAdNndCACJiWrkHNQ5gTJ+UWx8y2kuzZHEGGTJ+ip9KpCRohDfLapQAMTh0zMLrUNbYpq6kiYWrlxTNfdcVm4skBY0j9Q==";
+                "L3HFN44OGUEbK5p9zxbnDZrey+UnQ9fYQX0k7gv8hfxouRfXFvNHXtUJEI00/BOlhcyGRu8wEIpKYEkDIzj" +
+                "WZyKXjV8Tz6PkHMJedgVGFDPlKwkx7gufntbjH2xqhBOsJzobDQ44rqOlK1YiXNQCPAMFwN/CpOTQTRFuf9" +
+                "/37BN2QG5cmgz+ZNqcKPwQnjrVaQBOrQEc5D2/n05aPsRdc6OUzu2TIftoRLRH1peRDLCAo7MjPNhYo1CCi" +
+                "nBa0FMipG5jtqUPYJJMTt56wIJlwQ95PhGIEYtdRYwxlgSau9Bw+wYmD4NU0K0hw6FgBQ/UDF87T5Zr7HTPWPMwpngkWg==";
 
         Signature signature = createSignature.createSignature(files, noekkelpar);
         XAdESSignatures xAdESSignatures = (XAdESSignatures) unmarshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
@@ -137,7 +137,7 @@ public class CreateSignatureTest {
         assertThat(certDigest.getDigestValue().length, is(20)); // SHA1 is 160 bits => 20 bytes
 
         X509IssuerSerialType issuerSerial = signingCertificate.getCerts().get(0).getIssuerSerial();
-        assertThat(issuerSerial.getX509IssuerName(), is("CN=Avsender, OU=Avsender, O=Avsender, L=Oslo, ST=NO, C=NO"));
+        assertThat(issuerSerial.getX509IssuerName(), is("CN=Avsender,OU=Avsender,O=Avsender,L=Oslo,ST=NO,C=NO"));
         assertThat(issuerSerial.getX509SerialNumber(), is(new BigInteger("589725471")));
     }
 

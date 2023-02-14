@@ -44,7 +44,7 @@ class CreateXAdESArtifacts {
         }
 
         DigestAlgAndValueType certificateDigest = new DigestAlgAndValueType(sha1DigestMethod, certificateDigestValue);
-        X509IssuerSerialType certificateIssuer = new X509IssuerSerialType(certificate.getIssuerDN().getName(), certificate.getSerialNumber());
+        X509IssuerSerialType certificateIssuer = new X509IssuerSerialType(certificate.getIssuerX500Principal().getName(), certificate.getSerialNumber());
         SigningCertificate signingCertificate = new SigningCertificate(singletonList(new CertIDType(certificateDigest, certificateIssuer, null)));
 
         ZonedDateTime now = ZonedDateTime.now(clock);
