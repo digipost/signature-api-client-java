@@ -352,8 +352,8 @@ public class ClientHelper {
     private static XMLError extractError(ClassicHttpResponse response) {
         try {
             XMLError error;
-            var contentType = Optional.ofNullable(response.getHeader(HttpHeaders.CONTENT_TYPE)).map(NameValuePair::getValue).map(ContentType::create);
-            if (contentType.map(type -> type.equals(APPLICATION_XML)).orElse(false)) {
+            var contentType = Optional.ofNullable(response.getHeader(CONTENT_TYPE)).map(NameValuePair::getValue).map(ContentType::create);
+            if (contentType.filter(APPLICATION_XML::isSameMimeType).isPresent()) {
                 try(var body = response.getEntity().getContent()) {
                     error = Marshalling.unmarshal(body, XMLError.class);
                 } catch (IOException e) {
