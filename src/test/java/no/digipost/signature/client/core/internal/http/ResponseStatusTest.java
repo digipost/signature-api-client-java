@@ -1,6 +1,5 @@
 package no.digipost.signature.client.core.internal.http;
 
-import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

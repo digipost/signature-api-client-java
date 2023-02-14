@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 
@@ -48,14 +47,6 @@ public class CreateSignatureTest {
 
     private KeyStoreConfig noekkelpar;
     private List<ASiCEAttachable> files;
-
-    private static final Marshaller marshaller; static {
-        try {
-            marshaller = JAXBContext.newInstance(XAdESSignatures.class, QualifyingProperties.class).createMarshaller();
-        } catch (JAXBException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private static final Unmarshaller unmarshaller; static {
         try {

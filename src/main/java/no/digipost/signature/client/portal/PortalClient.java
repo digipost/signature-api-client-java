@@ -17,7 +17,6 @@ import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
-import org.apache.hc.core5.http.ContentType;
 
 import java.util.Optional;
 

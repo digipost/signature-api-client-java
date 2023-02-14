@@ -1,6 +1,5 @@
 package no.digipost.signature.client.core.internal.http;
 
-import no.digipost.signature.client.core.PollingQueue;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 
 import java.util.Objects;

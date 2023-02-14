@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
+
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
@@ -85,7 +86,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     private final KeyStoreConfig keyStoreConfig;
 
     private final org.apache.hc.client5.http.classic.HttpClient httpClient;
-    private final Duration socketTimeout;
     private final Optional<Sender> sender;
     private final URI signatureServiceRoot;
     private final Iterable<String> certificatePaths;
@@ -93,12 +93,11 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     private final Clock clock;
 
     private ClientConfiguration(
-            KeyStoreConfig keyStoreConfig, org.apache.hc.client5.http.classic.HttpClient httpClient, Duration socketTimeout, Optional<Sender> sender,
+            KeyStoreConfig keyStoreConfig, org.apache.hc.client5.http.classic.HttpClient httpClient, Optional<Sender> sender,
             URI serviceRoot, Iterable<String> certificatePaths, Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
 
         this.keyStoreConfig = keyStoreConfig;
         this.httpClient = httpClient;
-        this.socketTimeout = socketTimeout;
         this.sender = sender;
         this.signatureServiceRoot = serviceRoot;
         this.certificatePaths = certificatePaths;
@@ -144,6 +143,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         return new Builder(keystore);
     }
 
+    @Override
     public Iterable<String> getCertificatePaths() {
         return certificatePaths;
     }
@@ -382,7 +382,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             proxy.ifPresent(httpClientBuilder::setProxy);
             httpClientCustomizer.ifPresent(customizer -> customizer.accept(httpClientBuilder));
 
-            return new ClientConfiguration(keyStoreConfig, httpClientBuilder.build(), socketTimeout, globalSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
+            return new ClientConfiguration(keyStoreConfig, httpClientBuilder.build(), globalSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
         }
 
         String createUserAgentString() {
