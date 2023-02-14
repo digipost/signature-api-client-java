@@ -44,6 +44,8 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.HeaderGroup;
 import org.apache.hc.core5.net.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,9 +58,9 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static no.digipost.signature.client.core.internal.ActualSender.getActualSender;
@@ -180,9 +182,9 @@ public class ClientHelper {
 
     public ResponseInputStream getDataStream(URI uri, ContentType ... acceptedResponses) {
         return call(() -> {
-            var request = ClassicRequestBuilder.get(uri).build();
-
-            Arrays.stream(acceptedResponses).forEach(mediaType -> request.addHeader(ACCEPT, mediaType.getMimeType()));
+            var acceptHeader = new HeaderGroup();
+            Stream.of(acceptedResponses).map(ContentType::getMimeType).map(acceptedMimeType -> new BasicHeader(ACCEPT, acceptedMimeType)).forEach(acceptHeader::addHeader);
+            var request = ClassicRequestBuilder.get(uri).addHeader(acceptHeader.getCondensedHeader(ACCEPT)).build();
 
             ClassicHttpResponse response = null;
             try {
