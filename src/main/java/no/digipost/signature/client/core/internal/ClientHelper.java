@@ -36,6 +36,7 @@ import org.apache.hc.client5.http.entity.mime.ByteArrayBody;
 import org.apache.hc.client5.http.entity.mime.InputStreamBody;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.entity.mime.MultipartPartBuilder;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
@@ -52,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -107,7 +109,7 @@ public class ClientHelper {
     private <RESPONSE, REQUEST> RESPONSE multipartSignatureJobRequest(REQUEST signatureJobRequest, DocumentBundle documentBundle, Sender actualSender, Target target, Class<RESPONSE> responseClass) {
         return call(() -> {
             try {
-                var multipartEntityBuilder = MultipartEntityBuilder.create();
+                MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
                 multipartEntityBuilder.setContentType(MULTIPART_MIXED);
 
                 try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
@@ -122,7 +124,7 @@ public class ClientHelper {
                         .addHeader(CONTENT_TYPE, APPLICATION_OCTET_STREAM.getMimeType()).build());
 
                 try (HttpEntity multiPart = multipartEntityBuilder.build()) {
-                    var request = ClassicRequestBuilder
+                    ClassicHttpRequest request = ClassicRequestBuilder
                             .post(new URIBuilder(httpClient.signatureServiceRoot()).appendPath(target.path(actualSender)).build())
                             .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
                             .build();
@@ -142,7 +144,7 @@ public class ClientHelper {
     public XMLDirectSignerResponse requestNewRedirectUrl(WithSignerUrl url) {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             Marshalling.marshal(new XMLDirectSignerUpdateRequest().withRedirectUrl(new XMLEmptyElement()), os);
-            var request = new HttpPost(url.getSignerUrl());
+            ClassicHttpRequest request = new HttpPost(url.getSignerUrl());
             request.addHeader(ACCEPT, APPLICATION_XML.getMimeType());
 
             return httpClient.httpClient().execute(request, response -> parseResponse(response, XMLDirectSignerResponse.class));
@@ -153,7 +155,7 @@ public class ClientHelper {
 
     public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(final URI statusUrl) {
         return call(() -> {
-            var request = new HttpGet(statusUrl);
+            ClassicHttpRequest request = new HttpGet(statusUrl);
             request.addHeader(ACCEPT, APPLICATION_XML.getMimeType());
 
             try {
@@ -182,14 +184,14 @@ public class ClientHelper {
 
     public ResponseInputStream getDataStream(URI uri, ContentType ... acceptedResponses) {
         return call(() -> {
-            var acceptHeader = new HeaderGroup();
+            HeaderGroup acceptHeader = new HeaderGroup();
             Stream.of(acceptedResponses).map(ContentType::getMimeType).map(acceptedMimeType -> new BasicHeader(ACCEPT, acceptedMimeType)).forEach(acceptHeader::addHeader);
-            var request = ClassicRequestBuilder.get(uri).addHeader(acceptHeader.getCondensedHeader(ACCEPT)).build();
+            ClassicHttpRequest request = ClassicRequestBuilder.get(uri).addHeader(acceptHeader.getCondensedHeader(ACCEPT)).build();
 
             ClassicHttpResponse response = null;
             try {
                 response = httpClient.httpClient().execute(null, request);
-                var statusCode = StatusCode.from(response.getCode());
+                StatusCode statusCode = StatusCode.from(response.getCode());
                 if (!statusCode.is(SUCCESSFUL)) {
                     throw exceptionForGeneralError(response);
                 }
@@ -214,7 +216,7 @@ public class ClientHelper {
     public void cancel(final Cancellable cancellable) {
         call(() -> {
             if (cancellable.getCancellationUrl() != null) {
-                try(var response = postEmptyEntity(cancellable.getCancellationUrl().getUrl())) {
+                try(ClassicHttpResponse response = postEmptyEntity(cancellable.getCancellationUrl().getUrl())) {
                     ResponseStatus.resolve(response.getCode())
                             .throwIf(HttpStatus.SC_CONFLICT, status -> new JobCannotBeCancelledException(status, extractError(response)))
                             .expect(StatusCodeFamily.SUCCESSFUL)
@@ -241,16 +243,16 @@ public class ClientHelper {
             Sender actualSender = getActualSender(sender, globalSender);
 
             try {
-                var uri = new URIBuilder(httpClient.signatureServiceRoot())
+                URI uri = new URIBuilder(httpClient.signatureServiceRoot())
                         .appendPath(target.path(actualSender))
                         .addParameter(POLLING_QUEUE_QUERY_PARAMETER, actualSender.getPollingQueue().value)
                         .build();
-                var get = ClassicRequestBuilder
+                ClassicHttpRequest get = ClassicRequestBuilder
                         .get(uri)
                         .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
                         .build();
                 return httpClient.httpClient().execute(get, response -> {
-                    var status = ResponseStatus.resolve(response.getCode())
+                    StatusCode status = ResponseStatus.resolve(response.getCode())
                             .throwIf(HttpStatus.SC_TOO_MANY_REQUESTS, s -> new TooEagerPollingException())
                             .expect(StatusCodeFamily.SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
                     return new JobStatusResponse<>(status.value() == HttpStatus.SC_NO_CONTENT ? null : Marshalling.unmarshal(response.getEntity().getContent(), responseClass), getNextPermittedPollTime(response));
@@ -272,7 +274,7 @@ public class ClientHelper {
             if (confirmable.getConfirmationReference() != null) {
                 URI url = confirmable.getConfirmationReference().getConfirmationUrl();
                 LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
-                try (var response = postEmptyEntity(url)) {
+                try (ClassicHttpResponse response = postEmptyEntity(url)) {
                     ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(status -> exceptionForGeneralError(response));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -294,8 +296,8 @@ public class ClientHelper {
     public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {
         call(() -> {
             if (deleteDocumentsUrl != null) {
-                var url = deleteDocumentsUrl.getUrl();
-                try (var response = delete(url)) {
+                URI url = deleteDocumentsUrl.getUrl();
+                try (ClassicHttpResponse response = delete(url)) {
                     ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(status -> exceptionForGeneralError(response));
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
@@ -308,7 +310,7 @@ public class ClientHelper {
 
     private ClassicHttpResponse postEmptyEntity(URI uri) {
         try {
-            var request = ClassicRequestBuilder
+            ClassicHttpRequest request = ClassicRequestBuilder
                     .post(uri)
                     .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
                     .build();
@@ -321,7 +323,7 @@ public class ClientHelper {
 
     private ClassicHttpResponse delete(URI uri) {
         try {
-            var request = ClassicRequestBuilder
+            ClassicHttpRequest request = ClassicRequestBuilder
                     .delete(uri)
                     .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
                     .build();
@@ -334,7 +336,7 @@ public class ClientHelper {
 
     private static <T> T parseResponse(ClassicHttpResponse response, Class<T> responseType) {
         ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
-        try(var body = response.getEntity().getContent()) {
+        try(InputStream body = response.getEntity().getContent()) {
             return Marshalling.unmarshal(body, responseType);
         } catch (IOException e) {
             throw new UncheckedIOException("Could not parse response.", e);
@@ -352,22 +354,22 @@ public class ClientHelper {
     private static XMLError extractError(ClassicHttpResponse response) {
         try {
             XMLError error;
-            var contentType = Optional.ofNullable(response.getHeader(CONTENT_TYPE)).map(NameValuePair::getValue).map(ContentType::create);
+            Optional<ContentType> contentType = Optional.ofNullable(response.getHeader(CONTENT_TYPE)).map(NameValuePair::getValue).map(ContentType::create);
             if (contentType.filter(APPLICATION_XML::isSameMimeType).isPresent()) {
-                try(var body = response.getEntity().getContent()) {
+                try(InputStream body = response.getEntity().getContent()) {
                     error = Marshalling.unmarshal(body, XMLError.class);
                 } catch (IOException e) {
                     throw new UncheckedIOException("Could not extract error from body.", e);
                 }
             } else {
                 String errorAsString;
-                try(var body = response.getEntity().getContent()) {
+                try(InputStream body = response.getEntity().getContent()) {
                     ByteArrayOutputStream result = new ByteArrayOutputStream();
                     byte[] buffer = new byte[1024];
                     for (int length; (length = body.read(buffer)) != -1; ) {
                         result.write(buffer, 0, length);
                     }
-                    errorAsString = result.toString(StandardCharsets.UTF_8);
+                    errorAsString = result.toString(StandardCharsets.UTF_8.name());
                 } catch (IOException e) {
                     throw new UncheckedIOException("Could not read body as string.", e);
                 }

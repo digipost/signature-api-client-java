@@ -8,7 +8,6 @@ import no.digipost.signature.jaxb.JaxbMarshaller;
 import no.digipost.signature.xsd.SignatureApiSchemas;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -41,7 +40,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -55,9 +53,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -138,7 +137,7 @@ public class CreateSignature {
     }
 
     private Schema loadSchema() {
-        return createSchema(Set.of(SignatureApiSchemas.XMLDSIG_SCHEMA, SignatureApiSchemas.ASICE_SCHEMA));
+        return createSchema(new HashSet<>(Arrays.asList(SignatureApiSchemas.XMLDSIG_SCHEMA, SignatureApiSchemas.ASICE_SCHEMA)));
     }
 
     public Signature createSignature(final List<? extends SignableFileReference> attachedFiles, final KeyStoreConfig keyStoreConfig) {
@@ -197,7 +196,7 @@ public class CreateSignature {
     private URIDereferencer signedPropertiesURIDereferencer(XAdESArtifacts xadesArtifacts, XMLSignatureFactory signatureFactory) {
         return (uriReference, context) -> {
             if (xadesArtifacts.signablePropertiesReferenceUri.equals(uriReference.getURI())) {
-                return (NodeSetData<Node>) domUtils.allNodesBelow(xadesArtifacts.signableProperties)::iterator;
+                return (NodeSetData) domUtils.allNodesBelow(xadesArtifacts.signableProperties)::iterator;
             }
             return signatureFactory.getURIDereferencer().dereference(uriReference, context);
         };

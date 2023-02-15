@@ -14,8 +14,8 @@
     </parent>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <project.previousVersion>set_with_-Dproject.previousVersion=X.Y</project.previousVersion>
         <signature.api.version>remove-spring-dependency-SNAPSHOT</signature.api.version>
         <slf4j.version>1.7.36</slf4j.version>

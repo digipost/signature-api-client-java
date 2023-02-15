@@ -367,14 +367,14 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         public ClientConfiguration build() {
             // TODO: Add possibility to add logger for http client
 
-            var socketConfig = SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(socketTimeout.toMillis())).build();
-            var poolingHttpClientConnectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+            SocketConfig socketConfig = SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(socketTimeout.toMillis())).build();
+            PoolingHttpClientConnectionManagerBuilder poolingHttpClientConnectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                     .setDefaultSocketConfig(socketConfig)
                     .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
                             .setSslContext(sslContext())
                             .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                             .build());
-            var requestConfigBuilder = RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(connectTimeout.toMillis()));
+            RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(connectTimeout.toMillis()));
             httpClientBuilder
                     .setConnectionManager(poolingHttpClientConnectionManager.build())
                     .setDefaultRequestConfig(requestConfigBuilder.build())
