@@ -352,7 +352,7 @@ public class ClientHelper {
     private static XMLError extractError(ClassicHttpResponse response) {
         try {
             XMLError error;
-            Optional<ContentType> contentType = Optional.ofNullable(response.getHeader(CONTENT_TYPE)).map(NameValuePair::getValue).map(ContentType::create);
+            Optional<ContentType> contentType = Optional.ofNullable(response.getHeader(CONTENT_TYPE)).map(NameValuePair::getValue).map(ContentType::parse);
             if (contentType.filter(APPLICATION_XML::isSameMimeType).isPresent()) {
                 try(InputStream body = response.getEntity().getContent()) {
                     error = Marshalling.unmarshal(body, XMLError.class);
