@@ -195,9 +195,7 @@ public class ClientHelper {
                 if (!statusCode.is(SUCCESSFUL)) {
                     throw exceptionForGeneralError(response);
                 }
-                return new ResponseInputStream(
-                        response.getEntity().getContent(),
-                        Math.toIntExact(response.getEntity().getContentLength()));
+                return new ResponseInputStream(response.getEntity().getContent(), response.getEntity().getContentLength());
             } catch (Exception e) {
                 if (response != null) {
                     try {
