@@ -27,13 +27,15 @@ final class XAdESArtifacts {
 
 
     public static XAdESArtifacts from(QualifyingProperties qualifyingProperties) {
+        DOMResult domResult = new DOMResult();
         try {
-            DOMResult domResult = new DOMResult();
             marshaller.marshal(qualifyingProperties, domResult);
-            return from((Document) domResult.getNode());
         } catch (JAXBException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(
+                    "Failed to marshal qualifying properties, because " +
+                    e.getClass().getSimpleName() + " '" + e.getMessage() + "'", e);
         }
+        return from((Document) domResult.getNode());
     }
 
     private static XAdESArtifacts from(Document qualifyingPropertiesDocument) {
