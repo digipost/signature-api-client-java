@@ -177,6 +177,10 @@ public class ClientHelper {
         });
     }
 
+    public ResponseInputStream getDataStream(String path, ContentType ... acceptedResponses) {
+        return getDataStream(httpClient.constructUrl(uri -> uri.appendPath(path)));
+    }
+
     public ResponseInputStream getDataStream(URI absoluteUri, ContentType ... acceptedResponses) {
         if (!absoluteUri.isAbsolute()) {
             throw new IllegalArgumentException("'" + absoluteUri + "' is not an absolute URL");
