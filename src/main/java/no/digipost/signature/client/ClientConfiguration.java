@@ -298,7 +298,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * together with the {@link SignatureJob job} it was created for. The processor is not responsible for closing
          * the stream, as this is handled by the library itself.
          *
-         * <h2>A note on performance</h2>
+         * <p><strong>A note on performance:</strong>
          * The processor is free to do what it want with the passed stream, but bear in mind that the time
          * used by a processor adds to the processing time to create signature jobs.
          *
