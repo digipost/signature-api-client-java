@@ -19,7 +19,7 @@ jobs:
           distribution: temurin
           cache: "maven"
       - name: Build with Maven
-        run: mvn --settings .mvn/settings.xml -B package --no-transfer-progress --file pom.xml
+        run: mvn --settings .mvn/settings.xml -B package --no-transfer-progress
 
   makeversion:
     if: github.ref != 'refs/heads/main'
@@ -47,7 +47,7 @@ jobs:
     name: Deploy snapshot
     steps:
       - uses: actions/checkout@v3
-      - uses: digipost/action-maven-publish@1.2.0
+      - uses: digipost/action-maven-publish@1.3.2
         with:
           sonatype_secrets: ${{ secrets.sonatype_secrets }}
           release_version: ${{ needs.makeversion.outputs.version }}
@@ -62,7 +62,7 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v3
       - name: Release to Central Repository
-        uses: digipost/action-maven-publish@1.2.0
+        uses: digipost/action-maven-publish@1.3.2
         with:
           sonatype_secrets: ${{ secrets.sonatype_secrets }}
           release_version: ${{ needs.makeversion.outputs.version }}
