@@ -30,4 +30,9 @@ public final class PollingQueue {
         return Objects.hash(value);
     }
 
+    @Override
+    public String toString() {
+        return value != null ? "polling-queue '" + value + "'" : "no specified polling-queue (default)";
+    }
+
 }
