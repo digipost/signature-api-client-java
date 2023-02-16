@@ -156,6 +156,8 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
         private Duration socketTimeout = DEFAULT_SOCKET_TIMEOUT;
         private Duration connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+        private Duration connectionRequestTimeout = connectTimeout;
+        private Duration responseArrivalTimeout = connectTimeout;
 
         private Optional<String> customUserAgentPart = Optional.empty();
         private URI serviceRoot = ServiceUri.PRODUCTION.uri;
@@ -374,7 +376,12 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
                             .setSslContext(sslContext())
                             .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                             .build());
-            RequestConfig.Builder requestConfigBuilder = RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(connectTimeout.toMillis()));
+
+            RequestConfig.Builder requestConfigBuilder = RequestConfig.custom()
+                    .setConnectionRequestTimeout(Timeout.ofMilliseconds(connectionRequestTimeout.toMillis()))
+                    .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout.toMillis()))
+                    .setResponseTimeout(Timeout.ofMilliseconds(responseArrivalTimeout.toMillis()));
+
             httpClientBuilder
                     .setConnectionManager(poolingHttpClientConnectionManager.build())
                     .setDefaultRequestConfig(requestConfigBuilder.build())
