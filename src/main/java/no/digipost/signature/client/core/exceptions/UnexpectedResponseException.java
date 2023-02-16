@@ -8,7 +8,7 @@ import java.util.Objects;
 public class UnexpectedResponseException extends SignatureException {
 
     private final XMLError error;
-    private final int statusCode;
+    private final int httpStatusCode;
 
     public UnexpectedResponseException(StatusCode actual) {
         this(null, actual);
@@ -25,11 +25,15 @@ public class UnexpectedResponseException extends SignatureException {
               (cause != null ? " - " + cause.getClass().getSimpleName() + ": '" + cause.getMessage() + "'.": ""),
               cause);
         this.error = errorEntity instanceof XMLError ? (XMLError) errorEntity : null;
-        this.statusCode = actual.value();
+        this.httpStatusCode = actual.value();
     }
 
-    public boolean isStatusCode(int statusCode) {
-        return this.statusCode == statusCode;
+    public boolean isHttpStatusCode(int statusCode) {
+        return this.httpStatusCode == statusCode;
+    }
+
+    public int httpStatusCode() {
+        return httpStatusCode;
     }
 
     public String getErrorCode() {
