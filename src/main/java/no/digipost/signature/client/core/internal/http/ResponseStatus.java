@@ -2,7 +2,6 @@ package no.digipost.signature.client.core.internal.http;
 
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 
-import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -70,14 +69,6 @@ public final class ResponseStatus {
     @Override
     public String toString() {
         return statusCode.toString() + (statusExpectation.test(statusCode) ? "" : " (unexpected)");
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof ResponseStatus) {
-            return Objects.equals(this.statusCode, ((ResponseStatus) obj).statusCode);
-        }
-        return false;
     }
 
 }

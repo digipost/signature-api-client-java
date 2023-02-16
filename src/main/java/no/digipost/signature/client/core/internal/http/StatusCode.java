@@ -1,10 +1,9 @@
 package no.digipost.signature.client.core.internal.http;
 
 import java.util.EnumSet;
-import java.util.Objects;
 import java.util.Set;
 
-public class StatusCode {
+public final class StatusCode {
 
     private final int value;
 
@@ -43,10 +42,12 @@ public class StatusCode {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof StatusCode) {
-            return Objects.equals(this.value, ((StatusCode) obj).value);
-        }
-        return false;
+        return obj instanceof StatusCode && this.value == ((StatusCode) obj).value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(value);
     }
 
 }
