@@ -129,8 +129,7 @@ public class CreateSignature {
                     .toArray(Source[]::new);
 
             SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = schemaFactory.newSchema(schemaSources);
-            return schema;
+            return schemaFactory.newSchema(schemaSources);
         } catch (Exception e) {
             throw new RuntimeException("Could not create schema from resources [" + String.join(", ", resources) + "]", e);
         }
