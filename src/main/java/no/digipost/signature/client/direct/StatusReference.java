@@ -55,10 +55,11 @@ public class StatusReference {
     }
 
     public URI getStatusUrl() {
+        URIBuilder uriBuilder = new URIBuilder(statusUrl).addParameter(STATUS_QUERY_TOKEN_PARAM_NAME, statusQueryToken);
         try {
-            return new URIBuilder(statusUrl).addParameter(STATUS_QUERY_TOKEN_PARAM_NAME, statusQueryToken).build();
+            return uriBuilder.build();
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Unable to create valid URL from " + uriBuilder, e);
         }
     }
 
