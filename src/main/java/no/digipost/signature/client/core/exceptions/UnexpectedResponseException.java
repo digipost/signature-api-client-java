@@ -1,49 +1,39 @@
 package no.digipost.signature.client.core.exceptions;
 
 import no.digipost.signature.api.xml.XMLError;
-
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.Response.StatusType;
+import no.digipost.signature.client.core.internal.http.StatusCode;
 
 import java.util.Objects;
 
 public class UnexpectedResponseException extends SignatureException {
 
     private final XMLError error;
-    private final StatusType actualStatus;
+    private final int httpStatusCode;
 
-    public UnexpectedResponseException(StatusType actual) {
+    public UnexpectedResponseException(StatusCode actual) {
         this(null, actual);
     }
 
-    public UnexpectedResponseException(Object errorEntity, StatusType actual, StatusType ... expected) {
+    public UnexpectedResponseException(Object errorEntity, StatusCode actual, StatusCode ... expected) {
         this(errorEntity, null, actual, expected);
     }
 
-    public UnexpectedResponseException(Object errorEntity, Throwable cause, StatusType actual, StatusType ... expected) {
+    public UnexpectedResponseException(Object errorEntity, Throwable cause, StatusCode actual, StatusCode ... expected) {
         super("Expected " + prettyprintExpectedStatuses(expected) +
-              ", but got " + actual.getStatusCode() + " " + actual.getReasonPhrase() +
+              ", but got " + actual.value() +
               (errorEntity != null ? " [" + errorEntity + "]" : "") +
               (cause != null ? " - " + cause.getClass().getSimpleName() + ": '" + cause.getMessage() + "'.": ""),
               cause);
         this.error = errorEntity instanceof XMLError ? (XMLError) errorEntity : null;
-        this.actualStatus = actual;
+        this.httpStatusCode = actual.value();
     }
 
-    public StatusType getActualStatus() {
-        return actualStatus;
+    public boolean isHttpStatusCode(int statusCode) {
+        return this.httpStatusCode == statusCode;
     }
 
-    public boolean is(Status.Family family) {
-        return actualStatus != null && actualStatus.getFamily() == family;
-    }
-
-    public boolean isStatusCode(int statusCode) {
-        return actualStatus != null && actualStatus.getStatusCode() == statusCode;
-    }
-
-    public boolean isStatusCodeOf(StatusType status) {
-        return isStatusCode(status.getStatusCode());
+    public int httpStatusCode() {
+        return httpStatusCode;
     }
 
     public String getErrorCode() {
@@ -59,10 +49,10 @@ public class UnexpectedResponseException extends SignatureException {
     }
 
     public boolean isErrorCode(String errorCode) {
-        return error != null & Objects.equals(error.getErrorCode(), errorCode);
+        return error != null && Objects.equals(error.getErrorCode(), errorCode);
     }
 
-    private static String prettyprintExpectedStatuses(StatusType ... statuses) {
+    private static String prettyprintExpectedStatuses(StatusCode ... statuses) {
         if (statuses == null || statuses.length == 0) {
             return "status not specified";
         }
@@ -73,8 +63,8 @@ public class UnexpectedResponseException extends SignatureException {
         return message + "]";
     }
 
-    private static String prettyprintSingleStatus(StatusType status) {
-        return status.getStatusCode() + " " + status.getReasonPhrase();
+    private static String prettyprintSingleStatus(StatusCode status) {
+        return status.value() +"";
     }
 
 }

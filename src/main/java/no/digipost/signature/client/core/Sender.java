@@ -41,4 +41,9 @@ public final class Sender implements WithOrganizationNumber {
         return Objects.hash(organizationNumber, pollingQueue);
     }
 
+    @Override
+    public String toString() {
+        return "sender " + organizationNumber + ", " + pollingQueue;
+    }
+
 }

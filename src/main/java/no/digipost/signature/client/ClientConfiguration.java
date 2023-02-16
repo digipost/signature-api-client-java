@@ -6,28 +6,29 @@ import no.digipost.signature.client.asice.DumpDocumentBundleToDisk;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.KeyException;
-import no.digipost.signature.client.core.internal.http.AddRequestHeaderFilter;
 import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
 import no.digipost.signature.client.core.internal.http.SignatureApiTrustStrategy;
 import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
 import no.digipost.signature.client.core.internal.security.TrustStoreLoader;
-import no.digipost.signature.client.core.internal.xml.JaxbMessageReaderWriterProvider;
 import no.digipost.signature.client.security.CertificateChainValidation;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import no.digipost.signature.client.security.OrganizationNumberValidation;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.ssl.SSLContexts;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.logging.LoggingFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.core.Configurable;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.HttpHeaders;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -37,6 +38,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.time.Clock;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +46,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import static java.util.Arrays.asList;
-import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
 import static no.digipost.signature.client.Certificates.TEST;
 import static no.digipost.signature.client.ClientMetadata.VERSION;
 
@@ -71,39 +72,36 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     /**
      * Socket timeout is used for both requests and, if any,
      * underlying layered sockets (typically for
-     * secure sockets). The default value is {@value #DEFAULT_SOCKET_TIMEOUT_MS} ms.
+     * secure sockets).
      */
-    public static final int DEFAULT_SOCKET_TIMEOUT_MS = 10_000;
+    public static final Duration DEFAULT_SOCKET_TIMEOUT = Duration.ofSeconds(10);
 
     /**
-     * The default connect timeout for requests: {@value #DEFAULT_CONNECT_TIMEOUT_MS} ms.
+     * The default connect timeout for requests.
      */
-    public static final int DEFAULT_CONNECT_TIMEOUT_MS = 10_000;
+    public static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(10);
 
 
 
-    private final Configurable<? extends Configuration> jaxrsConfig;
     private final KeyStoreConfig keyStoreConfig;
 
-    private final Iterable<String> certificatePaths;
+    private final org.apache.hc.client5.http.classic.HttpClient httpClient;
     private final Optional<Sender> sender;
     private final URI signatureServiceRoot;
+    private final Iterable<String> certificatePaths;
     private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
-    private final CertificateChainValidation serverCertificateValidation;
     private final Clock clock;
 
     private ClientConfiguration(
-            KeyStoreConfig keyStoreConfig, Configurable<? extends Configuration> jaxrsConfig,
-            Optional<Sender> sender, URI serviceRoot, Iterable<String> certificatePaths,
-            Iterable<DocumentBundleProcessor> documentBundleProcessors, CertificateChainValidation serverCertificateValidation, Clock clock) {
+            KeyStoreConfig keyStoreConfig, org.apache.hc.client5.http.classic.HttpClient httpClient, Optional<Sender> sender,
+            URI serviceRoot, Iterable<String> certificatePaths, Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
 
-        this.jaxrsConfig = jaxrsConfig;
         this.keyStoreConfig = keyStoreConfig;
-        this.certificatePaths = certificatePaths;
+        this.httpClient = httpClient;
         this.sender = sender;
         this.signatureServiceRoot = serviceRoot;
+        this.certificatePaths = certificatePaths;
         this.documentBundleProcessors = documentBundleProcessors;
-        this.serverCertificateValidation = serverCertificateValidation;
         this.clock = clock;
     }
 
@@ -134,42 +132,9 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     }
 
     @Override
-    public Iterable<String> getCertificatePaths() {
-        return certificatePaths;
+    public HttpClient httpClient() {
+        return httpClient;
     }
-
-
-    /**
-     * Get the JAX-RS {@link Configuration} based on the current state of this {@link ClientConfiguration}.
-     *
-     * @return the JAX-RS {@link Configuration}
-     */
-    @Override
-    public Configuration getJaxrsConfiguration() {
-        return jaxrsConfig.getConfiguration();
-    }
-
-
-    @Override
-    public SSLContext getSSLContext() {
-        try {
-            return SSLContexts.custom()
-                .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), (aliases, socket) -> keyStoreConfig.alias)
-                .loadTrustMaterial(TrustStoreLoader.build(this), new SignatureApiTrustStrategy(serverCertificateValidation))
-                .build();
-        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException e) {
-            if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
-                throw new KeyException(
-                        "Unable to load key from keystore, because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'. Possible causes:\n" +
-                        "* Wrong password for private key (the password for the keystore and the private key may not be the same)\n" +
-                        "* Multiple private keys in the keystore with different passwords (private keys in the same key store must have the same password)", e);
-            } else {
-                throw new KeyException("Unable to create the SSLContext, because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
-            }
-        }
-    }
-
-
 
     /**
      * Build a new {@link ClientConfiguration}.
@@ -178,26 +143,36 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         return new Builder(keystore);
     }
 
+    @Override
+    public Iterable<String> getCertificatePaths() {
+        return certificatePaths;
+    }
+
+
     public static class Builder {
 
-        private final Configurable<? extends Configuration> jaxrsConfig;
+        private final HttpClientBuilder httpClientBuilder;
         private final KeyStoreConfig keyStoreConfig;
 
-        private int socketTimeoutMs = DEFAULT_SOCKET_TIMEOUT_MS;
-        private int connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS;
+        private Duration socketTimeout = DEFAULT_SOCKET_TIMEOUT;
+        private Duration connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+        private Duration connectionRequestTimeout = connectTimeout;
+        private Duration responseArrivalTimeout = connectTimeout;
+
         private Optional<String> customUserAgentPart = Optional.empty();
         private URI serviceRoot = ServiceUri.PRODUCTION.uri;
         private Optional<Sender> globalSender = Optional.empty();
         private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
         private CertificateChainValidation serverCertificateTrustStrategy = new OrganizationNumberValidation("984661185"); // Posten Norge AS organization number
-        private Optional<LoggingFeature> loggingFeature = Optional.empty();
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
         private Clock clock = Clock.systemDefaultZone();
+        private Optional<HttpHost> proxy = Optional.empty();
+        private Optional<Consumer<? super HttpClientBuilder>> httpClientCustomizer = Optional.empty();
 
 
         private Builder(KeyStoreConfig keyStoreConfig) {
             this.keyStoreConfig = keyStoreConfig;
-            this.jaxrsConfig = new ClientConfig();
+            this.httpClientBuilder = HttpClientBuilder.create();
         }
 
         /**
@@ -217,20 +192,27 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
         /**
          * Override the
-         * {@link ClientConfiguration#DEFAULT_SOCKET_TIMEOUT_MS default socket timeout value}.
+         * {@link ClientConfiguration#DEFAULT_SOCKET_TIMEOUT default socket timeout value}.
          */
-        public Builder socketTimeoutMillis(int millis) {
-            this.socketTimeoutMs = millis;
+        public Builder socketTimeout(Duration timeout) {
+            this.socketTimeout = timeout;
             return this;
         }
 
         /**
          * Override the
-         * {@link ClientConfiguration#DEFAULT_CONNECT_TIMEOUT_MS default connect timeout value}.
+         * {@link ClientConfiguration#DEFAULT_CONNECT_TIMEOUT default connect timeout value}.
          */
-        public Builder connectTimeoutMillis(int millis) {
-            this.connectTimeoutMs = millis;
+        public Builder connectTimeout(Duration timeout) {
+            this.connectTimeout = timeout;
             return this;
+        }
+
+        /**
+         * Set proxy to be used by {@link HttpClient}.
+         */
+        public void proxy(HttpHost proxy) {
+            this.proxy = Optional.of(proxy);
         }
 
         public Builder trustStore(Certificates certificates) {
@@ -239,7 +221,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             }
             return trustStore(certificates.certificatePaths);
         }
-
 
         /**
          * Override the trust store configuration to load DER-encoded certificates from the given folder(s).
@@ -288,7 +269,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * {@link ClientConfiguration#HTTP_REQUEST_RESPONSE_LOGGER_NAME}.
          */
         public Builder enableRequestAndResponseLogging() {
-            loggingFeature = Optional.of(new LoggingFeature(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), 16 * 1024));
+            //loggingFeature = Optional.of(new LoggingFeature(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), 16 * 1024));
             return this;
         }
 
@@ -317,7 +298,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * together with the {@link SignatureJob job} it was created for. The processor is not responsible for closing
          * the stream, as this is handled by the library itself.
          *
-         * <h2>A note on performance</h2>
+         * <p><strong>A note on performance:</strong>
          * The processor is free to do what it want with the passed stream, but bear in mind that the time
          * used by a processor adds to the processing time to create signature jobs.
          *
@@ -330,7 +311,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         }
 
         /**
-         * This methods allows for custom configuration of JAX-RS (i.e. Jersey) if anything is
+         * This methods allows for custom configuration of the {@link HttpClient} if anything is
          * needed that is not already supported by the {@link ClientConfiguration.Builder}.
          * This method should not be used to configure anything that is already directly supported by the
          * {@code ClientConfiguration.Builder} API.
@@ -338,11 +319,10 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * If you still need to use this method, consider requesting first-class support for your requirement
          * on the library's <a href="https://github.com/digipost/signature-api-client-java/issues">web site on GitHub</a>.
          *
-         * @param customizer The operations to do on the JAX-RS {@link Configurable}, e.g.
-         *                   {@link Configurable#register(Object) registering components}.
+         * @param customizer The operations to do on the {@link HttpClientBuilder}.
          */
-        public Builder customizeJaxRs(Consumer<? super Configurable<? extends Configuration>> customizer) {
-            customizer.accept(jaxrsConfig);
+        public Builder customizeHttpClient(Consumer<? super HttpClientBuilder> customizer) {
+            this.httpClientCustomizer = Optional.of(customizer);
             return this;
         }
 
@@ -386,34 +366,53 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             return this;
         }
 
-
-        /**
-         * Disable the pre-initialization step of the internal HTTP client (Jersey Client) when
-         * instantiating the Signature API Client.
-         *
-         * @see org.glassfish.jersey.client.JerseyClient#preInitialize()
-         */
-        public Builder disablePreInitializingHttpClient() {
-            this.jaxrsConfig.property(PRE_INIT_CLIENT, false);
-            return this;
-        }
-
         public ClientConfiguration build() {
-            jaxrsConfig.property(ClientProperties.READ_TIMEOUT, socketTimeoutMs);
-            jaxrsConfig.property(ClientProperties.CONNECT_TIMEOUT, connectTimeoutMs);
-            jaxrsConfig.register(MultiPartFeature.class);
-            jaxrsConfig.register(JaxbMessageReaderWriterProvider.class);
-            jaxrsConfig.register(new AddRequestHeaderFilter(USER_AGENT, createUserAgentString()));
-            this.loggingFeature.ifPresent(jaxrsConfig::register);
-            return new ClientConfiguration(
-                    keyStoreConfig, jaxrsConfig, globalSender, serviceRoot, certificatePaths,
-                    documentBundleProcessors, serverCertificateTrustStrategy, clock);
+            // TODO: Add possibility to add logger for http client
+
+            SocketConfig socketConfig = SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(socketTimeout.toMillis())).build();
+            PoolingHttpClientConnectionManagerBuilder poolingHttpClientConnectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                    .setDefaultSocketConfig(socketConfig)
+                    .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+                            .setSslContext(sslContext())
+                            .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                            .build());
+
+            RequestConfig.Builder requestConfigBuilder = RequestConfig.custom()
+                    .setConnectionRequestTimeout(Timeout.ofMilliseconds(connectionRequestTimeout.toMillis()))
+                    .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout.toMillis()))
+                    .setResponseTimeout(Timeout.ofMilliseconds(responseArrivalTimeout.toMillis()));
+
+            httpClientBuilder
+                    .setConnectionManager(poolingHttpClientConnectionManager.build())
+                    .setDefaultRequestConfig(requestConfigBuilder.build())
+                    .setUserAgent(createUserAgentString());
+            proxy.ifPresent(httpClientBuilder::setProxy);
+            httpClientCustomizer.ifPresent(customizer -> customizer.accept(httpClientBuilder));
+
+            return new ClientConfiguration(keyStoreConfig, httpClientBuilder.build(), globalSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
         }
 
         String createUserAgentString() {
             return MANDATORY_USER_AGENT + customUserAgentPart.map(ua -> String.format(" (%s)", ua)).orElse("");
         }
 
+        private SSLContext sslContext() {
+            try {
+                return SSLContexts.custom()
+                        .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), (aliases, socket) -> keyStoreConfig.alias)
+                        .loadTrustMaterial(TrustStoreLoader.build(() -> certificatePaths), new SignatureApiTrustStrategy(serverCertificateTrustStrategy))
+                        .build();
+            } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException e) {
+                if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
+                    throw new KeyException(
+                            "Unable to load key from keystore, because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'. Possible causes:\n" +
+                                    "* Wrong password for private key (the password for the keystore and the private key may not be the same)\n" +
+                                    "* Multiple private keys in the keystore with different passwords (private keys in the same key store must have the same password)", e);
+                } else {
+                    throw new KeyException("Unable to create the SSLContext, because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
+                }
+            }
+        }
     }
 
 }

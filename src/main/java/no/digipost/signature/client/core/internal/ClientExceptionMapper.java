@@ -1,11 +1,8 @@
 package no.digipost.signature.client.core.internal;
 
-import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import no.digipost.signature.client.core.exceptions.SignatureException;
 
-import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
-import javax.ws.rs.ProcessingException;
 import java.util.function.Supplier;
 
 class ClientExceptionMapper {
@@ -20,23 +17,13 @@ class ClientExceptionMapper {
     <T> T doWithMappedClientException(Supplier<T> produceResult) {
         try {
             return produceResult.get();
-        } catch (ProcessingException e) {
+        } catch (RuntimeException e) {
             throw map(e);
         }
     }
 
 
-    private RuntimeException map(ProcessingException e) {
-        if (e.getCause() instanceof SSLException) {
-            String sslExceptionMessage = e.getCause().getMessage();
-            if (sslExceptionMessage != null && sslExceptionMessage.contains("protocol_version")) {
-                return new ConfigurationException(
-                        "Invalid TLS protocol version. This will typically happen if you're running on an older Java version, which doesn't support TLS 1.2. " +
-                        "Java 7 needs to be explicitly configured to support TLS 1.2. See 'JSSE tuning parameters' at " +
-                        "https://blogs.oracle.com/java-platform-group/entry/diagnosing_tls_ssl_and_https.", e);
-            }
-        }
-
+    private RuntimeException map(RuntimeException e) {
         if (e.getCause() instanceof SSLHandshakeException) {
             return new SignatureException(
                     "Unable to perform SSL handshake with remote server. Some possible causes (could be others, see underlying error): \n" +

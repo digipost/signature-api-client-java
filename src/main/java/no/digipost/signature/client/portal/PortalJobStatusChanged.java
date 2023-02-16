@@ -16,7 +16,7 @@ import static no.digipost.signature.client.portal.Signature.signatureFrom;
  * Indicates a job which has got a new {@link PortalJobStatus status}
  * since the last time its status was queried.
  *
- * <h3>Confirmation</h3>
+ * <h2>Confirmation</h2>
  *
  * When the client {@link Confirmable confirms} this, the job and its associated
  * resources will become unavailable through the Signature API.

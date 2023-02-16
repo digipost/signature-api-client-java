@@ -3,7 +3,7 @@ package no.digipost.signature.client.core.internal.http;
 import no.digipost.signature.client.core.exceptions.SecurityException;
 import no.digipost.signature.client.security.CertificateChainValidation;
 import no.digipost.signature.client.security.CertificateChainValidation.Result;
-import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.hc.core5.ssl.TrustStrategy;
 
 import java.security.cert.X509Certificate;
 
@@ -35,7 +35,7 @@ public final class SignatureApiTrustStrategy implements TrustStrategy {
             case TRUSTED_AND_SKIP_FURTHER_VALIDATION: return true;
             case TRUSTED: return false;
             case UNTRUSTED: default:
-                String subjectDN = chain[0].getSubjectDN().getName();
+                String subjectDN = chain[0].getSubjectX500Principal().getName();
                 throw new SecurityException(
                     "Untrusted server certificate, according to " + certificateChainValidation + ". " +
                     "Make sure the server URI is correct. Actual certificate: " + subjectDN + ". " +

@@ -1,17 +1,12 @@
 package no.digipost.signature.client.core.internal.http;
 
-import javax.net.ssl.SSLContext;
-import javax.ws.rs.core.Configuration;
+import org.apache.hc.client5.http.classic.HttpClient;
 
 import java.net.URI;
 
 public interface HttpIntegrationConfiguration {
 
-    String PRE_INIT_CLIENT = "no.posten.signering.client.preInit";
-
-    Configuration getJaxrsConfiguration();
-
-    SSLContext getSSLContext();
+    HttpClient httpClient();
 
     URI getServiceRoot();
 

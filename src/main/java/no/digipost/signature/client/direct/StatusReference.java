@@ -1,8 +1,9 @@
 package no.digipost.signature.client.direct;
 
-import javax.ws.rs.core.UriBuilder;
+import org.apache.hc.core5.net.URIBuilder;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Objects;
 /**
  * A {@code StatusReference} is constructed from the url acquired from
@@ -54,7 +55,12 @@ public class StatusReference {
     }
 
     public URI getStatusUrl() {
-        return UriBuilder.fromUri(statusUrl).queryParam(STATUS_QUERY_TOKEN_PARAM_NAME, statusQueryToken).build();
+        URIBuilder uriBuilder = new URIBuilder(statusUrl).addParameter(STATUS_QUERY_TOKEN_PARAM_NAME, statusQueryToken);
+        try {
+            return uriBuilder.build();
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Unable to create valid URL from " + uriBuilder, e);
+        }
     }
 
     public static abstract class StatusUrlContruction {

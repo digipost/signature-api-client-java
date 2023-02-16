@@ -15,8 +15,10 @@ import no.digipost.signature.client.core.DocumentType;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 
 import java.io.ByteArrayInputStream;
@@ -46,9 +48,12 @@ public class CreateSignatureTest {
     private KeyStoreConfig noekkelpar;
     private List<ASiCEAttachable> files;
 
-    private static final Jaxb2Marshaller marshaller; static {
-        marshaller = new Jaxb2Marshaller();
-        marshaller.setClassesToBeBound(XAdESSignatures.class, QualifyingProperties.class);
+    private static final Unmarshaller unmarshaller; static {
+        try {
+            unmarshaller = JAXBContext.newInstance(XAdESSignatures.class, QualifyingProperties.class).createUnmarshaller();
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @BeforeEach
@@ -64,19 +69,19 @@ public class CreateSignatureTest {
     }
 
     @Test
-    public void test_generated_signatures() {
+    public void test_generated_signatures() throws JAXBException {
         /*
          * Expected signature value (Base-64 encoded) from the given keys, files, and time of the signing.
          * If this changes, something has changed in the signature implementation, and must be investigated!
          */
         final String expectedBase64EncodedSignatureValue =
-                "GELdAv4Dc+w5RnN3Hd2Fk9KjRh8LyNaiLM8PZLvFriuahHoZcb3OBTdCJhaxoup1tgmOUspMGgJ7Zgl6/hh" +
-                "G+zuZ0UjT521mqH4PrupH464B9ztBFnPScedvJpSAwROqSn7eCG78J+ittKBhKxPkBmfStaGPxnvqm2reug" +
-                "I3vbFem+KDiFU+Q4T26OWXapLQC2fhEttH/pUYND1PZN8pNaMiKgzaG7aHurMQCoB5qxfKEL9YEe4pF7H0T" +
-                "PAdNndCACJiWrkHNQ5gTJ+UWx8y2kuzZHEGGTJ+ip9KpCRohDfLapQAMTh0zMLrUNbYpq6kiYWrlxTNfdcVm4skBY0j9Q==";
+                "L3HFN44OGUEbK5p9zxbnDZrey+UnQ9fYQX0k7gv8hfxouRfXFvNHXtUJEI00/BOlhcyGRu8wEIpKYEkDIzj" +
+                "WZyKXjV8Tz6PkHMJedgVGFDPlKwkx7gufntbjH2xqhBOsJzobDQ44rqOlK1YiXNQCPAMFwN/CpOTQTRFuf9" +
+                "/37BN2QG5cmgz+ZNqcKPwQnjrVaQBOrQEc5D2/n05aPsRdc6OUzu2TIftoRLRH1peRDLCAo7MjPNhYo1CCi" +
+                "nBa0FMipG5jtqUPYJJMTt56wIJlwQ95PhGIEYtdRYwxlgSau9Bw+wYmD4NU0K0hw6FgBQ/UDF87T5Zr7HTPWPMwpngkWg==";
 
         Signature signature = createSignature.createSignature(files, noekkelpar);
-        XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
+        XAdESSignatures xAdESSignatures = (XAdESSignatures) unmarshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
 
         assertThat(xAdESSignatures, where(XAdESSignatures::getSignatures, hasSize(1)));
         no.digipost.signature.api.xml.thirdparty.xmldsig.Signature dSignature = xAdESSignatures.getSignatures().get(0);
@@ -86,10 +91,10 @@ public class CreateSignatureTest {
     }
 
     @Test
-    public void test_xades_signed_properties() {
+    public void test_xades_signed_properties() throws JAXBException {
         Signature signature = createSignature.createSignature(files, noekkelpar);
 
-        XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
+        XAdESSignatures xAdESSignatures = (XAdESSignatures) unmarshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
         no.digipost.signature.api.xml.thirdparty.xmldsig.Object object = xAdESSignatures.getSignatures().get(0).getObjects().get(0);
 
         QualifyingProperties xadesProperties = (QualifyingProperties) object.getContent().get(0);
@@ -101,14 +106,14 @@ public class CreateSignatureTest {
     }
 
     @Test
-    public void should_support_filenames_with_spaces_and_other_characters() {
+    public void should_support_filenames_with_spaces_and_other_characters() throws JAXBException {
         List<ASiCEAttachable> otherFiles = asList(
                 file("dokument (2).pdf", "hoveddokument-innhold".getBytes(), DocumentType.PDF.getMediaType()),
                 file("manifest.xml", "manifest-innhold".getBytes(), ASiCEAttachable.XML_MEDIATYPE)
         );
 
         Signature signature = createSignature.createSignature(otherFiles, noekkelpar);
-        XAdESSignatures xAdESSignatures = (XAdESSignatures) marshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
+        XAdESSignatures xAdESSignatures = (XAdESSignatures) unmarshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
         String uri = xAdESSignatures.getSignatures().get(0).getSignedInfo().getReferences().get(0).getURI();
         assertThat(uri, is("dokument+%282%29.pdf"));
     }
@@ -132,7 +137,7 @@ public class CreateSignatureTest {
         assertThat(certDigest.getDigestValue().length, is(20)); // SHA1 is 160 bits => 20 bytes
 
         X509IssuerSerialType issuerSerial = signingCertificate.getCerts().get(0).getIssuerSerial();
-        assertThat(issuerSerial.getX509IssuerName(), is("CN=Avsender, OU=Avsender, O=Avsender, L=Oslo, ST=NO, C=NO"));
+        assertThat(issuerSerial.getX509IssuerName(), is("CN=Avsender,OU=Avsender,O=Avsender,L=Oslo,ST=NO,C=NO"));
         assertThat(issuerSerial.getX509SerialNumber(), is(new BigInteger("589725471")));
     }
 

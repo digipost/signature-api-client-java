@@ -20,11 +20,11 @@ import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactor
 
 import java.util.Optional;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 import static no.digipost.signature.client.direct.DirectJobStatusResponse.noUpdatedStatus;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.toJaxb;
+import static org.apache.hc.core5.http.ContentType.APPLICATION_OCTET_STREAM;
+import static org.apache.hc.core5.http.ContentType.APPLICATION_XML;
 
 public class DirectClient {
 
@@ -132,11 +132,11 @@ public class DirectClient {
 
 
     public ResponseInputStream getXAdES(XAdESReference xAdESReference) {
-        return client.getDataStream(xAdESReference.getxAdESUrl(), APPLICATION_XML_TYPE);
+        return client.getDataStream(xAdESReference.getxAdESUrl(), APPLICATION_XML);
     }
 
     public ResponseInputStream getPAdES(PAdESReference pAdESReference) {
-        return client.getDataStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM_TYPE, APPLICATION_XML_TYPE);
+        return client.getDataStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM, APPLICATION_XML);
     }
 
     public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {

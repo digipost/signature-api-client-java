@@ -5,14 +5,14 @@ import java.io.InputStream;
 
 public class ResponseInputStream extends FilterInputStream {
 
-    private final int contentLength;
+    private final long contentLength;
 
-    public ResponseInputStream(InputStream in, int contentLength) {
+    public ResponseInputStream(InputStream in, long contentLength) {
         super(in);
         this.contentLength = contentLength;
     }
 
-    public int getContentLength() {
+    public long getContentLength() {
         return contentLength;
     }
 }

@@ -16,7 +16,7 @@ public class ArchiveClient {
     }
 
     public ResponseInputStream getPAdES(ArchiveOwner owner, String id) {
-        return client.getDataStream(root -> root.path(owner.getOrganizationNumber()).path("archive/documents/").path(id).path("pades"));
+        return client.getDataStream(owner.getOrganizationNumber() + "/archive/documents/" + id + "/pades");
     }
 
 }
