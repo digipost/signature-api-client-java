@@ -47,7 +47,6 @@ import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.HeaderGroup;
-import org.apache.hc.core5.net.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,13 +55,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static no.digipost.signature.client.core.internal.ActualSender.getActualSender;
@@ -125,7 +122,7 @@ public class ClientHelper {
 
                 try (HttpEntity multiPart = multipartEntityBuilder.build()) {
                     ClassicHttpRequest request = ClassicRequestBuilder
-                            .post(new URIBuilder(httpClient.signatureServiceRoot()).appendPath(target.path(actualSender)).build())
+                            .post(httpClient.constructUrl(uri -> uri.appendPath(target.path(actualSender))))
                             .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
                             .build();
 
@@ -135,8 +132,6 @@ public class ClientHelper {
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
             }
         });
     }
@@ -182,11 +177,19 @@ public class ClientHelper {
         });
     }
 
-    public ResponseInputStream getDataStream(URI uri, ContentType ... acceptedResponses) {
+    public ResponseInputStream getDataStream(URI absoluteUri, ContentType ... acceptedResponses) {
+        if (!absoluteUri.isAbsolute()) {
+            throw new IllegalArgumentException("'" + absoluteUri + "' is not an absolute URL");
+        }
         return call(() -> {
             HeaderGroup acceptHeader = new HeaderGroup();
-            Stream.of(acceptedResponses).map(ContentType::getMimeType).map(acceptedMimeType -> new BasicHeader(ACCEPT, acceptedMimeType)).forEach(acceptHeader::addHeader);
-            ClassicHttpRequest request = ClassicRequestBuilder.get(uri).addHeader(acceptHeader.getCondensedHeader(ACCEPT)).build();
+            for (ContentType acceptedType : acceptedResponses) {
+                acceptHeader.addHeader(new BasicHeader(ACCEPT, acceptedType.getMimeType()));
+            }
+
+            ClassicHttpRequest request = ClassicRequestBuilder.get(absoluteUri)
+                    .addHeader(acceptHeader.getCondensedHeader(ACCEPT))
+                    .build();
 
             ClassicHttpResponse response = null;
             try {
@@ -206,7 +209,7 @@ public class ClientHelper {
                 }
                 throw e instanceof RuntimeException
                     ? (RuntimeException) e
-                    : new RuntimeException("uri: " + uri + ": " + e.getClass().getSimpleName() + " '" + e.getMessage() + "'", e);
+                    : new RuntimeException(request + ": " + e.getClass().getSimpleName() + " '" + e.getMessage() + "'", e);
             }
         });
     }
@@ -238,25 +241,20 @@ public class ClientHelper {
 
     private <RESPONSE_CLASS> JobStatusResponse<RESPONSE_CLASS> getStatusChange(final Optional<Sender> sender, final Target target, final Class<RESPONSE_CLASS> responseClass) {
         return call(() -> {
+
             Sender actualSender = getActualSender(sender, globalSender);
+            URI jobStatusUrl = httpClient.constructUrl(uri -> uri
+                    .appendPath(target.path(actualSender))
+                    .addParameter(POLLING_QUEUE_QUERY_PARAMETER, actualSender.getPollingQueue().value));
 
             try {
-                URI uri = new URIBuilder(httpClient.signatureServiceRoot())
-                        .appendPath(target.path(actualSender))
-                        .addParameter(POLLING_QUEUE_QUERY_PARAMETER, actualSender.getPollingQueue().value)
-                        .build();
-                ClassicHttpRequest get = ClassicRequestBuilder
-                        .get(uri)
-                        .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
-                        .build();
+                ClassicHttpRequest get = ClassicRequestBuilder.get(jobStatusUrl).addHeader(ACCEPT, APPLICATION_XML.getMimeType()).build();
                 return httpClient.httpClient().execute(get, response -> {
                     StatusCode status = ResponseStatus.resolve(response.getCode())
                             .throwIf(HttpStatus.SC_TOO_MANY_REQUESTS, s -> new TooEagerPollingException())
                             .expect(StatusCodeFamily.SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
                     return new JobStatusResponse<>(status.value() == HttpStatus.SC_NO_CONTENT ? null : Marshalling.unmarshal(response.getEntity().getContent(), responseClass), getNextPermittedPollTime(response));
                 });
-            } catch (URISyntaxException e) {
-                throw new RuntimeException("Could not create uri, because " + e.getMessage(), e);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
