@@ -255,11 +255,11 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M7</version>
+                    <version>3.0.0-M9</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
@@ -287,7 +287,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.2.1</version>
                     <configuration>
                         <rules>
                             <bannedDependencies>
@@ -299,11 +299,7 @@
                                 <searchTransitive>true</searchTransitive>
                             </bannedDependencies>
                             <requireMavenVersion>
-                                <!-- Maven 3.3.1 is needed for .mvn/maven.config to work
-                                     https://maven.apache.org/docs/3.3.1/release-notes.html
-                                     For more info on why we use it, see the super-POM:
-                                     https://github.com/digipost/digipost-open-super-pom#build-source-and-javadoc-artifacts-->
-                                <version>3.3.1</version>
+                                <version>3.6.3</version>
                             </requireMavenVersion>
                         </rules>
                     </configuration>
@@ -311,7 +307,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>versions-maven-plugin</artifactId>
-                    <version>2.11.0</version>
+                    <version>2.14.2</version>
                 </plugin>
             </plugins>
         </pluginManagement>
