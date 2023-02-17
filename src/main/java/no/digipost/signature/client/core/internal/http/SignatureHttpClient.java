@@ -15,7 +15,7 @@ public interface SignatureHttpClient {
 
     default URI constructUrl(UnaryOperator<URIBuilder> uri) {
         URI serviceRoot = signatureServiceRoot();
-        URIBuilder uriBuilder = uri.apply(new URIBuilder());
+        URIBuilder uriBuilder = uri.apply(new URIBuilder(serviceRoot));
         try {
             return uriBuilder.build();
         } catch (URISyntaxException e) {
