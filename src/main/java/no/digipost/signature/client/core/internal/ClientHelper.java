@@ -17,6 +17,7 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.exceptions.BrokerNotAuthorizedException;
 import no.digipost.signature.client.core.exceptions.CantQueryStatusException;
 import no.digipost.signature.client.core.exceptions.DocumentsNotDeletableException;
+import no.digipost.signature.client.core.exceptions.HttpIOException;
 import no.digipost.signature.client.core.exceptions.InvalidStatusQueryTokenException;
 import no.digipost.signature.client.core.exceptions.JobCannotBeCancelledException;
 import no.digipost.signature.client.core.exceptions.NotCancellableException;
@@ -59,6 +60,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
@@ -104,36 +106,40 @@ public class ClientHelper {
     }
 
     private <RESPONSE, REQUEST> RESPONSE multipartSignatureJobRequest(REQUEST signatureJobRequest, DocumentBundle documentBundle, Sender actualSender, Target target, Class<RESPONSE> responseClass) {
-        return call(() -> {
-            try {
-                MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
-                multipartEntityBuilder.setContentType(MULTIPART_MIXED);
+        MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
+        multipartEntityBuilder.setContentType(MULTIPART_MIXED);
 
-                try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-                    Marshalling.marshal(signatureJobRequest, os);
-                    multipartEntityBuilder.addPart(MultipartPartBuilder.create()
-                            .setBody(new ByteArrayBody(os.toByteArray(), APPLICATION_XML, ""))
-                            .addHeader(CONTENT_TYPE, APPLICATION_XML.getMimeType())
-                            .build());
-                }
-                multipartEntityBuilder.addPart(MultipartPartBuilder.create()
-                        .setBody(new InputStreamBody(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM, ""))
-                        .addHeader(CONTENT_TYPE, APPLICATION_OCTET_STREAM.getMimeType()).build());
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            Marshalling.marshal(signatureJobRequest, os);
+            multipartEntityBuilder.addPart(MultipartPartBuilder.create()
+                    .setBody(new ByteArrayBody(os.toByteArray(), APPLICATION_XML, ""))
+                    .addHeader(CONTENT_TYPE, APPLICATION_XML.getMimeType())
+                    .build());
 
-                try (HttpEntity multiPart = multipartEntityBuilder.build()) {
-                    ClassicHttpRequest request = ClassicRequestBuilder
-                            .post(httpClient.constructUrl(uri -> uri.appendPath(target.path(actualSender))))
-                            .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
-                            .build();
+            multipartEntityBuilder.addPart(MultipartPartBuilder.create()
+                    .setBody(new InputStreamBody(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM, ""))
+                    .addHeader(CONTENT_TYPE, APPLICATION_OCTET_STREAM.getMimeType()).build());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
-                    request.setEntity(multiPart);
+        try (HttpEntity multiPart = multipartEntityBuilder.build()) {
+            ClassicHttpRequest request = ClassicRequestBuilder
+                    .post(httpClient.constructUrl(uri -> uri.appendPath(target.path(actualSender))))
+                    .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
+                    .build();
 
+            request.setEntity(multiPart);
+            return call(() -> {
+                try {
                     return httpClient.httpClient().execute(request, response -> parseResponse(response, responseClass));
+                } catch (IOException e) {
+                    throw new HttpIOException(request, e);
                 }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
+            });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public XMLDirectSignerResponse requestNewRedirectUrl(WithSignerUrl url) {
@@ -149,13 +155,13 @@ public class ClientHelper {
     }
 
     public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(final URI statusUrl) {
-        return call(() -> {
-            ClassicHttpRequest request = new HttpGet(statusUrl);
-            request.addHeader(ACCEPT, APPLICATION_XML.getMimeType());
+        ClassicHttpRequest request = new HttpGet(statusUrl);
+        request.addHeader(ACCEPT, APPLICATION_XML.getMimeType());
 
+        return call(() -> {
             try {
                 return httpClient.httpClient().execute(request, response -> {
-                    ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(status -> {
+                    ResponseStatus.fromHttpStatusCode(response.getCode()).expect(SUCCESSFUL).orThrow(status -> {
                         if (status.value() == HttpStatus.SC_FORBIDDEN) {
                             XMLError error = extractError(response);
                             if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
@@ -172,7 +178,7 @@ public class ClientHelper {
                     return parseResponse(response, XMLDirectSignatureJobStatusResponse.class);
                 });
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw new HttpIOException(request, e);
             }
         });
     }
@@ -185,19 +191,19 @@ public class ClientHelper {
         if (!absoluteUri.isAbsolute()) {
             throw new IllegalArgumentException("'" + absoluteUri + "' is not an absolute URL");
         }
+        HeaderGroup acceptHeader = new HeaderGroup();
+        for (ContentType acceptedType : acceptedResponses) {
+            acceptHeader.addHeader(new BasicHeader(ACCEPT, acceptedType.getMimeType()));
+        }
+
+        ClassicHttpRequest request = ClassicRequestBuilder.get(absoluteUri)
+                .addHeader(acceptHeader.getCondensedHeader(ACCEPT))
+                .build();
+
         return call(() -> {
-            HeaderGroup acceptHeader = new HeaderGroup();
-            for (ContentType acceptedType : acceptedResponses) {
-                acceptHeader.addHeader(new BasicHeader(ACCEPT, acceptedType.getMimeType()));
-            }
-
-            ClassicHttpRequest request = ClassicRequestBuilder.get(absoluteUri)
-                    .addHeader(acceptHeader.getCondensedHeader(ACCEPT))
-                    .build();
-
             ClassicHttpResponse response = null;
             try {
-                response = httpClient.httpClient().execute(null, request);
+                response = httpClient.httpClient().executeOpen(null, request, null);
                 StatusCode statusCode = StatusCode.from(response.getCode());
                 if (!statusCode.is(SUCCESSFUL)) {
                     throw exceptionForGeneralError(response);
@@ -218,21 +224,13 @@ public class ClientHelper {
         });
     }
 
-    public void cancel(final Cancellable cancellable) {
-        call(() -> {
+    public void cancel(Cancellable cancellable) {
             if (cancellable.getCancellationUrl() != null) {
-                try(ClassicHttpResponse response = postEmptyEntity(cancellable.getCancellationUrl().getUrl())) {
-                    ResponseStatus.resolve(response.getCode())
-                            .throwIf(HttpStatus.SC_CONFLICT, status -> new JobCannotBeCancelledException(status, extractError(response)))
-                            .expect(StatusCodeFamily.SUCCESSFUL)
-                            .orThrow(status -> exceptionForGeneralError(response));
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+                postEmptyEntity(cancellable.getCancellationUrl().getUrl(), httpResponse -> ResponseStatus.fromHttpResponse(httpResponse)
+                        .throwIf(HttpStatus.SC_CONFLICT, status -> new JobCannotBeCancelledException(status, extractError(httpResponse))));
             } else {
                 throw new NotCancellableException();
             }
-        });
     }
 
     public JobStatusResponse<XMLPortalSignatureJobStatusChangeResponse> getPortalStatusChange(Optional<Sender> sender) {
@@ -244,23 +242,23 @@ public class ClientHelper {
     }
 
     private <RESPONSE_CLASS> JobStatusResponse<RESPONSE_CLASS> getStatusChange(final Optional<Sender> sender, final Target target, final Class<RESPONSE_CLASS> responseClass) {
+
+        Sender actualSender = getActualSender(sender, globalSender);
+        URI jobStatusUrl = httpClient.constructUrl(uri -> uri
+                .appendPath(target.path(actualSender))
+                .addParameter(POLLING_QUEUE_QUERY_PARAMETER, actualSender.getPollingQueue().value));
+
+        ClassicHttpRequest getStatusRequest = ClassicRequestBuilder.get(jobStatusUrl).addHeader(ACCEPT, APPLICATION_XML.getMimeType()).build();
         return call(() -> {
-
-            Sender actualSender = getActualSender(sender, globalSender);
-            URI jobStatusUrl = httpClient.constructUrl(uri -> uri
-                    .appendPath(target.path(actualSender))
-                    .addParameter(POLLING_QUEUE_QUERY_PARAMETER, actualSender.getPollingQueue().value));
-
             try {
-                ClassicHttpRequest get = ClassicRequestBuilder.get(jobStatusUrl).addHeader(ACCEPT, APPLICATION_XML.getMimeType()).build();
-                return httpClient.httpClient().execute(get, response -> {
-                    StatusCode status = ResponseStatus.resolve(response.getCode())
+                return httpClient.httpClient().execute(getStatusRequest, response -> {
+                    StatusCode status = ResponseStatus.fromHttpStatusCode(response.getCode())
                             .throwIf(HttpStatus.SC_TOO_MANY_REQUESTS, s -> new TooEagerPollingException())
                             .expect(StatusCodeFamily.SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
                     return new JobStatusResponse<>(status.value() == HttpStatus.SC_NO_CONTENT ? null : Marshalling.unmarshal(response.getEntity().getContent(), responseClass), getNextPermittedPollTime(response));
                 });
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw new HttpIOException(getStatusRequest, e);
             }
         });
     }
@@ -270,19 +268,13 @@ public class ClientHelper {
     }
 
     public void confirm(final Confirmable confirmable) {
-        call(() -> {
-            if (confirmable.getConfirmationReference() != null) {
-                URI url = confirmable.getConfirmationReference().getConfirmationUrl();
-                LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
-                try (ClassicHttpResponse response = postEmptyEntity(url)) {
-                    ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(status -> exceptionForGeneralError(response));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                LOG.info("Does not need to send confirmation for '{}'", confirmable);
-            }
-        });
+        if (confirmable.getConfirmationReference() != null) {
+            URI url = confirmable.getConfirmationReference().getConfirmationUrl();
+            LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
+            postEmptyEntity(url);
+        } else {
+            LOG.info("Does not need to send confirmation for '{}'", confirmable);
+        }
     }
 
     private <T> T call(Supplier<T> supplier) {
@@ -294,52 +286,53 @@ public class ClientHelper {
     }
 
     public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {
-        call(() -> {
-            if (deleteDocumentsUrl != null) {
-                URI url = deleteDocumentsUrl.getUrl();
-                try (ClassicHttpResponse response = delete(url)) {
-                    ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(status -> exceptionForGeneralError(response));
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            } else {
-                throw new DocumentsNotDeletableException();
+        if (deleteDocumentsUrl != null) {
+            delete(deleteDocumentsUrl.getUrl());
+        } else {
+            throw new DocumentsNotDeletableException();
+        }
+    }
+
+    private void postEmptyEntity(URI uri) {
+        postEmptyEntity(uri, ResponseStatus::fromHttpResponse);
+    }
+
+    private void postEmptyEntity(URI uri, Function<ClassicHttpResponse, ResponseStatus> responseStatusHandling) {
+        ClassicHttpRequest request = ClassicRequestBuilder
+                .post(uri)
+                .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
+                .build();
+        call(() ->  {
+            try {
+                httpClient.httpClient().execute(request, response -> responseStatusHandling.apply(response)
+                        .expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response)));
+            } catch (IOException e) {
+                throw new HttpIOException(request, e);
             }
         });
     }
 
-    private ClassicHttpResponse postEmptyEntity(URI uri) {
-        try {
-            ClassicHttpRequest request = ClassicRequestBuilder
-                    .post(uri)
-                    .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
-                    .build();
-
-            return httpClient.httpClient().execute(null, request);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private ClassicHttpResponse delete(URI uri) {
-        try {
-            ClassicHttpRequest request = ClassicRequestBuilder
-                    .delete(uri)
-                    .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
-                    .build();
-
-            return httpClient.httpClient().execute(null, request);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private void delete(URI uri) {
+        ClassicHttpRequest request = ClassicRequestBuilder
+                .delete(uri)
+                .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
+                .build();
+        call(() ->  {
+            try {
+                httpClient.httpClient().execute(request, response -> ResponseStatus.fromHttpStatusCode(response.getCode())
+                        .expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response)));
+            } catch (IOException e) {
+                throw new HttpIOException(request, e);
+            }
+        });
     }
 
     private static <T> T parseResponse(ClassicHttpResponse response, Class<T> responseType) {
-        ResponseStatus.resolve(response.getCode()).expect(StatusCodeFamily.SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
-        try(InputStream body = response.getEntity().getContent()) {
+        ResponseStatus.fromHttpResponse(response).expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
+        try (InputStream body = response.getEntity().getContent()) {
             return Marshalling.unmarshal(body, responseType);
         } catch (IOException e) {
-            throw new UncheckedIOException("Could not parse response.", e);
+            throw new HttpIOException(response, e);
         }
     }
 
@@ -348,7 +341,7 @@ public class ClientHelper {
         if (BROKER_NOT_AUTHORIZED.sameAs(error.getErrorCode())) {
             return new BrokerNotAuthorizedException(error);
         }
-        return new UnexpectedResponseException(error, ResponseStatus.resolve(response.getCode()).get(), StatusCode.from(HttpStatus.SC_OK));
+        return new UnexpectedResponseException(error, ResponseStatus.fromHttpStatusCode(response.getCode()).get(), StatusCode.from(HttpStatus.SC_OK));
     }
 
     private static XMLError extractError(ClassicHttpResponse response) {
@@ -376,7 +369,7 @@ public class ClientHelper {
                 throw new UnexpectedResponseException(
                         HttpHeaders.CONTENT_TYPE + " " + contentType.map(ContentType::getMimeType).orElse("unknown") + ": " +
                         Optional.ofNullable(errorAsString).filter(StringUtils::isNoneBlank).orElse("<no content in response>"),
-                        ResponseStatus.resolve(response.getCode()).get(), StatusCode.from(HttpStatus.SC_OK));
+                        ResponseStatus.fromHttpStatusCode(response.getCode()).get(), StatusCode.from(HttpStatus.SC_OK));
             }
             return error;
         } catch (ProtocolException e) {

@@ -1,6 +1,7 @@
 package no.digipost.signature.client.core.internal.http;
 
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
+import org.apache.hc.core5.http.HttpResponse;
 
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -9,7 +10,11 @@ import java.util.stream.Stream;
 
 public final class ResponseStatus {
 
-    public static ResponseStatus resolve(int statusCode) {
+    public static ResponseStatus fromHttpResponse(HttpResponse response) {
+        return response != null ? fromHttpStatusCode(response.getCode()) : null;
+    }
+
+    public static ResponseStatus fromHttpStatusCode(int statusCode) {
         return new ResponseStatus(new StatusCode(statusCode), s -> true);
     }
 
