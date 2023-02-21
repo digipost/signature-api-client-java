@@ -16,6 +16,7 @@ import no.digipost.signature.client.security.KeyStoreConfig;
 import no.digipost.signature.client.security.OrganizationNumberValidation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
@@ -87,7 +88,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
     private final KeyStoreConfig keyStoreConfig;
 
-    private final org.apache.hc.client5.http.classic.HttpClient httpClient;
+    private final HttpClient httpClient;
     private final MaySpecifySender defaultSender;
     private final URI signatureServiceRoot;
     private final Iterable<String> certificatePaths;
@@ -95,8 +96,8 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     private final Clock clock;
 
     private ClientConfiguration(
-            KeyStoreConfig keyStoreConfig, org.apache.hc.client5.http.classic.HttpClient httpClient, MaySpecifySender defaultSender,
-            URI serviceRoot, Iterable<String> certificatePaths, Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
+            KeyStoreConfig keyStoreConfig, HttpClient httpClient, MaySpecifySender defaultSender, URI serviceRoot,
+            Iterable<String> certificatePaths, Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
 
         this.keyStoreConfig = keyStoreConfig;
         this.httpClient = httpClient;
@@ -126,7 +127,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     public Clock getClock() {
         return clock;
     }
-
 
     @Override
     public URI getServiceRoot() {
@@ -371,9 +371,13 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         public ClientConfiguration build() {
             // TODO: Add possibility to add logger for http client
 
-            SocketConfig socketConfig = SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(socketTimeout.toMillis())).build();
             PoolingHttpClientConnectionManagerBuilder poolingHttpClientConnectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                    .setDefaultSocketConfig(socketConfig)
+                    .setDefaultSocketConfig(SocketConfig.custom()
+                            .setSoTimeout(Timeout.ofMilliseconds(socketTimeout.toMillis()))
+                            .build())
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
+                            .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout.toMillis()))
+                            .build())
                     .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
                             .setSslContext(sslContext())
                             .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
@@ -381,7 +385,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
             RequestConfig.Builder requestConfigBuilder = RequestConfig.custom()
                     .setConnectionRequestTimeout(Timeout.ofMilliseconds(connectionRequestTimeout.toMillis()))
-                    .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout.toMillis()))
                     .setResponseTimeout(Timeout.ofMilliseconds(responseArrivalTimeout.toMillis()));
 
             httpClientBuilder
@@ -408,8 +411,8 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
                 if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
                     throw new KeyException(
                             "Unable to load key from keystore, because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'. Possible causes:\n" +
-                                    "* Wrong password for private key (the password for the keystore and the private key may not be the same)\n" +
-                                    "* Multiple private keys in the keystore with different passwords (private keys in the same key store must have the same password)", e);
+                            "* Wrong password for private key (the password for the keystore and the private key may not be the same)\n" +
+                            "* Multiple private keys in the keystore with different passwords (private keys in the same key store must have the same password)", e);
                 } else {
                     throw new KeyException("Unable to create the SSLContext, because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
                 }
