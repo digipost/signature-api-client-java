@@ -2,23 +2,19 @@ package no.digipost.signature.client.core.internal.http;
 
 import org.junit.jupiter.api.Test;
 
+import static no.digipost.signature.client.core.internal.http.StatusCode.CONFLICT;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static uk.co.probablyfine.matchers.Java8Matchers.where;
 
 class ResponseStatusTest {
 
     @Test
-    void resolveSuccessfulHttpStatus() {
-        assertThat(ResponseStatus.fromHttpStatusCode(200).get().family(), is(StatusCodeFamily.SUCCESSFUL));
-        assertThat(ResponseStatus.fromHttpStatusCode(204).get().family(), is(StatusCodeFamily.SUCCESSFUL));
-    }
-
-    @Test
-    void resolveClientError() {
-        assertThat(ResponseStatus.fromHttpStatusCode(400).get().family(), is(StatusCodeFamily.CLIENT_ERROR));
-        assertThat(ResponseStatus.fromHttpStatusCode(404).get().family(), is(StatusCodeFamily.CLIENT_ERROR));
-        assertThat(ResponseStatus.fromHttpStatusCode(409).get().family(), is(StatusCodeFamily.CLIENT_ERROR));
-        assertThat(ResponseStatus.fromHttpStatusCode(422).get().family(), is(StatusCodeFamily.CLIENT_ERROR));
+    void throwIfNotExpected() {
+        ResponseStatus conflictResponse = ResponseStatus.fromHttpStatusCode(CONFLICT.value());
+        IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> conflictResponse.throwIf(CONFLICT, s -> new IllegalStateException(s.toString())));
+        assertThat(thrown, where(Throwable::getMessage, containsString(CONFLICT.toString())));
     }
 
 }

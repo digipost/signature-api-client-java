@@ -13,12 +13,12 @@ import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.ResponseInputStream;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
+import no.digipost.signature.client.core.internal.ApiFlow;
 import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
+import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
-
-import java.util.Optional;
 
 import static no.digipost.signature.client.portal.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
@@ -31,20 +31,22 @@ public class PortalClient {
     private final ClientHelper client;
     private final CreateASiCE<PortalJob> aSiCECreator;
     private final ClientConfiguration clientConfiguration;
+    private final MaySpecifySender defaultSender;
 
     public PortalClient(ClientConfiguration config) {
         this.clientConfiguration = config;
-        this.client = new ClientHelper(SignatureHttpClientFactory.create(config), config.getGlobalSender());
-        this.aSiCECreator = new CreateASiCE<>(new CreatePortalManifest(config.getClock()), config);
+        this.defaultSender = clientConfiguration.getDefaultSender();
+        this.client = new ClientHelper(SignatureHttpClientFactory.create(config));
+        this.aSiCECreator = new CreateASiCE<>(new CreatePortalManifest(config.getDefaultSender(), config.getClock()), config);
     }
 
 
     public PortalJobResponse create(PortalJob job) {
+        Sender sender = job.resolveSenderWithFallbackTo(defaultSender);
         DocumentBundle documentBundle = aSiCECreator.createASiCE(job);
-        XMLPortalSignatureJobRequest signatureJobRequest = toJaxb(job, clientConfiguration.getGlobalSender());
-
-        XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse = client.sendPortalSignatureJobRequest(signatureJobRequest, documentBundle, job.getSender());
-        return fromJaxb(xmlPortalSignatureJobResponse);
+        XMLPortalSignatureJobRequest createJobRequest = toJaxb(job, sender.getPollingQueue());
+        XMLPortalSignatureJobResponse createdJobResponse = client.sendSignatureJobRequest(ApiFlow.PORTAL, createJobRequest, documentBundle, sender);
+        return fromJaxb(createdJobResponse);
     }
 
 
@@ -78,7 +80,8 @@ public class PortalClient {
      */
 
     public PortalJobStatusChanged getStatusChange(Sender sender) {
-        JobStatusResponse<XMLPortalSignatureJobStatusChangeResponse> statusChangeResponse = client.getPortalStatusChange(Optional.ofNullable(sender));
+        JobStatusResponse<XMLPortalSignatureJobStatusChangeResponse> statusChangeResponse = client
+                .getStatusChange(ApiFlow.PORTAL, MaySpecifySender.ofNullable(sender).resolveSenderWithFallbackTo(defaultSender));
         if (statusChangeResponse.gotStatusChange()) {
             return JaxbEntityMapping.fromJaxb(statusChangeResponse);
         } else {

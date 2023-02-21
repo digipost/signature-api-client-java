@@ -1,15 +1,10 @@
 package no.digipost.signature.client.core.internal;
 
-import no.digipost.signature.api.xml.XMLDirectSignatureJobRequest;
-import no.digipost.signature.api.xml.XMLDirectSignatureJobResponse;
 import no.digipost.signature.api.xml.XMLDirectSignatureJobStatusResponse;
 import no.digipost.signature.api.xml.XMLDirectSignerResponse;
 import no.digipost.signature.api.xml.XMLDirectSignerUpdateRequest;
 import no.digipost.signature.api.xml.XMLEmptyElement;
 import no.digipost.signature.api.xml.XMLError;
-import no.digipost.signature.api.xml.XMLPortalSignatureJobRequest;
-import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
-import no.digipost.signature.api.xml.XMLPortalSignatureJobStatusChangeResponse;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.DeleteDocumentsUrl;
 import no.digipost.signature.client.core.ResponseInputStream;
@@ -27,7 +22,6 @@ import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
 import no.digipost.signature.client.core.internal.http.StatusCode;
-import no.digipost.signature.client.core.internal.http.StatusCodeFamily;
 import no.digipost.signature.client.core.internal.xml.Marshalling;
 import no.digipost.signature.client.direct.WithSignerUrl;
 import org.apache.commons.lang3.StringUtils;
@@ -64,12 +58,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
-import static no.digipost.signature.client.core.internal.ActualSender.getActualSender;
 import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_AUTHORIZED;
+import static no.digipost.signature.client.core.internal.ErrorCodes.INVALID_STATUS_QUERY_TOKEN;
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
-import static no.digipost.signature.client.core.internal.Target.DIRECT;
-import static no.digipost.signature.client.core.internal.Target.PORTAL;
-import static no.digipost.signature.client.core.internal.http.StatusCodeFamily.SUCCESSFUL;
+import static no.digipost.signature.client.core.internal.http.StatusCode.CONFLICT;
+import static no.digipost.signature.client.core.internal.http.StatusCode.NO_CONTENT;
+import static no.digipost.signature.client.core.internal.http.StatusCode.TOO_MANY_REQUESTS;
+import static no.digipost.signature.client.core.internal.http.StatusCode.Family.SUCCESSFUL;
 import static org.apache.hc.core5.http.ContentType.APPLICATION_OCTET_STREAM;
 import static org.apache.hc.core5.http.ContentType.APPLICATION_XML;
 import static org.apache.hc.core5.http.ContentType.MULTIPART_MIXED;
@@ -84,28 +79,14 @@ public class ClientHelper {
     private static final String POLLING_QUEUE_QUERY_PARAMETER = "polling_queue";
 
     private final SignatureHttpClient httpClient;
-    private final Optional<Sender> globalSender;
     private final ClientExceptionMapper clientExceptionMapper;
 
-    public ClientHelper(SignatureHttpClient httpClient, Optional<Sender> globalSender) {
+    public ClientHelper(SignatureHttpClient httpClient) {
         this.httpClient = httpClient;
-        this.globalSender = globalSender;
         this.clientExceptionMapper = new ClientExceptionMapper();
     }
 
-    public XMLDirectSignatureJobResponse sendSignatureJobRequest(XMLDirectSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
-        final Sender actualSender = getActualSender(sender, globalSender);
-
-        return multipartSignatureJobRequest(signatureJobRequest, documentBundle, actualSender, DIRECT, XMLDirectSignatureJobResponse.class);
-    }
-
-    public XMLPortalSignatureJobResponse sendPortalSignatureJobRequest(XMLPortalSignatureJobRequest signatureJobRequest, DocumentBundle documentBundle, Optional<Sender> sender) {
-        final Sender actualSender = getActualSender(sender, globalSender);
-
-        return multipartSignatureJobRequest(signatureJobRequest, documentBundle, actualSender, PORTAL, XMLPortalSignatureJobResponse.class);
-    }
-
-    private <RESPONSE, REQUEST> RESPONSE multipartSignatureJobRequest(REQUEST signatureJobRequest, DocumentBundle documentBundle, Sender actualSender, Target target, Class<RESPONSE> responseClass) {
+    public <RESPONSE, REQUEST> RESPONSE sendSignatureJobRequest(ApiFlow<REQUEST, RESPONSE, ?> target, REQUEST signatureJobRequest, DocumentBundle documentBundle, Sender sender) {
         MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
         multipartEntityBuilder.setContentType(MULTIPART_MIXED);
 
@@ -125,14 +106,14 @@ public class ClientHelper {
 
         try (HttpEntity multiPart = multipartEntityBuilder.build()) {
             ClassicHttpRequest request = ClassicRequestBuilder
-                    .post(httpClient.constructUrl(uri -> uri.appendPath(target.path(actualSender))))
+                    .post(httpClient.constructUrl(uri -> uri.appendPath(target.path(sender))))
                     .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
                     .build();
 
             request.setEntity(multiPart);
             return call(() -> {
                 try {
-                    return httpClient.httpClient().execute(request, response -> parseResponse(response, responseClass));
+                    return httpClient.httpClient().execute(request, response -> parseResponse(response, target.apiResponseType));
                 } catch (IOException e) {
                     throw new HttpIOException(request, e);
                 }
@@ -154,17 +135,17 @@ public class ClientHelper {
         }
     }
 
-    public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(final URI statusUrl) {
+    public XMLDirectSignatureJobStatusResponse sendSignatureJobStatusRequest(URI statusUrl) {
         ClassicHttpRequest request = new HttpGet(statusUrl);
         request.addHeader(ACCEPT, APPLICATION_XML.getMimeType());
 
         return call(() -> {
             try {
                 return httpClient.httpClient().execute(request, response -> {
-                    ResponseStatus.fromHttpStatusCode(response.getCode()).expect(SUCCESSFUL).orThrow(status -> {
+                    ResponseStatus.fromHttpResponse(response).expect(SUCCESSFUL).orThrow(status -> {
                         if (status.value() == HttpStatus.SC_FORBIDDEN) {
                             XMLError error = extractError(response);
-                            if (ErrorCodes.INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
+                            if (INVALID_STATUS_QUERY_TOKEN.sameAs(error.getErrorCode())) {
                                 return new InvalidStatusQueryTokenException(statusUrl, error.getErrorMessage());
                             }
                         } else if (status.value() == HttpStatus.SC_NOT_FOUND) {
@@ -227,35 +208,27 @@ public class ClientHelper {
     public void cancel(Cancellable cancellable) {
             if (cancellable.getCancellationUrl() != null) {
                 postEmptyEntity(cancellable.getCancellationUrl().getUrl(), httpResponse -> ResponseStatus.fromHttpResponse(httpResponse)
-                        .throwIf(HttpStatus.SC_CONFLICT, status -> new JobCannotBeCancelledException(status, extractError(httpResponse))));
+                        .throwIf(CONFLICT, status -> new JobCannotBeCancelledException(status, extractError(httpResponse))));
             } else {
                 throw new NotCancellableException();
             }
     }
 
-    public JobStatusResponse<XMLPortalSignatureJobStatusChangeResponse> getPortalStatusChange(Optional<Sender> sender) {
-        return getStatusChange(sender, PORTAL, XMLPortalSignatureJobStatusChangeResponse.class);
-    }
+    public <RES> JobStatusResponse<RES> getStatusChange(ApiFlow<?, ?, RES> target, Sender sender) {
 
-    public JobStatusResponse<XMLDirectSignatureJobStatusResponse> getDirectStatusChange(Optional<Sender> sender) {
-        return getStatusChange(sender, DIRECT, XMLDirectSignatureJobStatusResponse.class);
-    }
-
-    private <RESPONSE_CLASS> JobStatusResponse<RESPONSE_CLASS> getStatusChange(final Optional<Sender> sender, final Target target, final Class<RESPONSE_CLASS> responseClass) {
-
-        Sender actualSender = getActualSender(sender, globalSender);
         URI jobStatusUrl = httpClient.constructUrl(uri -> uri
-                .appendPath(target.path(actualSender))
-                .addParameter(POLLING_QUEUE_QUERY_PARAMETER, actualSender.getPollingQueue().value));
+                .appendPath(target.path(sender))
+                .addParameter(POLLING_QUEUE_QUERY_PARAMETER, sender.getPollingQueue().value));
 
         ClassicHttpRequest getStatusRequest = ClassicRequestBuilder.get(jobStatusUrl).addHeader(ACCEPT, APPLICATION_XML.getMimeType()).build();
         return call(() -> {
             try {
                 return httpClient.httpClient().execute(getStatusRequest, response -> {
-                    StatusCode status = ResponseStatus.fromHttpStatusCode(response.getCode())
-                            .throwIf(HttpStatus.SC_TOO_MANY_REQUESTS, s -> new TooEagerPollingException())
-                            .expect(StatusCodeFamily.SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
-                    return new JobStatusResponse<>(status.value() == HttpStatus.SC_NO_CONTENT ? null : Marshalling.unmarshal(response.getEntity().getContent(), responseClass), getNextPermittedPollTime(response));
+                    StatusCode status = ResponseStatus.fromHttpResponse(response)
+                            .throwIf(TOO_MANY_REQUESTS, s -> new TooEagerPollingException())
+                            .expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
+                    RES statusResponseBody = status.equals(NO_CONTENT) ? null : Marshalling.unmarshal(response.getEntity().getContent(), target.statusResponseType);
+                    return new JobStatusResponse<>(statusResponseBody, getNextPermittedPollTime(response));
                 });
             } catch (IOException e) {
                 throw new HttpIOException(getStatusRequest, e);
@@ -275,14 +248,6 @@ public class ClientHelper {
         } else {
             LOG.info("Does not need to send confirmation for '{}'", confirmable);
         }
-    }
-
-    private <T> T call(Supplier<T> supplier) {
-        return clientExceptionMapper.doWithMappedClientException(supplier);
-    }
-
-    private void call(Runnable action) {
-        clientExceptionMapper.doWithMappedClientException(action);
     }
 
     public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {
@@ -319,7 +284,7 @@ public class ClientHelper {
                 .build();
         call(() ->  {
             try {
-                httpClient.httpClient().execute(request, response -> ResponseStatus.fromHttpStatusCode(response.getCode())
+                httpClient.httpClient().execute(request, response -> ResponseStatus.fromHttpResponse(response)
                         .expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response)));
             } catch (IOException e) {
                 throw new HttpIOException(request, e);
@@ -341,7 +306,7 @@ public class ClientHelper {
         if (BROKER_NOT_AUTHORIZED.sameAs(error.getErrorCode())) {
             return new BrokerNotAuthorizedException(error);
         }
-        return new UnexpectedResponseException(error, ResponseStatus.fromHttpStatusCode(response.getCode()).get(), StatusCode.from(HttpStatus.SC_OK));
+        return new UnexpectedResponseException(error, ResponseStatus.fromHttpResponse(response).get(), StatusCode.OK);
     }
 
     private static XMLError extractError(ClassicHttpResponse response) {
@@ -369,12 +334,20 @@ public class ClientHelper {
                 throw new UnexpectedResponseException(
                         HttpHeaders.CONTENT_TYPE + " " + contentType.map(ContentType::getMimeType).orElse("unknown") + ": " +
                         Optional.ofNullable(errorAsString).filter(StringUtils::isNoneBlank).orElse("<no content in response>"),
-                        ResponseStatus.fromHttpStatusCode(response.getCode()).get(), StatusCode.from(HttpStatus.SC_OK));
+                        ResponseStatus.fromHttpResponse(response).get(), StatusCode.OK);
             }
             return error;
         } catch (ProtocolException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private <T> T call(Supplier<T> supplier) {
+        return clientExceptionMapper.doWithMappedClientException(supplier);
+    }
+
+    private void call(Runnable action) {
+        clientExceptionMapper.doWithMappedClientException(action);
     }
 
 }

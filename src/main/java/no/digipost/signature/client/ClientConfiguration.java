@@ -6,6 +6,7 @@ import no.digipost.signature.client.asice.DumpDocumentBundleToDisk;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.KeyException;
+import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
 import no.digipost.signature.client.core.internal.http.SignatureApiTrustStrategy;
 import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
@@ -48,6 +49,7 @@ import java.util.function.Consumer;
 import static java.util.Arrays.asList;
 import static no.digipost.signature.client.Certificates.TEST;
 import static no.digipost.signature.client.ClientMetadata.VERSION;
+import static no.digipost.signature.client.core.internal.MaySpecifySender.NO_SPECIFIED_SENDER;
 
 public final class ClientConfiguration implements ProvidesCertificateResourcePaths, HttpIntegrationConfiguration, ASiCEConfiguration {
 
@@ -86,19 +88,19 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     private final KeyStoreConfig keyStoreConfig;
 
     private final org.apache.hc.client5.http.classic.HttpClient httpClient;
-    private final Optional<Sender> sender;
+    private final MaySpecifySender defaultSender;
     private final URI signatureServiceRoot;
     private final Iterable<String> certificatePaths;
     private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
     private final Clock clock;
 
     private ClientConfiguration(
-            KeyStoreConfig keyStoreConfig, org.apache.hc.client5.http.classic.HttpClient httpClient, Optional<Sender> sender,
+            KeyStoreConfig keyStoreConfig, org.apache.hc.client5.http.classic.HttpClient httpClient, MaySpecifySender defaultSender,
             URI serviceRoot, Iterable<String> certificatePaths, Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
 
         this.keyStoreConfig = keyStoreConfig;
         this.httpClient = httpClient;
-        this.sender = sender;
+        this.defaultSender = defaultSender;
         this.signatureServiceRoot = serviceRoot;
         this.certificatePaths = certificatePaths;
         this.documentBundleProcessors = documentBundleProcessors;
@@ -111,8 +113,8 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     }
 
     @Override
-    public Optional<Sender> getGlobalSender() {
-        return sender;
+    public MaySpecifySender getDefaultSender() {
+        return defaultSender;
     }
 
     @Override
@@ -161,7 +163,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
         private Optional<String> customUserAgentPart = Optional.empty();
         private URI serviceRoot = ServiceUri.PRODUCTION.uri;
-        private Optional<Sender> globalSender = Optional.empty();
+        private MaySpecifySender defaultSender = NO_SPECIFIED_SENDER;
         private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
         private CertificateChainValidation serverCertificateTrustStrategy = new OrganizationNumberValidation("984661185"); // Posten Norge AS organization number
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
@@ -249,7 +251,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * behalf of multiple other organizations)
          */
         public Builder globalSender(Sender sender) {
-            this.globalSender = Optional.of(sender);
+            this.defaultSender = MaySpecifySender.specifiedAs(sender);
             return this;
         }
 
@@ -389,7 +391,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             proxy.ifPresent(httpClientBuilder::setProxy);
             httpClientCustomizer.ifPresent(customizer -> customizer.accept(httpClientBuilder));
 
-            return new ClientConfiguration(keyStoreConfig, httpClientBuilder.build(), globalSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
+            return new ClientConfiguration(keyStoreConfig, httpClientBuilder.build(), defaultSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
         }
 
         String createUserAgentString() {

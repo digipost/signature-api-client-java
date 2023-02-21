@@ -14,8 +14,8 @@ import no.digipost.signature.api.xml.XMLSms;
 import no.digipost.signature.client.core.AuthenticationLevel;
 import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.OnBehalfOf;
-import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureType;
+import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.portal.Notifications;
 import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalJob;
@@ -32,14 +32,16 @@ import static no.digipost.signature.client.core.exceptions.SignerNotSpecifiedExc
 
 public class CreatePortalManifest extends ManifestCreator<PortalJob> {
 
+    private final MaySpecifySender defaultSenderConfiguration;
     private final Clock clock;
 
-    public CreatePortalManifest(Clock clock) {
+    public CreatePortalManifest(MaySpecifySender defaultSenderConfiguration, Clock clock) {
+        this.defaultSenderConfiguration = defaultSenderConfiguration;
         this.clock = clock;
     }
 
     @Override
-    Object buildXmlManifest(PortalJob job, Sender sender) {
+    XMLPortalSignatureJobManifest buildXmlManifest(PortalJob job) {
         List<XMLPortalSigner> xmlSigners = new ArrayList<>();
         for (PortalSigner signer : job.getSigners()) {
             XMLPortalSigner xmlPortalSigner = generateSigner(signer);
@@ -56,7 +58,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
         return new XMLPortalSignatureJobManifest()
                 .withSigners(xmlSigners)
                 .withRequiredAuthentication(job.getRequiredAuthentication().map(AuthenticationLevel::getXmlEnumValue).orElse(null))
-                .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
+                .withSender(new XMLSender().withOrganizationNumber(job.resolveSenderWithFallbackTo(defaultSenderConfiguration).getOrganizationNumber()))
                 .withTitle(job.getTitle())
                 .withNonsensitiveTitle(job.getNonsensitiveTitle().orElse(null))
                 .withDescription(job.getDescription().orElse(null))

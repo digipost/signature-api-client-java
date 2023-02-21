@@ -26,11 +26,11 @@ public final class ResponseStatus {
         this.statusExpectation = expectation;
     }
 
-    public ResponseStatus expect(StatusCodeFamily expectedStatusFamily) {
+    public ResponseStatus expect(StatusCode.Family expectedStatusFamily) {
         return expect(s -> s.is(expectedStatusFamily));
     }
 
-    public ResponseStatus expectOneOf(StatusCodeFamily ... expectedStatusFamilies) {
+    public ResponseStatus expectOneOf(StatusCode.Family ... expectedStatusFamilies) {
         return expectOneOf(Stream.of(expectedStatusFamilies), (family, statusCode) -> statusCode.is(family));
     }
 
@@ -49,8 +49,8 @@ public final class ResponseStatus {
         return new ResponseStatus(statusCode, this.statusExpectation.and(expectation));
     }
 
-    public <X extends Exception> ResponseStatus throwIf(int status, Function<StatusCode, X> exceptionSupplier) throws X {
-        return throwIf(s -> s.equals(StatusCode.from(status)), exceptionSupplier);
+    public <X extends Exception> ResponseStatus throwIf(StatusCode statusCode, Function<StatusCode, X> exceptionSupplier) throws X {
+        return throwIf(s -> s.equals(statusCode), exceptionSupplier);
     }
 
     public <X extends Exception> ResponseStatus throwIf(Predicate<? super StatusCode> illegalStatus, Function<StatusCode, X> exceptionSupplier) throws X {

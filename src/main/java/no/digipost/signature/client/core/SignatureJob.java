@@ -1,13 +1,13 @@
 package no.digipost.signature.client.core;
 
+import no.digipost.signature.client.core.internal.MaySpecifySender;
+
 import java.util.List;
 import java.util.Optional;
 
-public interface SignatureJob {
+public interface SignatureJob extends MaySpecifySender {
 
     List<Document> getDocuments();
-
-    Optional<Sender> getSender();
 
     String getReference();
 

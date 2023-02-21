@@ -14,11 +14,11 @@ import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.ResponseInputStream;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
+import no.digipost.signature.client.core.internal.ApiFlow;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
+import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
-
-import java.util.Optional;
 
 import static no.digipost.signature.client.direct.DirectJobStatusResponse.noUpdatedStatus;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.fromJaxb;
@@ -30,19 +30,19 @@ public class DirectClient {
 
     private final ClientHelper client;
     private final CreateASiCE<DirectJob> aSiCECreator;
-    private final ClientConfiguration clientConfiguration;
+    private final MaySpecifySender defaultSender;
 
     public DirectClient(ClientConfiguration config) {
-        this.clientConfiguration = config;
-        this.client = new ClientHelper(SignatureHttpClientFactory.create(config), config.getGlobalSender());
-        this.aSiCECreator = new CreateASiCE<>(new CreateDirectManifest(), config);
+        this.defaultSender = config.getDefaultSender();
+        this.client = new ClientHelper(SignatureHttpClientFactory.create(config));
+        this.aSiCECreator = new CreateASiCE<>(new CreateDirectManifest(defaultSender), config);
     }
 
     public DirectJobResponse create(DirectJob job) {
+        Sender sender = job.resolveSenderWithFallbackTo(defaultSender);
         DocumentBundle documentBundle = aSiCECreator.createASiCE(job);
-        XMLDirectSignatureJobRequest signatureJobRequest = toJaxb(job, clientConfiguration.getGlobalSender());
-
-        XMLDirectSignatureJobResponse createdJob = client.sendSignatureJobRequest(signatureJobRequest, documentBundle, job.getSender());
+        XMLDirectSignatureJobRequest createJobRequest = toJaxb(job, sender.getPollingQueue());
+        XMLDirectSignatureJobResponse createdJob = client.sendSignatureJobRequest(ApiFlow.DIRECT, createJobRequest, documentBundle, sender);
         return fromJaxb(createdJob);
     }
 
@@ -103,7 +103,8 @@ public class DirectClient {
      *         never {@code null}.
      */
     public DirectJobStatusResponse getStatusChange(Sender sender) {
-        JobStatusResponse<XMLDirectSignatureJobStatusResponse> statusChangeResponse = client.getDirectStatusChange(Optional.ofNullable(sender));
+        JobStatusResponse<XMLDirectSignatureJobStatusResponse> statusChangeResponse = client
+                .getStatusChange(ApiFlow.DIRECT, MaySpecifySender.ofNullable(sender).resolveSenderWithFallbackTo(defaultSender));
         if (statusChangeResponse.gotStatusChange()) {
             return fromJaxb(statusChangeResponse.getStatusResponse(), statusChangeResponse.getNextPermittedPollTime());
         } else {

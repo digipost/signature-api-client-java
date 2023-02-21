@@ -5,14 +5,12 @@ import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
 import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
 
-import java.util.Optional;
-
 public class ArchiveClient {
 
     private ClientHelper client;
 
     public ArchiveClient(HttpIntegrationConfiguration httpIntegrationConfig) {
-        this.client = new ClientHelper(SignatureHttpClientFactory.create(httpIntegrationConfig), Optional.empty());
+        this.client = new ClientHelper(SignatureHttpClientFactory.create(httpIntegrationConfig));
     }
 
     public ResponseInputStream getPAdES(ArchiveOwner owner, String id) {
