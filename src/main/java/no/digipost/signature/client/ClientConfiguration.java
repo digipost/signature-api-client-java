@@ -67,12 +67,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     public static final String MANDATORY_USER_AGENT = "posten-signature-api-client-java/" + VERSION + " (" + JAVA_DESCRIPTION + ")";
 
     /**
-     * {@value #HTTP_REQUEST_RESPONSE_LOGGER_NAME} is the name of the logger which will log the HTTP requests and responses,
-     * if enabled with {@link ClientConfiguration.Builder#enableRequestAndResponseLogging()}.
-     */
-    public static final String HTTP_REQUEST_RESPONSE_LOGGER_NAME = "no.digipost.signature.client.http.requestresponse";
-
-    /**
      * Socket timeout is used for both requests and, if any,
      * underlying layered sockets (typically for
      * secure sockets).
@@ -266,14 +260,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
             return this;
         }
 
-        /**
-         * Makes the client log the sent requests and received responses to the logger named
-         * {@link ClientConfiguration#HTTP_REQUEST_RESPONSE_LOGGER_NAME}.
-         */
-        public Builder enableRequestAndResponseLogging() {
-            //loggingFeature = Optional.of(new LoggingFeature(java.util.logging.Logger.getLogger(HTTP_REQUEST_RESPONSE_LOGGER_NAME), 16 * 1024));
-            return this;
-        }
 
         /**
          * Have the library dump the generated document bundle zip files to disk before they are
@@ -369,7 +355,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         }
 
         public ClientConfiguration build() {
-            // TODO: Add possibility to add logger for http client
 
             PoolingHttpClientConnectionManagerBuilder poolingHttpClientConnectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                     .setDefaultSocketConfig(SocketConfig.custom()
