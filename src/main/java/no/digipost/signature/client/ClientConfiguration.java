@@ -383,7 +383,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         }
 
         String createUserAgentString() {
-            return MANDATORY_USER_AGENT + customUserAgentPart.map(ua -> String.format(" (%s)", ua)).orElse("");
+            return MANDATORY_USER_AGENT + customUserAgentPart.map(ua -> " (" + ua + ")").orElse("");
         }
 
         private SSLContext sslContext() {
