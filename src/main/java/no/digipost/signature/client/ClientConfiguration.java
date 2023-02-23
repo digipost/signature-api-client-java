@@ -7,6 +7,10 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.exceptions.KeyException;
 import no.digipost.signature.client.core.internal.MaySpecifySender;
+import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBuilderConfigurer;
+import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientProxyConfigurer;
+import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientUserAgentConfigurer;
+import no.digipost.signature.client.core.internal.configuration.Configurer;
 import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
 import no.digipost.signature.client.core.internal.http.SignatureApiTrustStrategy;
 import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
@@ -14,19 +18,12 @@ import no.digipost.signature.client.core.internal.security.TrustStoreLoader;
 import no.digipost.signature.client.security.CertificateChainValidation;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import no.digipost.signature.client.security.OrganizationNumberValidation;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.ssl.SSLContexts;
-import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +40,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -82,7 +78,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
     private final KeyStoreConfig keyStoreConfig;
 
-    private final HttpClient httpClient;
+    private final Configurer<HttpClientBuilder> httpClientConfigurer;
     private final MaySpecifySender defaultSender;
     private final URI signatureServiceRoot;
     private final Iterable<String> certificatePaths;
@@ -90,11 +86,11 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     private final Clock clock;
 
     private ClientConfiguration(
-            KeyStoreConfig keyStoreConfig, HttpClient httpClient, MaySpecifySender defaultSender, URI serviceRoot,
+            KeyStoreConfig keyStoreConfig, Configurer<HttpClientBuilder> httpClientConfigurer, MaySpecifySender defaultSender, URI serviceRoot,
             Iterable<String> certificatePaths, Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
 
         this.keyStoreConfig = keyStoreConfig;
-        this.httpClient = httpClient;
+        this.httpClientConfigurer = httpClientConfigurer;
         this.defaultSender = defaultSender;
         this.signatureServiceRoot = serviceRoot;
         this.certificatePaths = certificatePaths;
@@ -129,7 +125,9 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
     @Override
     public HttpClient httpClient() {
-        return httpClient;
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+        httpClientConfigurer.applyTo(httpClientBuilder);
+        return httpClientBuilder.build();
     }
 
     /**
@@ -147,28 +145,26 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
     public static class Builder {
 
-        private final HttpClientBuilder httpClientBuilder;
         private final KeyStoreConfig keyStoreConfig;
 
-        private Duration socketTimeout = DEFAULT_SOCKET_TIMEOUT;
-        private Duration connectTimeout = DEFAULT_CONNECT_TIMEOUT;
-        private Duration connectionRequestTimeout = connectTimeout;
-        private Duration responseArrivalTimeout = connectTimeout;
+        private final ApacheHttpClientBuilderConfigurer httpClientConfigurer = new ApacheHttpClientBuilderConfigurer()
+                .socketTimeout(Duration.ofSeconds(10))
+                .connectTimeout(Duration.ofSeconds(10))
+                .connectionRequestTimeout(Duration.ofSeconds(10))
+                .responseArrivalTimeout(Duration.ofSeconds(10));
 
-        private Optional<String> customUserAgentPart = Optional.empty();
         private URI serviceRoot = ServiceUri.PRODUCTION.uri;
         private MaySpecifySender defaultSender = NO_SPECIFIED_SENDER;
         private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
         private CertificateChainValidation serverCertificateTrustStrategy = new OrganizationNumberValidation("984661185"); // Posten Norge AS organization number
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
         private Clock clock = Clock.systemDefaultZone();
-        private Optional<HttpHost> proxy = Optional.empty();
-        private Optional<Consumer<? super HttpClientBuilder>> httpClientCustomizer = Optional.empty();
+        private Configurer<HttpClientBuilder> proxyConfigurer = Configurer.notConfigured();
+        ApacheHttpClientUserAgentConfigurer userAgentConfigurer = new ApacheHttpClientUserAgentConfigurer(MANDATORY_USER_AGENT);
 
 
         private Builder(KeyStoreConfig keyStoreConfig) {
             this.keyStoreConfig = keyStoreConfig;
-            this.httpClientBuilder = HttpClientBuilder.create();
         }
 
         /**
@@ -187,28 +183,24 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         }
 
         /**
-         * Override the
-         * {@link ClientConfiguration#DEFAULT_SOCKET_TIMEOUT default socket timeout value}.
+         * Set the http proxy host used by the client.
+         *
+         * @param hostname the hostname
+         * @param port the port
          */
-        public Builder socketTimeout(Duration timeout) {
-            this.socketTimeout = timeout;
-            return this;
+        public Builder httpProxyHost(String hostname, int port) {
+            return proxyHost(URI.create(hostname + ":" + port));
         }
 
         /**
-         * Override the
-         * {@link ClientConfiguration#DEFAULT_CONNECT_TIMEOUT default connect timeout value}.
+         * Set URI to proxy host to be used by the client. Only the
+         * scheme, host, and port of the URI is used, any other parts are ignored.
+         *
+         * @param proxyHostUri the proxy host URI
          */
-        public Builder connectTimeout(Duration timeout) {
-            this.connectTimeout = timeout;
+        public Builder proxyHost(URI proxyHostUri) {
+            this.proxyConfigurer = new ApacheHttpClientProxyConfigurer(HttpHost.create(proxyHostUri));
             return this;
-        }
-
-        /**
-         * Set proxy to be used by {@link HttpClient}.
-         */
-        public void proxy(HttpHost proxy) {
-            this.proxy = Optional.of(proxy);
         }
 
         public Builder trustStore(Certificates certificates) {
@@ -238,13 +230,14 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         }
 
         /**
-         * Set the sender used globally for every signature job.
+         * Set the default {@link Sender} to use if not specifying sender per signature job.
          * <p>
-         * Use {@link no.digipost.signature.client.portal.PortalJob.Builder#withSender(Sender)} or {@link no.digipost.signature.client.direct.DirectJob.Builder#withSender(Sender)}
+         * Use {@link no.digipost.signature.client.portal.PortalJob.Builder#withSender(Sender) PortalJob.Builder.withSender(..)}
+         * or {@link no.digipost.signature.client.direct.DirectJob.Builder#withSender(Sender) DirectJob.Builder.withSender(..)}
          * if you need to specify different senders per signature job (typically when acting as a broker on
          * behalf of multiple other organizations)
          */
-        public Builder globalSender(Sender sender) {
+        public Builder defaultSender(Sender sender) {
             this.defaultSender = MaySpecifySender.specifiedAs(sender);
             return this;
         }
@@ -256,10 +249,32 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * @param userAgentCustomPart The custom part to include in the User-Agent HTTP header.
          */
         public Builder includeInUserAgent(String userAgentCustomPart) {
-            customUserAgentPart = Optional.of(userAgentCustomPart).filter(StringUtils::isNoneBlank);
+            userAgentConfigurer.append("(" + userAgentCustomPart + ")");
             return this;
         }
 
+        /**
+         * Configure timeouts used for integrating with the API.
+         *
+         * @param timeouts the timeouts to set
+         */
+        public Builder timeouts(Consumer<? super TimeoutsConfigurer> timeouts) {
+            timeouts.accept(httpClientConfigurer);
+            return this;
+        }
+
+
+        /**
+         * This method allows for custom configuration of the created {@link HttpClient} if anything is
+         * needed that is not already supported by other methods in {@link ClientConfiguration}.
+         * <p>
+         * If you still need to use this method, consider requesting first-class support for your requirement
+         * on the library's <a href="https://github.com/digipost/signature-api-client-java/issues">web site on GitHub</a>.
+         */
+        public Builder apacheHttpClient(Consumer<? super ApacheHttpClientConfigurer> apacheHttpClientConfigurer) {
+            apacheHttpClientConfigurer.accept(this.httpClientConfigurer);
+            return this;
+        }
 
         /**
          * Have the library dump the generated document bundle zip files to disk before they are
@@ -268,7 +283,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * The files will be given names on the format
          * <pre>{@code timestamp-[reference_from_job-]asice.zip}</pre>
          * The <em>timestamp</em> part may use a clock of your choosing, make sure to override the system clock with
-         * {@link #usingClock(Clock)} before calling this method if that is desired.
+         * {@link #clock(Clock)} before calling this method if that is desired.
          * <p>
          * The <em>reference_from_job</em> part is only included if the job is given such a reference using
          * {@link no.digipost.signature.client.direct.DirectJob.Builder#withReference(UUID) DirectJob.Builder.withReference(..)} or {@link no.digipost.signature.client.portal.PortalJob.Builder#withReference(UUID) PortalJob.Builder.withReference(..)}.
@@ -295,22 +310,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          */
         public Builder addDocumentBundleProcessor(DocumentBundleProcessor processor) {
             documentBundleProcessors.add(processor);
-            return this;
-        }
-
-        /**
-         * This methods allows for custom configuration of the {@link HttpClient} if anything is
-         * needed that is not already supported by the {@link ClientConfiguration.Builder}.
-         * This method should not be used to configure anything that is already directly supported by the
-         * {@code ClientConfiguration.Builder} API.
-         * <p>
-         * If you still need to use this method, consider requesting first-class support for your requirement
-         * on the library's <a href="https://github.com/digipost/signature-api-client-java/issues">web site on GitHub</a>.
-         *
-         * @param customizer The operations to do on the {@link HttpClientBuilder}.
-         */
-        public Builder customizeHttpClient(Consumer<? super HttpClientBuilder> customizer) {
-            this.httpClientCustomizer = Optional.of(customizer);
             return this;
         }
 
@@ -349,41 +348,22 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          * <p>
          * Uses {@link Clock#systemDefaultZone() the best available system clock} if not specified.
          */
-        public Builder usingClock(Clock clock) {
+        public Builder clock(Clock clock) {
             this.clock = clock;
             return this;
         }
 
         public ClientConfiguration build() {
 
-            PoolingHttpClientConnectionManagerBuilder poolingHttpClientConnectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                    .setDefaultSocketConfig(SocketConfig.custom()
-                            .setSoTimeout(Timeout.ofMilliseconds(socketTimeout.toMillis()))
-                            .build())
-                    .setDefaultConnectionConfig(ConnectionConfig.custom()
-                            .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout.toMillis()))
-                            .build())
-                    .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
-                            .setSslContext(sslContext())
-                            .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-                            .build());
+            httpClientConfigurer.configureSsl(sslConfig -> sslConfig
+                    .setSslContext(sslContext())
+                    .setHostnameVerifier(NoopHostnameVerifier.INSTANCE));
 
-            RequestConfig.Builder requestConfigBuilder = RequestConfig.custom()
-                    .setConnectionRequestTimeout(Timeout.ofMilliseconds(connectionRequestTimeout.toMillis()))
-                    .setResponseTimeout(Timeout.ofMilliseconds(responseArrivalTimeout.toMillis()));
+            Configurer<HttpClientBuilder> allHttpClientConfigurers = userAgentConfigurer
+                    .andThen(proxyConfigurer)
+                    .andThen(httpClientConfigurer);
 
-            httpClientBuilder
-                    .setConnectionManager(poolingHttpClientConnectionManager.build())
-                    .setDefaultRequestConfig(requestConfigBuilder.build())
-                    .setUserAgent(createUserAgentString());
-            proxy.ifPresent(httpClientBuilder::setProxy);
-            httpClientCustomizer.ifPresent(customizer -> customizer.accept(httpClientBuilder));
-
-            return new ClientConfiguration(keyStoreConfig, httpClientBuilder.build(), defaultSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
-        }
-
-        String createUserAgentString() {
-            return MANDATORY_USER_AGENT + customUserAgentPart.map(ua -> " (" + ua + ")").orElse("");
+            return new ClientConfiguration(keyStoreConfig, allHttpClientConfigurers, defaultSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
         }
 
         private SSLContext sslContext() {

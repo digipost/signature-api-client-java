@@ -41,7 +41,7 @@ public class InitialSetup {
         ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreConfig)
                 .trustStore(Certificates.TEST)
                 .serviceUri(ServiceUri.DIFI_TEST)
-                .globalSender(new Sender("123456789"))
+                .defaultSender(new Sender("123456789"))
                 .build();
 
     }

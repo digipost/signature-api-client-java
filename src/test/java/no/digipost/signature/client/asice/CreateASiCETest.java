@@ -59,7 +59,7 @@ public class CreateASiCETest {
     }
 
     private static final ClientConfiguration config = ClientConfiguration.builder(CLIENT_KEYSTORE)
-            .globalSender(new Sender("123456789"))
+            .defaultSender(new Sender("123456789"))
             .enableDocumentBundleDiskDump(dumpFolder)
             .build();
 
