@@ -5,37 +5,27 @@ import no.digipost.signature.client.asice.DocumentBundleProcessor;
 import no.digipost.signature.client.asice.DumpDocumentBundleToDisk;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
-import no.digipost.signature.client.core.exceptions.KeyException;
 import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBuilderConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientProxyConfigurer;
+import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientSslConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientUserAgentConfigurer;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
 import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
-import no.digipost.signature.client.core.internal.http.SignatureApiTrustStrategy;
 import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
-import no.digipost.signature.client.core.internal.security.TrustStoreLoader;
 import no.digipost.signature.client.security.CertificateChainValidation;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import no.digipost.signature.client.security.OrganizationNumberValidation;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.ssl.SSLContexts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.SSLContext;
 
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -80,7 +70,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
     private final Configurer<HttpClientBuilder> httpClientConfigurer;
     private final MaySpecifySender defaultSender;
-    private final URI signatureServiceRoot;
+    private final URI serviceRoot;
     private final Iterable<String> certificatePaths;
     private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
     private final Clock clock;
@@ -92,7 +82,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         this.keyStoreConfig = keyStoreConfig;
         this.httpClientConfigurer = httpClientConfigurer;
         this.defaultSender = defaultSender;
-        this.signatureServiceRoot = serviceRoot;
+        this.serviceRoot = serviceRoot;
         this.certificatePaths = certificatePaths;
         this.documentBundleProcessors = documentBundleProcessors;
         this.clock = clock;
@@ -120,7 +110,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
     @Override
     public URI getServiceRoot() {
-        return signatureServiceRoot;
+        return serviceRoot;
     }
 
     @Override
@@ -147,24 +137,26 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
 
         private final KeyStoreConfig keyStoreConfig;
 
-        private final ApacheHttpClientBuilderConfigurer httpClientConfigurer = new ApacheHttpClientBuilderConfigurer()
-                .socketTimeout(Duration.ofSeconds(10))
-                .connectTimeout(Duration.ofSeconds(10))
-                .connectionRequestTimeout(Duration.ofSeconds(10))
-                .responseArrivalTimeout(Duration.ofSeconds(10));
+        final ApacheHttpClientUserAgentConfigurer userAgentConfigurer = new ApacheHttpClientUserAgentConfigurer(MANDATORY_USER_AGENT);
+        private final ApacheHttpClientSslConfigurer sslConfigurer;
+        private final ApacheHttpClientBuilderConfigurer httpClientConfigurer;
+        private Configurer<HttpClientBuilder> proxyConfigurer = Configurer.notConfigured();
 
         private URI serviceRoot = ServiceUri.PRODUCTION.uri;
         private MaySpecifySender defaultSender = NO_SPECIFIED_SENDER;
         private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
-        private CertificateChainValidation serverCertificateTrustStrategy = new OrganizationNumberValidation("984661185"); // Posten Norge AS organization number
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
         private Clock clock = Clock.systemDefaultZone();
-        private Configurer<HttpClientBuilder> proxyConfigurer = Configurer.notConfigured();
-        ApacheHttpClientUserAgentConfigurer userAgentConfigurer = new ApacheHttpClientUserAgentConfigurer(MANDATORY_USER_AGENT);
 
 
         private Builder(KeyStoreConfig keyStoreConfig) {
             this.keyStoreConfig = keyStoreConfig;
+            this.sslConfigurer = new ApacheHttpClientSslConfigurer(keyStoreConfig, () -> certificatePaths);
+            this.httpClientConfigurer = new ApacheHttpClientBuilderConfigurer(sslConfigurer)
+                    .socketTimeout(Duration.ofSeconds(10))
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .connectionRequestTimeout(Duration.ofSeconds(10))
+                    .responseArrivalTimeout(Duration.ofSeconds(10));
         }
 
         /**
@@ -338,7 +330,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          */
         public Builder serverCertificateTrustStrategy(CertificateChainValidation certificateChainValidation) {
             LOG.warn("Overriding server certificate TrustStrategy! This should NOT be done for any integration with Posten signering.");
-            this.serverCertificateTrustStrategy = certificateChainValidation;
+            this.sslConfigurer.certificatChainValidation(certificateChainValidation);
             return this;
         }
 
@@ -354,35 +346,14 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         }
 
         public ClientConfiguration build() {
-
-            httpClientConfigurer.configureSsl(sslConfig -> sslConfig
-                    .setSslContext(sslContext())
-                    .setHostnameVerifier(NoopHostnameVerifier.INSTANCE));
-
             Configurer<HttpClientBuilder> allHttpClientConfigurers = userAgentConfigurer
                     .andThen(proxyConfigurer)
                     .andThen(httpClientConfigurer);
 
-            return new ClientConfiguration(keyStoreConfig, allHttpClientConfigurers, defaultSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
+            return new ClientConfiguration(
+                    keyStoreConfig, allHttpClientConfigurers, defaultSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
         }
 
-        private SSLContext sslContext() {
-            try {
-                return SSLContexts.custom()
-                        .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), (aliases, socket) -> keyStoreConfig.alias)
-                        .loadTrustMaterial(TrustStoreLoader.build(() -> certificatePaths), new SignatureApiTrustStrategy(serverCertificateTrustStrategy))
-                        .build();
-            } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException e) {
-                if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
-                    throw new KeyException(
-                            "Unable to load key from keystore, because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'. Possible causes:\n" +
-                            "* Wrong password for private key (the password for the keystore and the private key may not be the same)\n" +
-                            "* Multiple private keys in the keystore with different passwords (private keys in the same key store must have the same password)", e);
-                } else {
-                    throw new KeyException("Unable to create the SSLContext, because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
-                }
-            }
-        }
     }
 
 }

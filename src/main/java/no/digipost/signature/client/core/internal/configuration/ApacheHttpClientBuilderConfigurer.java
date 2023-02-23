@@ -6,7 +6,6 @@ import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.io.SocketConfig;
 
 import java.time.Duration;
@@ -18,12 +17,19 @@ public final class ApacheHttpClientBuilderConfigurer implements TimeoutsConfigur
     private final ConnectionConfig.Builder connectionConfig = ConnectionConfig.custom();
     private final RequestConfig.Builder requestConfig = RequestConfig.custom();
 
-    private Configurer<PoolingHttpClientConnectionManagerBuilder> connectionManagerConfigurer = connectionManager -> connectionManager
-            .setDefaultSocketConfig(socketConfig.build())
-            .setDefaultConnectionConfig(connectionConfig.build());
+    private final Configurer<PoolingHttpClientConnectionManagerBuilder> connectionManagerConfigurer;
 
     private Configurer<HttpClientBuilder> httpClientConfigurer = httpClient -> httpClient
             .setDefaultRequestConfig(requestConfig.build());
+
+
+    public ApacheHttpClientBuilderConfigurer(Configurer<PoolingHttpClientConnectionManagerBuilder> connectionManagerConfigurer) {
+        this.connectionManagerConfigurer =
+                Configurer.of((PoolingHttpClientConnectionManagerBuilder connectionManager) -> connectionManager
+                    .setDefaultSocketConfig(socketConfig.build())
+                    .setDefaultConnectionConfig(connectionConfig.build()))
+                .andThen(connectionManagerConfigurer);
+    }
 
 
     @Override
@@ -64,17 +70,7 @@ public final class ApacheHttpClientBuilderConfigurer implements TimeoutsConfigur
 
     @Override
     public ApacheHttpClientBuilderConfigurer configure(Consumer<? super HttpClientBuilder> httpClientCustomizer) {
-        this.httpClientConfigurer = httpClientConfigurer.andThen(httpClientCustomizer::accept);
-        return this;
-    }
-
-
-    public ApacheHttpClientBuilderConfigurer configureSsl(Configurer<? super SSLConnectionSocketFactoryBuilder> sslConfig) {
-        this.connectionManagerConfigurer = connectionManagerConfigurer.andThen(connectionManager -> {
-            SSLConnectionSocketFactoryBuilder sslSocketFactoryBuilder = SSLConnectionSocketFactoryBuilder.create();
-            sslConfig.applyTo(sslSocketFactoryBuilder);
-            connectionManager.setSSLSocketFactory(sslSocketFactoryBuilder.build());
-        });
+        this.httpClientConfigurer = httpClientConfigurer.andThen(Configurer.of(httpClientCustomizer));
         return this;
     }
 
