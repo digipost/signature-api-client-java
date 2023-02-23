@@ -12,7 +12,6 @@ import no.digipost.signature.client.core.internal.configuration.ApacheHttpClient
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientUserAgentConfigurer;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
 import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
-import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
 import no.digipost.signature.client.security.CertificateChainValidation;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import no.digipost.signature.client.security.OrganizationNumberValidation;
@@ -23,7 +22,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -32,13 +30,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
-import static java.util.Arrays.asList;
-import static no.digipost.signature.client.Certificates.TEST;
 import static no.digipost.signature.client.ClientMetadata.VERSION;
 import static no.digipost.signature.client.core.internal.MaySpecifySender.NO_SPECIFIED_SENDER;
 
-public final class ClientConfiguration implements ProvidesCertificateResourcePaths, HttpIntegrationConfiguration, ASiCEConfiguration {
+public final class ClientConfiguration implements HttpIntegrationConfiguration, ASiCEConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientConfiguration.class);
 
@@ -71,19 +68,17 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
     private final Configurer<HttpClientBuilder> httpClientConfigurer;
     private final MaySpecifySender defaultSender;
     private final URI serviceRoot;
-    private final Iterable<String> certificatePaths;
     private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
     private final Clock clock;
 
     private ClientConfiguration(
-            KeyStoreConfig keyStoreConfig, Configurer<HttpClientBuilder> httpClientConfigurer, MaySpecifySender defaultSender, URI serviceRoot,
-            Iterable<String> certificatePaths, Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
+            KeyStoreConfig keyStoreConfig, Configurer<HttpClientBuilder> httpClientConfigurer, MaySpecifySender defaultSender,
+            URI serviceRoot, Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
 
         this.keyStoreConfig = keyStoreConfig;
         this.httpClientConfigurer = httpClientConfigurer;
         this.defaultSender = defaultSender;
         this.serviceRoot = serviceRoot;
-        this.certificatePaths = certificatePaths;
         this.documentBundleProcessors = documentBundleProcessors;
         this.clock = clock;
     }
@@ -127,11 +122,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         return new Builder(keystore);
     }
 
-    @Override
-    public Iterable<String> getCertificatePaths() {
-        return certificatePaths;
-    }
-
 
     public static class Builder {
 
@@ -142,16 +132,15 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
         private final ApacheHttpClientBuilderConfigurer httpClientConfigurer;
         private Configurer<HttpClientBuilder> proxyConfigurer = Configurer.notConfigured();
 
-        private URI serviceRoot = ServiceUri.PRODUCTION.uri;
+        private ServiceEnvironment serviceEnvironment = ServiceEnvironment.PRODUCTION;
         private MaySpecifySender defaultSender = NO_SPECIFIED_SENDER;
-        private Iterable<String> certificatePaths = Certificates.PRODUCTION.certificatePaths;
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
         private Clock clock = Clock.systemDefaultZone();
 
 
         private Builder(KeyStoreConfig keyStoreConfig) {
             this.keyStoreConfig = keyStoreConfig;
-            this.sslConfigurer = new ApacheHttpClientSslConfigurer(keyStoreConfig, () -> certificatePaths);
+            this.sslConfigurer = new ApacheHttpClientSslConfigurer(keyStoreConfig, serviceEnvironment);
             this.httpClientConfigurer = new ApacheHttpClientBuilderConfigurer(sslConfigurer)
                     .socketTimeout(Duration.ofSeconds(10))
                     .connectTimeout(Duration.ofSeconds(10))
@@ -159,20 +148,16 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
                     .responseArrivalTimeout(Duration.ofSeconds(10));
         }
 
-        /**
-         * Set the service URI to one of the predefined environments.
-         */
-        public Builder serviceUri(ServiceUri environment) {
-            return serviceUri(environment.uri);
+        public Builder serviceEnvironment(ServiceEnvironment other) {
+            return serviceEnvironment(current -> other);
         }
 
-        /**
-         * Override the service endpoint URI to a custom environment.
-         */
-        public Builder serviceUri(URI uri) {
-            this.serviceRoot = uri;
+        public Builder serviceEnvironment(UnaryOperator<ServiceEnvironment> updateServiceEnvironment) {
+            this.serviceEnvironment = updateServiceEnvironment.apply(this.serviceEnvironment);
+            this.sslConfigurer.trust(serviceEnvironment);
             return this;
         }
+
 
         /**
          * Set the http proxy host used by the client.
@@ -192,32 +177,6 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
          */
         public Builder proxyHost(URI proxyHostUri) {
             this.proxyConfigurer = new ApacheHttpClientProxyConfigurer(HttpHost.create(proxyHostUri));
-            return this;
-        }
-
-        public Builder trustStore(Certificates certificates) {
-            if (certificates == TEST) {
-                LOG.warn("Using test certificates in trust store. This should never be done for production environments.");
-            }
-            return trustStore(certificates.certificatePaths);
-        }
-
-        /**
-         * Override the trust store configuration to load DER-encoded certificates from the given folder(s).
-         *
-         * @see java.security.cert.CertificateFactory#generateCertificate(InputStream)
-         */
-        public Builder trustStore(String ... certificatePaths) {
-            return trustStore(asList(certificatePaths));
-        }
-
-        /**
-         * Override the trust store configuration to load DER-encoded certificates from the given folder(s).
-         *
-         * @see java.security.cert.CertificateFactory#generateCertificate(InputStream)
-         */
-        public Builder trustStore(Iterable<String> certificatePaths) {
-            this.certificatePaths = certificatePaths;
             return this;
         }
 
@@ -351,7 +310,7 @@ public final class ClientConfiguration implements ProvidesCertificateResourcePat
                     .andThen(httpClientConfigurer);
 
             return new ClientConfiguration(
-                    keyStoreConfig, allHttpClientConfigurers, defaultSender, serviceRoot, certificatePaths, documentBundleProcessors, clock);
+                    keyStoreConfig, allHttpClientConfigurers, defaultSender, serviceEnvironment.serviceUrl(), documentBundleProcessors, clock);
         }
 
     }

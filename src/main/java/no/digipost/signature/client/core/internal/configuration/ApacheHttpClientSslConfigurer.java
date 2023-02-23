@@ -19,13 +19,18 @@ import java.security.UnrecoverableKeyException;
 public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClientConnectionManagerBuilder> {
 
     private final KeyStoreConfig keyStoreConfig;
-    private final ProvidesCertificateResourcePaths certificates;
+    private ProvidesCertificateResourcePaths trustedCertificates;
     private CertificateChainValidation certificateChainValidation;
 
-    public ApacheHttpClientSslConfigurer(KeyStoreConfig keyStoreConfig, ProvidesCertificateResourcePaths certificates) {
+    public ApacheHttpClientSslConfigurer(KeyStoreConfig keyStoreConfig, ProvidesCertificateResourcePaths trustedCertificates) {
         this.keyStoreConfig = keyStoreConfig;
-        this.certificates = certificates;
+        this.trustedCertificates = trustedCertificates;
         this.certificateChainValidation = new OrganizationNumberValidation("984661185"); // Posten Norge AS organization number
+    }
+
+    public ApacheHttpClientSslConfigurer trust(ProvidesCertificateResourcePaths certificates) {
+        this.trustedCertificates = certificates;
+        return this;
     }
 
     public ApacheHttpClientSslConfigurer certificatChainValidation(CertificateChainValidation certificateChainValidation) {
@@ -46,7 +51,7 @@ public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClie
         try {
             return SSLContexts.custom()
                     .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), (aliases, socket) -> keyStoreConfig.alias)
-                    .loadTrustMaterial(TrustStoreLoader.build(certificates), new SignatureApiTrustStrategy(certificateChainValidation))
+                    .loadTrustMaterial(TrustStoreLoader.build(trustedCertificates), new SignatureApiTrustStrategy(certificateChainValidation))
                     .build();
         } catch (Exception e) {
             if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {

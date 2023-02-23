@@ -1,11 +1,8 @@
 package no.digipost.signature.client.core.internal.security;
 
-import no.digipost.signature.client.ClientConfiguration;
-import no.digipost.signature.client.TestKonfigurasjon;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -18,8 +15,8 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.list;
 import static java.util.stream.Collectors.toList;
-import static no.digipost.signature.client.Certificates.PRODUCTION;
-import static no.digipost.signature.client.Certificates.TEST;
+import static no.digipost.signature.client.ServiceEnvironment.DIFITEST;
+import static no.digipost.signature.client.ServiceEnvironment.PRODUCTION;
 import static no.digipost.signature.client.core.internal.security.TrustStoreLoader.generateAlias;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -29,32 +26,15 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesRegex;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.quicktheories.QuickTheory.qt;
 import static org.quicktheories.generators.SourceDSL.strings;
 import static uk.co.probablyfine.matchers.Java8Matchers.where;
 
 class TrustStoreLoaderTest {
 
-    private ClientConfiguration.Builder configBuilder;
-
-    @BeforeEach
-    void setUp() {
-        configBuilder = ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE);
-    }
-
-    @Test
-    void loads_productions_certificates_by_default() throws KeyStoreException {
-        KeyStore trustStore = TrustStoreLoader.build(configBuilder.build());
-
-        assertTrue(trustStore.containsAlias("prod:bpclass3rootca.cer"), "Trust store should contain BuyPass root CA");
-        assertThat(trustStore.size(), is(8));
-    }
-
     @Test
     void loads_productions_certificates() throws KeyStoreException {
-        ClientConfiguration config = configBuilder.trustStore(PRODUCTION).build();
-        KeyStore trustStore = TrustStoreLoader.build(config);
+        KeyStore trustStore = TrustStoreLoader.build(PRODUCTION);
 
         assertThat(trustStore, containsExactlyTheAliases(
                 "prod:bpclass3rootca.cer",
@@ -69,8 +49,7 @@ class TrustStoreLoaderTest {
 
     @Test
     void loads_test_certificates() throws KeyStoreException {
-        ClientConfiguration config = configBuilder.trustStore(TEST).build();
-        KeyStore trustStore = TrustStoreLoader.build(config);
+        KeyStore trustStore = TrustStoreLoader.build(DIFITEST);
 
         assertThat(trustStore, containsExactlyTheAliases(
                 "test:buypass_class_3_test4_root_ca.cer",
@@ -86,8 +65,7 @@ class TrustStoreLoaderTest {
 
     @Test
     void loads_certificates_from_file_location() throws KeyStoreException {
-        ClientConfiguration config = configBuilder.trustStore("./src/test/files/certificateTest").build();
-        KeyStore trustStore = TrustStoreLoader.build(config);
+        KeyStore trustStore = TrustStoreLoader.build(DIFITEST.withCertificates("./src/test/files/certificateTest"));
 
         assertThat(trustStore, containsExactlyTheAliases("certificatetest:commfides_test_ca.cer"));
     }
