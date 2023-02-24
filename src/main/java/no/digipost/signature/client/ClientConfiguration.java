@@ -22,17 +22,18 @@ import org.apache.hc.core5.http.HttpHost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
-import static no.digipost.signature.client.ClientMetadata.VERSION;
 import static no.digipost.signature.client.core.internal.MaySpecifySender.NO_SPECIFIED_SENDER;
 
 public final class ClientConfiguration implements HttpIntegrationConfiguration, ASiCEConfiguration {
@@ -47,7 +48,7 @@ public final class ClientConfiguration implements HttpIntegrationConfiguration, 
      * The {@link HttpHeaders#USER_AGENT User-Agent} header which will be included in all requests. You may include a custom part
      * using {@link Builder#includeInUserAgent(String)}.
      */
-    public static final String MANDATORY_USER_AGENT = "posten-signature-api-client-java/" + VERSION + " (" + JAVA_DESCRIPTION + ")";
+    public static final String MANDATORY_USER_AGENT = "posten-signature-api-client-java/" + ClientMetadata.VERSION + " (" + JAVA_DESCRIPTION + ")";
 
     /**
      * Socket timeout is used for both requests and, if any,
@@ -315,4 +316,33 @@ public final class ClientConfiguration implements HttpIntegrationConfiguration, 
 
     }
 
+
+
+
+    static final class ClientMetadata {
+
+        static final String VERSION;
+
+        static {
+            String version = "unknown version";
+            try (InputStream versionFile = ClientMetadata.class.getResourceAsStream("version"); Scanner scanner = new Scanner(versionFile, "UTF-8")) {
+                version = scanner.next();
+            } catch (Exception e) {
+                Logger log = LoggerFactory.getLogger(ClientMetadata.class);
+                log.warn("Unable to resolve library version from classpath resource 'version', because {}: '{}'", e.getClass().getSimpleName(), e.getMessage());
+                if (log.isDebugEnabled()) {
+                    log.debug(e.getMessage(), e);
+                } else {
+                    log.info("Enable debug-logging for logger '{}' to see full stacktrace for above warning" + log.getName());
+                }
+            } finally {
+                VERSION = version;
+            }
+        }
+
+        private ClientMetadata() {}
+    }
+
 }
+
+

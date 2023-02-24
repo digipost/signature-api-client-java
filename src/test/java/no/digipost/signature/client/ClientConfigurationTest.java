@@ -3,7 +3,7 @@ package no.digipost.signature.client;
 import org.junit.jupiter.api.Test;
 
 import static no.digipost.signature.client.ClientConfiguration.MANDATORY_USER_AGENT;
-import static no.digipost.signature.client.ClientMetadata.VERSION;
+import static no.digipost.signature.client.ClientConfiguration.ClientMetadata.VERSION;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.containsString;
