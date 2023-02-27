@@ -1,20 +1,28 @@
 package no.digipost.signature.client.core.internal.http;
 
-import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.core5.net.URIBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.function.UnaryOperator;
 
-public interface SignatureHttpClient {
+public final class SignatureServiceRoot {
 
-    URI signatureServiceRoot();
+    private final URI rootUrl;
 
-    HttpClient httpClient();
+    public SignatureServiceRoot(URI rootUrl) {
+        if (rootUrl.isAbsolute()) {
+            throw new IllegalArgumentException(rootUrl + " must be an absolute URL");
+        }
+        this.rootUrl = rootUrl;
+    }
 
-    default URI constructUrl(UnaryOperator<URIBuilder> uri) {
-        URI serviceRoot = signatureServiceRoot();
+    public URI rootUrl() {
+        return rootUrl;
+    }
+
+    public URI constructUrl(UnaryOperator<URIBuilder> uri) {
+        URI serviceRoot = rootUrl();
         URIBuilder uriBuilder = uri.apply(new URIBuilder(serviceRoot));
         try {
             return uriBuilder.build();
@@ -24,5 +32,11 @@ public interface SignatureHttpClient {
                     "Reason: " + e.getClass().getSimpleName() + " '" + e.getMessage() + "'", e);
         }
     }
+
+    @Override
+    public String toString() {
+        return "SignatureServiceRoot '" + rootUrl + "'";
+    }
+
 
 }

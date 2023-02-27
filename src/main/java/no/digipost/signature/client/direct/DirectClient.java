@@ -18,7 +18,7 @@ import no.digipost.signature.client.core.internal.ApiFlow;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
 import no.digipost.signature.client.core.internal.MaySpecifySender;
-import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
+import no.digipost.signature.client.core.internal.http.SignatureServiceRoot;
 
 import static no.digipost.signature.client.direct.DirectJobStatusResponse.noUpdatedStatus;
 import static no.digipost.signature.client.direct.JaxbEntityMapping.fromJaxb;
@@ -34,7 +34,7 @@ public class DirectClient {
 
     public DirectClient(ClientConfiguration config) {
         this.defaultSender = config.getDefaultSender();
-        this.client = new ClientHelper(SignatureHttpClientFactory.create(config));
+        this.client = new ClientHelper(new SignatureServiceRoot(config.getServiceRoot()), config.httpClient());
         this.aSiCECreator = new CreateASiCE<>(new CreateDirectManifest(defaultSender), config);
     }
 

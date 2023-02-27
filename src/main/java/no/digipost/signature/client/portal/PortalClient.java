@@ -18,7 +18,7 @@ import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.ClientHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
 import no.digipost.signature.client.core.internal.MaySpecifySender;
-import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
+import no.digipost.signature.client.core.internal.http.SignatureServiceRoot;
 
 import static no.digipost.signature.client.portal.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
@@ -36,7 +36,7 @@ public class PortalClient {
     public PortalClient(ClientConfiguration config) {
         this.clientConfiguration = config;
         this.defaultSender = clientConfiguration.getDefaultSender();
-        this.client = new ClientHelper(SignatureHttpClientFactory.create(config));
+        this.client = new ClientHelper(new SignatureServiceRoot(config.getServiceRoot()), config.httpClient());
         this.aSiCECreator = new CreateASiCE<>(new CreatePortalManifest(config.getDefaultSender(), config.getClock()), config);
     }
 

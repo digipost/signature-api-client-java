@@ -20,11 +20,12 @@ import no.digipost.signature.client.core.exceptions.SignatureException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
-import no.digipost.signature.client.core.internal.http.SignatureHttpClient;
+import no.digipost.signature.client.core.internal.http.SignatureServiceRoot;
 import no.digipost.signature.client.core.internal.http.StatusCode;
 import no.digipost.signature.client.core.internal.xml.Marshalling;
 import no.digipost.signature.client.direct.WithSignerUrl;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.ByteArrayBody;
@@ -78,10 +79,13 @@ public class ClientHelper {
     private static final String NEXT_PERMITTED_POLL_TIME_HEADER = "X-Next-permitted-poll-time";
     private static final String POLLING_QUEUE_QUERY_PARAMETER = "polling_queue";
 
-    private final SignatureHttpClient httpClient;
+    private final SignatureServiceRoot serviceRoot;
+    private final HttpClient httpClient;
     private final ClientExceptionMapper clientExceptionMapper;
 
-    public ClientHelper(SignatureHttpClient httpClient) {
+
+    public ClientHelper(SignatureServiceRoot serviceRoot, HttpClient httpClient) {
+        this.serviceRoot = serviceRoot;
         this.httpClient = httpClient;
         this.clientExceptionMapper = new ClientExceptionMapper();
     }
@@ -106,14 +110,14 @@ public class ClientHelper {
 
         try (HttpEntity multiPart = multipartEntityBuilder.build()) {
             ClassicHttpRequest request = ClassicRequestBuilder
-                    .post(httpClient.constructUrl(uri -> uri.appendPath(target.path(sender))))
+                    .post(serviceRoot.constructUrl(uri -> uri.appendPath(target.path(sender))))
                     .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
                     .build();
 
             request.setEntity(multiPart);
             return call(() -> {
                 try {
-                    return httpClient.httpClient().execute(request, response -> parseResponse(response, target.apiResponseType));
+                    return httpClient.execute(request, response -> parseResponse(response, target.apiResponseType));
                 } catch (IOException e) {
                     throw new HttpIOException(request, e);
                 }
@@ -129,7 +133,7 @@ public class ClientHelper {
             ClassicHttpRequest request = new HttpPost(url.getSignerUrl());
             request.addHeader(ACCEPT, APPLICATION_XML.getMimeType());
 
-            return httpClient.httpClient().execute(request, response -> parseResponse(response, XMLDirectSignerResponse.class));
+            return httpClient.execute(request, response -> parseResponse(response, XMLDirectSignerResponse.class));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -141,7 +145,7 @@ public class ClientHelper {
 
         return call(() -> {
             try {
-                return httpClient.httpClient().execute(request, response -> {
+                return httpClient.execute(request, response -> {
                     ResponseStatus.fromHttpResponse(response).expect(SUCCESSFUL).orThrow(status -> {
                         if (status.value() == HttpStatus.SC_FORBIDDEN) {
                             XMLError error = extractError(response);
@@ -165,7 +169,7 @@ public class ClientHelper {
     }
 
     public ResponseInputStream getDataStream(String path, ContentType ... acceptedResponses) {
-        return getDataStream(httpClient.constructUrl(uri -> uri.appendPath(path)));
+        return getDataStream(serviceRoot.constructUrl(uri -> uri.appendPath(path)));
     }
 
     public ResponseInputStream getDataStream(URI absoluteUri, ContentType ... acceptedResponses) {
@@ -184,7 +188,7 @@ public class ClientHelper {
         return call(() -> {
             ClassicHttpResponse response = null;
             try {
-                response = httpClient.httpClient().executeOpen(null, request, null);
+                response = httpClient.executeOpen(null, request, null);
                 StatusCode statusCode = StatusCode.from(response.getCode());
                 if (!statusCode.is(SUCCESSFUL)) {
                     throw exceptionForGeneralError(response);
@@ -216,14 +220,14 @@ public class ClientHelper {
 
     public <RES> JobStatusResponse<RES> getStatusChange(ApiFlow<?, ?, RES> target, Sender sender) {
 
-        URI jobStatusUrl = httpClient.constructUrl(uri -> uri
+        URI jobStatusUrl = serviceRoot.constructUrl(uri -> uri
                 .appendPath(target.path(sender))
                 .addParameter(POLLING_QUEUE_QUERY_PARAMETER, sender.getPollingQueue().value));
 
         ClassicHttpRequest getStatusRequest = ClassicRequestBuilder.get(jobStatusUrl).addHeader(ACCEPT, APPLICATION_XML.getMimeType()).build();
         return call(() -> {
             try {
-                return httpClient.httpClient().execute(getStatusRequest, response -> {
+                return httpClient.execute(getStatusRequest, response -> {
                     StatusCode status = ResponseStatus.fromHttpResponse(response)
                             .throwIf(TOO_MANY_REQUESTS, s -> new TooEagerPollingException())
                             .expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
@@ -269,7 +273,7 @@ public class ClientHelper {
                 .build();
         call(() ->  {
             try {
-                httpClient.httpClient().execute(request, response -> responseStatusHandling.apply(response)
+                httpClient.execute(request, response -> responseStatusHandling.apply(response)
                         .expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response)));
             } catch (IOException e) {
                 throw new HttpIOException(request, e);
@@ -284,7 +288,7 @@ public class ClientHelper {
                 .build();
         call(() ->  {
             try {
-                httpClient.httpClient().execute(request, response -> ResponseStatus.fromHttpResponse(response)
+                httpClient.execute(request, response -> ResponseStatus.fromHttpResponse(response)
                         .expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response)));
             } catch (IOException e) {
                 throw new HttpIOException(request, e);
