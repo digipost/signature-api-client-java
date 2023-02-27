@@ -1,17 +1,18 @@
 package no.digipost.signature.client;
 
+import no.digipost.signature.client.archive.ArchiveClient;
 import no.digipost.signature.client.asice.ASiCEConfiguration;
 import no.digipost.signature.client.asice.DocumentBundleProcessor;
 import no.digipost.signature.client.asice.DumpDocumentBundleToDisk;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
+import no.digipost.signature.client.core.WithSignatureServiceRootUrl;
 import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBuilderConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientProxyConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientSslConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientUserAgentConfigurer;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
-import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
 import no.digipost.signature.client.security.CertificateChainValidation;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import no.digipost.signature.client.security.OrganizationNumberValidation;
@@ -36,7 +37,7 @@ import java.util.function.UnaryOperator;
 
 import static no.digipost.signature.client.core.internal.MaySpecifySender.NO_SPECIFIED_SENDER;
 
-public final class ClientConfiguration implements HttpIntegrationConfiguration, ASiCEConfiguration {
+public final class ClientConfiguration implements ASiCEConfiguration, WithSignatureServiceRootUrl, ArchiveClient.Configuration {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientConfiguration.class);
 
@@ -50,36 +51,29 @@ public final class ClientConfiguration implements HttpIntegrationConfiguration, 
      */
     public static final String MANDATORY_USER_AGENT = "posten-signature-api-client-java/" + ClientMetadata.VERSION + " (" + JAVA_DESCRIPTION + ")";
 
-    /**
-     * Socket timeout is used for both requests and, if any,
-     * underlying layered sockets (typically for
-     * secure sockets).
-     */
-    public static final Duration DEFAULT_SOCKET_TIMEOUT = Duration.ofSeconds(10);
-
-    /**
-     * The default connect timeout for requests.
-     */
-    public static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(10);
 
 
-
-    private final KeyStoreConfig keyStoreConfig;
-
-    private final Configurer<HttpClientBuilder> httpClientConfigurer;
     private final MaySpecifySender defaultSender;
     private final URI serviceRoot;
+    private final KeyStoreConfig keyStoreConfig;
+    private final Configurer<HttpClientBuilder> defaultHttpClientConfigurer;
+    private final Configurer<HttpClientBuilder> httpClientForDocumentDownloadsConfigurer;
     private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
     private final Clock clock;
 
+
+
     private ClientConfiguration(
-            KeyStoreConfig keyStoreConfig, Configurer<HttpClientBuilder> httpClientConfigurer, MaySpecifySender defaultSender,
-            URI serviceRoot, Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
+            MaySpecifySender defaultSender, URI serviceRoot, KeyStoreConfig keyStoreConfig,
+            Configurer<HttpClientBuilder> defaultHttpClientConfigurer,
+            Configurer<HttpClientBuilder> httpClientForDocumentDownloadsConfigurer,
+            Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
 
         this.keyStoreConfig = keyStoreConfig;
-        this.httpClientConfigurer = httpClientConfigurer;
         this.defaultSender = defaultSender;
         this.serviceRoot = serviceRoot;
+        this.defaultHttpClientConfigurer = defaultHttpClientConfigurer;
+        this.httpClientForDocumentDownloadsConfigurer = httpClientForDocumentDownloadsConfigurer;
         this.documentBundleProcessors = documentBundleProcessors;
         this.clock = clock;
     }
@@ -105,14 +99,21 @@ public final class ClientConfiguration implements HttpIntegrationConfiguration, 
     }
 
     @Override
-    public URI getServiceRoot() {
+    public URI signatureServiceRootUrl() {
         return serviceRoot;
     }
 
+
     @Override
-    public HttpClient httpClient() {
+    public HttpClient httpClientForDocumentDownloads() {
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
-        httpClientConfigurer.applyTo(httpClientBuilder);
+        httpClientForDocumentDownloadsConfigurer.applyTo(httpClientBuilder);
+        return httpClientBuilder.build();
+    }
+
+    public HttpClient defaultHttpClient() {
+        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+        defaultHttpClientConfigurer.applyTo(httpClientBuilder);
         return httpClientBuilder.build();
     }
 
@@ -130,7 +131,8 @@ public final class ClientConfiguration implements HttpIntegrationConfiguration, 
 
         final ApacheHttpClientUserAgentConfigurer userAgentConfigurer = new ApacheHttpClientUserAgentConfigurer(MANDATORY_USER_AGENT);
         private final ApacheHttpClientSslConfigurer sslConfigurer;
-        private final ApacheHttpClientBuilderConfigurer httpClientConfigurer;
+        private final ApacheHttpClientBuilderConfigurer defaultHttpClientConfigurer;
+        private final ApacheHttpClientBuilderConfigurer httpClientForDocumentDownloadsConfigurer;
         private Configurer<HttpClientBuilder> proxyConfigurer = Configurer.notConfigured();
 
         private ServiceEnvironment serviceEnvironment = ServiceEnvironment.PRODUCTION;
@@ -142,11 +144,18 @@ public final class ClientConfiguration implements HttpIntegrationConfiguration, 
         private Builder(KeyStoreConfig keyStoreConfig) {
             this.keyStoreConfig = keyStoreConfig;
             this.sslConfigurer = new ApacheHttpClientSslConfigurer(keyStoreConfig, serviceEnvironment);
-            this.httpClientConfigurer = new ApacheHttpClientBuilderConfigurer(sslConfigurer)
-                    .socketTimeout(Duration.ofSeconds(10))
+            this.defaultHttpClientConfigurer = new ApacheHttpClientBuilderConfigurer()
+                    .connectionManager(sslConfigurer)
+                    .socketTimeout(Duration.ofSeconds(5))
+                    .connectTimeout(Duration.ofSeconds(5))
+                    .connectionRequestTimeout(Duration.ofSeconds(5))
+                    .responseArrivalTimeout(Duration.ofSeconds(10));
+            this.httpClientForDocumentDownloadsConfigurer = new ApacheHttpClientBuilderConfigurer()
+                    .connectionManager(sslConfigurer)
+                    .socketTimeout(Duration.ofSeconds(5))
                     .connectTimeout(Duration.ofSeconds(10))
                     .connectionRequestTimeout(Duration.ofSeconds(10))
-                    .responseArrivalTimeout(Duration.ofSeconds(10));
+                    .responseArrivalTimeout(Duration.ofSeconds(60));
         }
 
         public Builder serviceEnvironment(ServiceEnvironment other) {
@@ -205,13 +214,26 @@ public final class ClientConfiguration implements HttpIntegrationConfiguration, 
             return this;
         }
 
+
         /**
          * Configure timeouts used for integrating with the API.
          *
          * @param timeouts the timeouts to set
          */
         public Builder timeouts(Consumer<? super TimeoutsConfigurer> timeouts) {
-            timeouts.accept(httpClientConfigurer);
+            timeouts.accept(defaultHttpClientConfigurer);
+            return this;
+        }
+
+        /**
+         * Configure timeouts used for downloading documents.
+         * The values for these timeouts should in general be configured higher than
+         * for {@link #timeouts(Consumer) default timeouts}.
+         *
+         * @param timeouts the timeouts to set
+         */
+        public Builder timeoutsForDocumentDownloads(Consumer<? super TimeoutsConfigurer> timeouts) {
+            timeouts.accept(httpClientForDocumentDownloadsConfigurer);
             return this;
         }
 
@@ -224,9 +246,22 @@ public final class ClientConfiguration implements HttpIntegrationConfiguration, 
          * on the library's <a href="https://github.com/digipost/signature-api-client-java/issues">web site on GitHub</a>.
          */
         public Builder apacheHttpClient(Consumer<? super ApacheHttpClientConfigurer> apacheHttpClientConfigurer) {
-            apacheHttpClientConfigurer.accept(this.httpClientConfigurer);
+            apacheHttpClientConfigurer.accept(this.defaultHttpClientConfigurer);
             return this;
         }
+
+        /**
+         * This method allows for custom configuration of the created {@link HttpClient} if anything is
+         * needed that is not already supported by other methods in {@link ClientConfiguration}.
+         * <p>
+         * If you still need to use this method, consider requesting first-class support for your requirement
+         * on the library's <a href="https://github.com/digipost/signature-api-client-java/issues">web site on GitHub</a>.
+         */
+        public Builder apacheHttpClientForDocumentDownloads(Consumer<? super ApacheHttpClientConfigurer> apacheHttpClientConfigurer) {
+            apacheHttpClientConfigurer.accept(this.httpClientForDocumentDownloadsConfigurer);
+            return this;
+        }
+
 
         /**
          * Have the library dump the generated document bundle zip files to disk before they are
@@ -306,12 +341,11 @@ public final class ClientConfiguration implements HttpIntegrationConfiguration, 
         }
 
         public ClientConfiguration build() {
-            Configurer<HttpClientBuilder> allHttpClientConfigurers = userAgentConfigurer
-                    .andThen(proxyConfigurer)
-                    .andThen(httpClientConfigurer);
+            Configurer<HttpClientBuilder> commonConfig = userAgentConfigurer.andThen(proxyConfigurer);
 
-            return new ClientConfiguration(
-                    keyStoreConfig, allHttpClientConfigurers, defaultSender, serviceEnvironment.serviceUrl(), documentBundleProcessors, clock);
+            return new ClientConfiguration(defaultSender, serviceEnvironment.serviceUrl(), keyStoreConfig,
+                    commonConfig.andThen(defaultHttpClientConfigurer), commonConfig.andThen(httpClientForDocumentDownloadsConfigurer),
+                    documentBundleProcessors, clock);
         }
 
     }

@@ -13,24 +13,27 @@ import java.util.function.Consumer;
 
 public final class ApacheHttpClientBuilderConfigurer implements TimeoutsConfigurer, ApacheHttpClientConfigurer, Configurer<HttpClientBuilder> {
 
+    private final PoolingHttpClientConnectionManagerBuilder connectionManagerConfig = PoolingHttpClientConnectionManagerBuilder.create();
     private final SocketConfig.Builder socketConfig = SocketConfig.custom();
     private final ConnectionConfig.Builder connectionConfig = ConnectionConfig.custom();
     private final RequestConfig.Builder requestConfig = RequestConfig.custom();
 
-    private final Configurer<PoolingHttpClientConnectionManagerBuilder> connectionManagerConfigurer;
+    private final Configurer<PoolingHttpClientConnectionManagerBuilder> defaultConnectionManagerConfigurer = connectionManager -> connectionManager
+            .setDefaultSocketConfig(socketConfig.build())
+            .setDefaultConnectionConfig(connectionConfig.build());
 
-    private Configurer<HttpClientBuilder> httpClientConfigurer = httpClient -> httpClient
-            .setDefaultRequestConfig(requestConfig.build());
+    private final Configurer<HttpClientBuilder> defaultRequestConfigurer = httpClient -> httpClient
+            .setDefaultRequestConfig(requestConfig.build())
+            .setConnectionManager(connectionManagerConfig.build());
+
+    private Configurer<? super PoolingHttpClientConnectionManagerBuilder> additionalConnectionManagerConfigurer = Configurer.notConfigured();
+    private Configurer<? super HttpClientBuilder> additionalHttpClientConfigurer = Configurer.notConfigured();
 
 
-    public ApacheHttpClientBuilderConfigurer(Configurer<PoolingHttpClientConnectionManagerBuilder> connectionManagerConfigurer) {
-        this.connectionManagerConfigurer =
-                Configurer.of((PoolingHttpClientConnectionManagerBuilder connectionManager) -> connectionManager
-                    .setDefaultSocketConfig(socketConfig.build())
-                    .setDefaultConnectionConfig(connectionConfig.build()))
-                .andThen(connectionManagerConfigurer);
+    public ApacheHttpClientBuilderConfigurer connectionManager(Configurer<PoolingHttpClientConnectionManagerBuilder> connectionManagerConfigurer) {
+        this.additionalConnectionManagerConfigurer = connectionManagerConfigurer;
+        return this;
     }
-
 
     @Override
     public ApacheHttpClientBuilderConfigurer socketTimeout(Duration duration) {
@@ -70,18 +73,19 @@ public final class ApacheHttpClientBuilderConfigurer implements TimeoutsConfigur
 
     @Override
     public ApacheHttpClientBuilderConfigurer configure(Consumer<? super HttpClientBuilder> httpClientCustomizer) {
-        this.httpClientConfigurer = httpClientConfigurer.andThen(Configurer.of(httpClientCustomizer));
+        this.additionalHttpClientConfigurer = Configurer.of(httpClientCustomizer);
         return this;
     }
 
 
     @Override
     public void applyTo(HttpClientBuilder httpClientBuilder) {
-        PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
-        connectionManagerConfigurer.applyTo(connectionManagerBuilder);
+        defaultConnectionManagerConfigurer
+            .andThen(additionalConnectionManagerConfigurer)
+            .applyTo(connectionManagerConfig);
 
-        httpClientConfigurer
-            .andThen(httpClient -> httpClient.setConnectionManager(connectionManagerBuilder.build()))
+        defaultRequestConfigurer
+            .andThen(additionalHttpClientConfigurer)
             .applyTo(httpClientBuilder);
     }
 

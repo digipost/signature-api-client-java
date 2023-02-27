@@ -16,6 +16,7 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
 import no.digipost.signature.client.core.internal.ApiFlow;
 import no.digipost.signature.client.core.internal.ClientHelper;
+import no.digipost.signature.client.core.internal.DownloadHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
 import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.core.internal.http.SignatureServiceRoot;
@@ -29,12 +30,15 @@ import static org.apache.hc.core5.http.ContentType.APPLICATION_XML;
 public class DirectClient {
 
     private final ClientHelper client;
+    private final DownloadHelper download;
     private final CreateASiCE<DirectJob> aSiCECreator;
     private final MaySpecifySender defaultSender;
 
     public DirectClient(ClientConfiguration config) {
         this.defaultSender = config.getDefaultSender();
-        this.client = new ClientHelper(new SignatureServiceRoot(config.getServiceRoot()), config.httpClient());
+        SignatureServiceRoot serviceRoot = SignatureServiceRoot.from(config);
+        this.client = new ClientHelper(serviceRoot, config.defaultHttpClient());
+        this.download = new DownloadHelper(serviceRoot, config.httpClientForDocumentDownloads());
         this.aSiCECreator = new CreateASiCE<>(new CreateDirectManifest(defaultSender), config);
     }
 
@@ -133,11 +137,11 @@ public class DirectClient {
 
 
     public ResponseInputStream getXAdES(XAdESReference xAdESReference) {
-        return client.getDataStream(xAdESReference.getxAdESUrl(), APPLICATION_XML);
+        return download.getDataStream(xAdESReference.getxAdESUrl(), APPLICATION_XML);
     }
 
     public ResponseInputStream getPAdES(PAdESReference pAdESReference) {
-        return client.getDataStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM, APPLICATION_XML);
+        return download.getDataStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM, APPLICATION_XML);
     }
 
     public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {

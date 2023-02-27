@@ -7,24 +7,19 @@ import no.digipost.signature.api.xml.XMLEmptyElement;
 import no.digipost.signature.api.xml.XMLError;
 import no.digipost.signature.client.asice.DocumentBundle;
 import no.digipost.signature.client.core.DeleteDocumentsUrl;
-import no.digipost.signature.client.core.ResponseInputStream;
 import no.digipost.signature.client.core.Sender;
-import no.digipost.signature.client.core.exceptions.BrokerNotAuthorizedException;
 import no.digipost.signature.client.core.exceptions.CantQueryStatusException;
 import no.digipost.signature.client.core.exceptions.DocumentsNotDeletableException;
 import no.digipost.signature.client.core.exceptions.HttpIOException;
 import no.digipost.signature.client.core.exceptions.InvalidStatusQueryTokenException;
 import no.digipost.signature.client.core.exceptions.JobCannotBeCancelledException;
 import no.digipost.signature.client.core.exceptions.NotCancellableException;
-import no.digipost.signature.client.core.exceptions.SignatureException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
-import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureServiceRoot;
 import no.digipost.signature.client.core.internal.http.StatusCode;
 import no.digipost.signature.client.core.internal.xml.Marshalling;
 import no.digipost.signature.client.direct.WithSignerUrl;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -34,15 +29,10 @@ import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.entity.mime.MultipartPartBuilder;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
-import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.HeaderGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,15 +41,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
-import static no.digipost.signature.client.core.internal.ErrorCodes.BROKER_NOT_AUTHORIZED;
+import static no.digipost.signature.client.core.internal.ClientExceptionMapper.exceptionForGeneralError;
+import static no.digipost.signature.client.core.internal.ClientExceptionMapper.extractError;
 import static no.digipost.signature.client.core.internal.ErrorCodes.INVALID_STATUS_QUERY_TOKEN;
 import static no.digipost.signature.client.core.internal.ErrorCodes.SIGNING_CEREMONY_NOT_COMPLETED;
 import static no.digipost.signature.client.core.internal.http.StatusCode.CONFLICT;
@@ -81,13 +70,11 @@ public class ClientHelper {
 
     private final SignatureServiceRoot serviceRoot;
     private final HttpClient httpClient;
-    private final ClientExceptionMapper clientExceptionMapper;
 
 
     public ClientHelper(SignatureServiceRoot serviceRoot, HttpClient httpClient) {
         this.serviceRoot = serviceRoot;
         this.httpClient = httpClient;
-        this.clientExceptionMapper = new ClientExceptionMapper();
     }
 
     public <RESPONSE, REQUEST> RESPONSE sendSignatureJobRequest(ApiFlow<REQUEST, RESPONSE, ?> target, REQUEST signatureJobRequest, DocumentBundle documentBundle, Sender sender) {
@@ -168,46 +155,6 @@ public class ClientHelper {
         });
     }
 
-    public ResponseInputStream getDataStream(String path, ContentType ... acceptedResponses) {
-        return getDataStream(serviceRoot.constructUrl(uri -> uri.appendPath(path)));
-    }
-
-    public ResponseInputStream getDataStream(URI absoluteUri, ContentType ... acceptedResponses) {
-        if (!absoluteUri.isAbsolute()) {
-            throw new IllegalArgumentException("'" + absoluteUri + "' is not an absolute URL");
-        }
-        HeaderGroup acceptHeader = new HeaderGroup();
-        for (ContentType acceptedType : acceptedResponses) {
-            acceptHeader.addHeader(new BasicHeader(ACCEPT, acceptedType.getMimeType()));
-        }
-
-        ClassicHttpRequest request = ClassicRequestBuilder.get(absoluteUri)
-                .addHeader(acceptHeader.getCondensedHeader(ACCEPT))
-                .build();
-
-        return call(() -> {
-            ClassicHttpResponse response = null;
-            try {
-                response = httpClient.executeOpen(null, request, null);
-                StatusCode statusCode = StatusCode.from(response.getCode());
-                if (!statusCode.is(SUCCESSFUL)) {
-                    throw exceptionForGeneralError(response);
-                }
-                return new ResponseInputStream(response.getEntity().getContent(), response.getEntity().getContentLength());
-            } catch (Exception e) {
-                if (response != null) {
-                    try {
-                        response.close();
-                    } catch (IOException closingException) {
-                        e.addSuppressed(closingException);
-                    }
-                }
-                throw e instanceof RuntimeException
-                    ? (RuntimeException) e
-                    : new RuntimeException(request + ": " + e.getClass().getSimpleName() + " '" + e.getMessage() + "'", e);
-            }
-        });
-    }
 
     public void cancel(Cancellable cancellable) {
             if (cancellable.getCancellationUrl() != null) {
@@ -305,53 +252,13 @@ public class ClientHelper {
         }
     }
 
-    private static SignatureException exceptionForGeneralError(ClassicHttpResponse response) {
-        XMLError error = extractError(response);
-        if (BROKER_NOT_AUTHORIZED.sameAs(error.getErrorCode())) {
-            return new BrokerNotAuthorizedException(error);
-        }
-        return new UnexpectedResponseException(error, ResponseStatus.fromHttpResponse(response).get(), StatusCode.OK);
-    }
-
-    private static XMLError extractError(ClassicHttpResponse response) {
-        try {
-            XMLError error;
-            Optional<ContentType> contentType = Optional.ofNullable(response.getHeader(CONTENT_TYPE)).map(NameValuePair::getValue).map(ContentType::parse);
-            if (contentType.filter(APPLICATION_XML::isSameMimeType).isPresent()) {
-                try(InputStream body = response.getEntity().getContent()) {
-                    error = Marshalling.unmarshal(body, XMLError.class);
-                } catch (IOException e) {
-                    throw new UncheckedIOException("Could not extract error from body.", e);
-                }
-            } else {
-                String errorAsString;
-                try(InputStream body = response.getEntity().getContent()) {
-                    ByteArrayOutputStream result = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[1024];
-                    for (int length; (length = body.read(buffer)) != -1; ) {
-                        result.write(buffer, 0, length);
-                    }
-                    errorAsString = result.toString(StandardCharsets.UTF_8.name());
-                } catch (IOException e) {
-                    throw new UncheckedIOException("Could not read body as string.", e);
-                }
-                throw new UnexpectedResponseException(
-                        HttpHeaders.CONTENT_TYPE + " " + contentType.map(ContentType::getMimeType).orElse("unknown") + ": " +
-                        Optional.ofNullable(errorAsString).filter(StringUtils::isNoneBlank).orElse("<no content in response>"),
-                        ResponseStatus.fromHttpResponse(response).get(), StatusCode.OK);
-            }
-            return error;
-        } catch (ProtocolException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private <T> T call(Supplier<T> supplier) {
-        return clientExceptionMapper.doWithMappedClientException(supplier);
+        return ClientExceptionMapper.doWithMappedClientException(supplier);
     }
 
     private void call(Runnable action) {
-        clientExceptionMapper.doWithMappedClientException(action);
+        ClientExceptionMapper.doWithMappedClientException(action);
     }
 
 }

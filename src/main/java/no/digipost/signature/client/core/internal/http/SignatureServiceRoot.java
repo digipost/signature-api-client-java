@@ -1,5 +1,6 @@
 package no.digipost.signature.client.core.internal.http;
 
+import no.digipost.signature.client.core.WithSignatureServiceRootUrl;
 import org.apache.hc.core5.net.URIBuilder;
 
 import java.net.URI;
@@ -7,6 +8,11 @@ import java.net.URISyntaxException;
 import java.util.function.UnaryOperator;
 
 public final class SignatureServiceRoot {
+
+    public static SignatureServiceRoot from(WithSignatureServiceRootUrl configuration) {
+        return new SignatureServiceRoot(configuration.signatureServiceRootUrl());
+    }
+
 
     private final URI rootUrl;
 

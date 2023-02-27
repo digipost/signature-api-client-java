@@ -1,20 +1,25 @@
 package no.digipost.signature.client.archive;
 
 import no.digipost.signature.client.core.ResponseInputStream;
-import no.digipost.signature.client.core.internal.ClientHelper;
-import no.digipost.signature.client.core.internal.http.HttpIntegrationConfiguration;
+import no.digipost.signature.client.core.WithSignatureServiceRootUrl;
+import no.digipost.signature.client.core.internal.DownloadHelper;
 import no.digipost.signature.client.core.internal.http.SignatureServiceRoot;
+import org.apache.hc.client5.http.classic.HttpClient;
 
 public class ArchiveClient {
 
-    private ClientHelper client;
+    public interface Configuration extends WithSignatureServiceRootUrl {
+        HttpClient httpClientForDocumentDownloads();
+    }
 
-    public ArchiveClient(HttpIntegrationConfiguration httpIntegrationConfig) {
-        this.client = new ClientHelper(new SignatureServiceRoot(httpIntegrationConfig.getServiceRoot()), httpIntegrationConfig.httpClient());
+    private DownloadHelper download;
+
+    public ArchiveClient(Configuration configuration) {
+        this.download = new DownloadHelper(SignatureServiceRoot.from(configuration), configuration.httpClientForDocumentDownloads());
     }
 
     public ResponseInputStream getPAdES(ArchiveOwner owner, String id) {
-        return client.getDataStream(owner.getOrganizationNumber() + "/archive/documents/" + id + "/pades");
+        return download.getDataStream(owner.getOrganizationNumber() + "/archive/documents/" + id + "/pades");
     }
 
 }
