@@ -9,7 +9,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static no.digipost.signature.client.ServiceEnvironment.DIFITEST;
+import static no.digipost.signature.client.ServiceEnvironment.STAGING;
 
 @SuppressWarnings({"ConstantConditions", "unused", "UnusedAssignment"})
 public class InitialSetup {
@@ -39,7 +39,7 @@ public class InitialSetup {
         KeyStoreConfig keyStoreConfig = null; //As initialized earlier
 
         ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreConfig)
-                .serviceEnvironment(DIFITEST)
+                .serviceEnvironment(STAGING)
                 .defaultSender(new Sender("123456789"))
                 .build();
 

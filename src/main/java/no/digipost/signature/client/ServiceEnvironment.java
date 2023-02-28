@@ -12,16 +12,22 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
+/**
+ * Available environments for integrating with Posten signering.
+ */
 public final class ServiceEnvironment implements ProvidesCertificateResourcePaths {
 
     public static final ServiceEnvironment PRODUCTION = new ServiceEnvironment(
-            "Posten Signering production", URI.create("https://api.signering.posten.no/api"), Certificates.PRODUCTION.certificatePaths);
+            "Posten signering Production", URI.create("https://api.signering.posten.no/api"), Certificates.PRODUCTION.certificatePaths);
 
     public static final ServiceEnvironment DIFITEST = new ServiceEnvironment(
-            "Posten Signering difitest", URI.create("https://api.difitest.signering.posten.no/api"), Certificates.TEST.certificatePaths);
+            "Posten signering Difitest", URI.create("https://api.difitest.signering.posten.no/api"), Certificates.TEST.certificatePaths);
 
     public static final ServiceEnvironment DIFIQA = new ServiceEnvironment(
-            "Posten Signering difiqa", URI.create("https://api.difiqa.signering.posten.no/api"), Certificates.TEST.certificatePaths);
+            "Posten signering Difiqa", URI.create("https://api.difiqa.signering.posten.no/api"), Certificates.TEST.certificatePaths);
+
+    public static final ServiceEnvironment STAGING = DIFITEST.withDescription("Posten signering Staging");
+
 
     private final String description;
     private final URI serviceUrl;
@@ -32,6 +38,10 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
         this.description = description;
         this.serviceUrl = serviceUrl;
         this.certificatePaths = unmodifiableList(new ArrayList<>(certificatePaths));
+    }
+
+    public ServiceEnvironment withDescription(String description) {
+        return new ServiceEnvironment(description, this.serviceUrl, this.certificatePaths);
     }
 
     public ServiceEnvironment withServiceUrl(URI url) {

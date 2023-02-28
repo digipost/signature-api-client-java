@@ -15,8 +15,8 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.list;
 import static java.util.stream.Collectors.toList;
-import static no.digipost.signature.client.ServiceEnvironment.DIFITEST;
 import static no.digipost.signature.client.ServiceEnvironment.PRODUCTION;
+import static no.digipost.signature.client.ServiceEnvironment.STAGING;
 import static no.digipost.signature.client.core.internal.security.TrustStoreLoader.generateAlias;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -49,7 +49,7 @@ class TrustStoreLoaderTest {
 
     @Test
     void loads_test_certificates() throws KeyStoreException {
-        KeyStore trustStore = TrustStoreLoader.build(DIFITEST);
+        KeyStore trustStore = TrustStoreLoader.build(STAGING);
 
         assertThat(trustStore, containsExactlyTheAliases(
                 "test:buypass_class_3_test4_root_ca.cer",
@@ -65,7 +65,7 @@ class TrustStoreLoaderTest {
 
     @Test
     void loads_certificates_from_file_location() throws KeyStoreException {
-        KeyStore trustStore = TrustStoreLoader.build(DIFITEST.withCertificates("./src/test/files/certificateTest"));
+        KeyStore trustStore = TrustStoreLoader.build(STAGING.withCertificates("./src/test/files/certificateTest"));
 
         assertThat(trustStore, containsExactlyTheAliases("certificatetest:commfides_test_ca.cer"));
     }
