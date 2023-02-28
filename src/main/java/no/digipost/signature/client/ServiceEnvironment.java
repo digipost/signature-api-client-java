@@ -1,5 +1,6 @@
 package no.digipost.signature.client;
 
+import no.digipost.signature.client.core.WithSignatureServiceRootUrl;
 import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
 
 import java.net.URI;
@@ -15,7 +16,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * Available environments for integrating with Posten signering.
  */
-public final class ServiceEnvironment implements ProvidesCertificateResourcePaths {
+public final class ServiceEnvironment implements ProvidesCertificateResourcePaths, WithSignatureServiceRootUrl {
 
     public static final ServiceEnvironment PRODUCTION = new ServiceEnvironment(
             "Posten signering Production", URI.create("https://api.signering.posten.no/api"), Certificates.PRODUCTION.certificatePaths);
@@ -30,18 +31,18 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
 
 
     private final String description;
-    private final URI serviceUrl;
+    private final URI serviceRootUrl;
     private final List<String> certificatePaths;
 
 
-    public ServiceEnvironment(String description, URI serviceUrl, Collection<String> certificatePaths) {
+    public ServiceEnvironment(String description, URI serviceRootUrl, Collection<String> certificatePaths) {
         this.description = description;
-        this.serviceUrl = serviceUrl;
+        this.serviceRootUrl = serviceRootUrl;
         this.certificatePaths = unmodifiableList(new ArrayList<>(certificatePaths));
     }
 
     public ServiceEnvironment withDescription(String description) {
-        return new ServiceEnvironment(description, this.serviceUrl, this.certificatePaths);
+        return new ServiceEnvironment(description, this.serviceRootUrl, this.certificatePaths);
     }
 
     public ServiceEnvironment withServiceUrl(URI url) {
@@ -63,11 +64,12 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
     }
 
     public ServiceEnvironment withCertificates(Collection<String> certificatePaths) {
-        return new ServiceEnvironment(this.description, this.serviceUrl, certificatePaths);
+        return new ServiceEnvironment(this.description, this.serviceRootUrl, certificatePaths);
     }
 
-    public URI serviceUrl() {
-        return serviceUrl;
+    @Override
+    public URI signatureServiceRootUrl() {
+        return serviceRootUrl;
     }
 
     @Override
@@ -79,7 +81,7 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
 
     @Override
     public String toString() {
-        return description + " at " + serviceUrl + ", trusting " + certificatePaths;
+        return description + " at " + serviceRootUrl + ", trusting " + certificatePaths;
     }
 
 }

@@ -343,7 +343,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         public ClientConfiguration build() {
             Configurer<HttpClientBuilder> commonConfig = userAgentConfigurer.andThen(proxyConfigurer);
 
-            return new ClientConfiguration(defaultSender, serviceEnvironment.serviceUrl(), keyStoreConfig,
+            return new ClientConfiguration(defaultSender, serviceEnvironment.signatureServiceRootUrl(), keyStoreConfig,
                     commonConfig.andThen(defaultHttpClientConfigurer), commonConfig.andThen(httpClientForDocumentDownloadsConfigurer),
                     documentBundleProcessors, clock);
         }

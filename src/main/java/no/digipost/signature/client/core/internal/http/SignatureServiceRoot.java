@@ -17,7 +17,7 @@ public final class SignatureServiceRoot {
     private final URI rootUrl;
 
     public SignatureServiceRoot(URI rootUrl) {
-        if (rootUrl.isAbsolute()) {
+        if (!rootUrl.isAbsolute()) {
             throw new IllegalArgumentException(rootUrl + " must be an absolute URL");
         }
         this.rootUrl = rootUrl;
@@ -33,7 +33,7 @@ public final class SignatureServiceRoot {
         try {
             return uriBuilder.build();
         } catch (URISyntaxException e) {
-            throw new IllegalStateException(
+            throw new IllegalArgumentException(
                     "Invalid URL constructed for service at " + serviceRoot + ": " + uriBuilder + ". " +
                     "Reason: " + e.getClass().getSimpleName() + " '" + e.getMessage() + "'", e);
         }
