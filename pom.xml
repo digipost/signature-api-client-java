@@ -17,7 +17,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.previousVersion>set_with_-Dproject.previousVersion=X.Y</project.previousVersion>
-        <signature.api.version>3.0.0-RC3</signature.api.version>
+        <signature.api.version>3.0.0-RC4</signature.api.version>
         <slf4j.version>1.7.36</slf4j.version>
     </properties>
 
