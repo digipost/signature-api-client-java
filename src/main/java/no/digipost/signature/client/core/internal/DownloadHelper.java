@@ -1,6 +1,7 @@
 package no.digipost.signature.client.core.internal;
 
 import no.digipost.signature.client.core.ResponseInputStream;
+import no.digipost.signature.client.core.exceptions.HttpIOException;
 import no.digipost.signature.client.core.internal.http.SignatureServiceRoot;
 import no.digipost.signature.client.core.internal.http.StatusCode;
 import org.apache.hc.client5.http.classic.HttpClient;
@@ -50,7 +51,11 @@ public class DownloadHelper {
         return doWithMappedClientException(() -> {
             ClassicHttpResponse response = null;
             try {
-                response = httpClient.executeOpen(null, request, null);
+                try {
+                    response = httpClient.executeOpen(null, request, null);
+                } catch (IOException e) {
+                    throw new HttpIOException(request, e);
+                }
                 StatusCode statusCode = StatusCode.from(response.getCode());
                 if (!statusCode.is(SUCCESSFUL)) {
                     throw exceptionForGeneralError(response);
