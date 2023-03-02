@@ -1,7 +1,9 @@
 package no.digipost.signature.client.core.internal.security;
 
+import java.util.List;
+
 public interface ProvidesCertificateResourcePaths {
 
-    Iterable<String> getCertificatePaths();
+    List<String> certificatePaths();
 
 }

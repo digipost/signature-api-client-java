@@ -1,6 +1,7 @@
 package no.digipost.signature.client.core.internal.http;
 
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
+import org.apache.hc.core5.http.HttpResponse;
 
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -9,7 +10,11 @@ import java.util.stream.Stream;
 
 public final class ResponseStatus {
 
-    public static ResponseStatus resolve(int statusCode) {
+    public static ResponseStatus fromHttpResponse(HttpResponse response) {
+        return response != null ? fromHttpStatusCode(response.getCode()) : null;
+    }
+
+    public static ResponseStatus fromHttpStatusCode(int statusCode) {
         return new ResponseStatus(new StatusCode(statusCode), s -> true);
     }
 
@@ -21,11 +26,11 @@ public final class ResponseStatus {
         this.statusExpectation = expectation;
     }
 
-    public ResponseStatus expect(StatusCodeFamily expectedStatusFamily) {
+    public ResponseStatus expect(StatusCode.Family expectedStatusFamily) {
         return expect(s -> s.is(expectedStatusFamily));
     }
 
-    public ResponseStatus expectOneOf(StatusCodeFamily ... expectedStatusFamilies) {
+    public ResponseStatus expectOneOf(StatusCode.Family ... expectedStatusFamilies) {
         return expectOneOf(Stream.of(expectedStatusFamilies), (family, statusCode) -> statusCode.is(family));
     }
 
@@ -44,8 +49,8 @@ public final class ResponseStatus {
         return new ResponseStatus(statusCode, this.statusExpectation.and(expectation));
     }
 
-    public <X extends Exception> ResponseStatus throwIf(int status, Function<StatusCode, X> exceptionSupplier) throws X {
-        return throwIf(s -> s.equals(StatusCode.from(status)), exceptionSupplier);
+    public <X extends Exception> ResponseStatus throwIf(StatusCode statusCode, Function<StatusCode, X> exceptionSupplier) throws X {
+        return throwIf(s -> s.equals(statusCode), exceptionSupplier);
     }
 
     public <X extends Exception> ResponseStatus throwIf(Predicate<? super StatusCode> illegalStatus, Function<StatusCode, X> exceptionSupplier) throws X {

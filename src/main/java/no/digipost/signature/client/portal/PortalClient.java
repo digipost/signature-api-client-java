@@ -13,12 +13,13 @@ import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.ResponseInputStream;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.XAdESReference;
+import no.digipost.signature.client.core.internal.ApiFlow;
 import no.digipost.signature.client.core.internal.Cancellable;
 import no.digipost.signature.client.core.internal.ClientHelper;
+import no.digipost.signature.client.core.internal.DownloadHelper;
 import no.digipost.signature.client.core.internal.JobStatusResponse;
-import no.digipost.signature.client.core.internal.http.SignatureHttpClientFactory;
-
-import java.util.Optional;
+import no.digipost.signature.client.core.internal.MaySpecifySender;
+import no.digipost.signature.client.core.internal.http.SignatureServiceRoot;
 
 import static no.digipost.signature.client.portal.JaxbEntityMapping.fromJaxb;
 import static no.digipost.signature.client.portal.JaxbEntityMapping.toJaxb;
@@ -29,22 +30,25 @@ import static org.apache.hc.core5.http.ContentType.APPLICATION_XML;
 public class PortalClient {
 
     private final ClientHelper client;
+    private final DownloadHelper download;
     private final CreateASiCE<PortalJob> aSiCECreator;
-    private final ClientConfiguration clientConfiguration;
+    private final MaySpecifySender defaultSender;
 
     public PortalClient(ClientConfiguration config) {
-        this.clientConfiguration = config;
-        this.client = new ClientHelper(SignatureHttpClientFactory.create(config), config.getGlobalSender());
-        this.aSiCECreator = new CreateASiCE<>(new CreatePortalManifest(config.getClock()), config);
+        this.defaultSender = config.getDefaultSender();
+        SignatureServiceRoot serviceRoot = SignatureServiceRoot.from(config);
+        this.client = new ClientHelper(serviceRoot, config.defaultHttpClient());
+        this.download = new DownloadHelper(serviceRoot, config.httpClientForDocumentDownloads());
+        this.aSiCECreator = new CreateASiCE<>(new CreatePortalManifest(config.getDefaultSender(), config.getClock()), config);
     }
 
 
     public PortalJobResponse create(PortalJob job) {
+        Sender sender = job.resolveSenderWithFallbackTo(defaultSender);
         DocumentBundle documentBundle = aSiCECreator.createASiCE(job);
-        XMLPortalSignatureJobRequest signatureJobRequest = toJaxb(job, clientConfiguration.getGlobalSender());
-
-        XMLPortalSignatureJobResponse xmlPortalSignatureJobResponse = client.sendPortalSignatureJobRequest(signatureJobRequest, documentBundle, job.getSender());
-        return fromJaxb(xmlPortalSignatureJobResponse);
+        XMLPortalSignatureJobRequest createJobRequest = toJaxb(job, sender.getPollingQueue());
+        XMLPortalSignatureJobResponse createdJobResponse = client.sendSignatureJobRequest(ApiFlow.PORTAL, createJobRequest, documentBundle, sender);
+        return fromJaxb(createdJobResponse);
     }
 
 
@@ -78,7 +82,8 @@ public class PortalClient {
      */
 
     public PortalJobStatusChanged getStatusChange(Sender sender) {
-        JobStatusResponse<XMLPortalSignatureJobStatusChangeResponse> statusChangeResponse = client.getPortalStatusChange(Optional.ofNullable(sender));
+        JobStatusResponse<XMLPortalSignatureJobStatusChangeResponse> statusChangeResponse = client
+                .getStatusChange(ApiFlow.PORTAL, MaySpecifySender.ofNullable(sender).resolveSenderWithFallbackTo(defaultSender));
         if (statusChangeResponse.gotStatusChange()) {
             return JaxbEntityMapping.fromJaxb(statusChangeResponse);
         } else {
@@ -104,12 +109,12 @@ public class PortalClient {
 
 
     public ResponseInputStream getXAdES(XAdESReference xAdESReference) {
-        return client.getDataStream(xAdESReference.getxAdESUrl(), APPLICATION_XML);
+        return download.getDataStream(xAdESReference.getxAdESUrl(), APPLICATION_XML);
     }
 
 
     public ResponseInputStream getPAdES(PAdESReference pAdESReference) {
-        return client.getDataStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM, APPLICATION_XML);
+        return download.getDataStream(pAdESReference.getpAdESUrl(), APPLICATION_OCTET_STREAM, APPLICATION_XML);
     }
 
     public void deleteDocuments(DeleteDocumentsUrl deleteDocumentsUrl) {

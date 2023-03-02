@@ -1,8 +1,6 @@
 package no.digipost.signature.client.docs;
 
-import no.digipost.signature.client.Certificates;
 import no.digipost.signature.client.ClientConfiguration;
-import no.digipost.signature.client.ServiceUri;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.security.KeyStoreConfig;
 
@@ -10,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import static no.digipost.signature.client.ServiceEnvironment.STAGING;
 
 @SuppressWarnings({"ConstantConditions", "unused", "UnusedAssignment"})
 public class InitialSetup {
@@ -39,9 +39,8 @@ public class InitialSetup {
         KeyStoreConfig keyStoreConfig = null; //As initialized earlier
 
         ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreConfig)
-                .trustStore(Certificates.TEST)
-                .serviceUri(ServiceUri.DIFI_TEST)
-                .globalSender(new Sender("123456789"))
+                .serviceEnvironment(STAGING)
+                .defaultSender(new Sender("123456789"))
                 .build();
 
     }

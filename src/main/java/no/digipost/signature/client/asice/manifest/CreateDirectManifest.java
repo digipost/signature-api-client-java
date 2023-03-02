@@ -8,8 +8,8 @@ import no.digipost.signature.api.xml.XMLSender;
 import no.digipost.signature.client.core.AuthenticationLevel;
 import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.OnBehalfOf;
-import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureType;
+import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.direct.DirectJob;
 import no.digipost.signature.client.direct.DirectSigner;
 
@@ -20,8 +20,14 @@ import static java.util.stream.Collectors.toList;
 
 public class CreateDirectManifest extends ManifestCreator<DirectJob> {
 
+    private final MaySpecifySender defaultSenderConfiguration;
+
+    public CreateDirectManifest(MaySpecifySender defaultSenderConfiguration) {
+        this.defaultSenderConfiguration = defaultSenderConfiguration;
+    }
+
     @Override
-    Object buildXmlManifest(DirectJob job, Sender sender) {
+    XMLDirectSignatureJobManifest buildXmlManifest(DirectJob job) {
         List<XMLDirectSigner> signers = new ArrayList<>();
         for (DirectSigner signer : job.getSigners()) {
             XMLDirectSigner xmlSigner = new XMLDirectSigner()
@@ -38,7 +44,7 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
         return new XMLDirectSignatureJobManifest()
                 .withSigners(signers)
                 .withRequiredAuthentication(job.getRequiredAuthentication().map(AuthenticationLevel::getXmlEnumValue).orElse(null))
-                .withSender(new XMLSender().withOrganizationNumber(sender.getOrganizationNumber()))
+                .withSender(new XMLSender().withOrganizationNumber(job.resolveSenderWithFallbackTo(defaultSenderConfiguration).getOrganizationNumber()))
                 .withTitle(job.getTitle())
                 .withDescription(job.getDescription().orElse(null))
                 .withDocuments(job.getDocuments().stream()

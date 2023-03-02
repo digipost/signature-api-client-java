@@ -17,7 +17,7 @@ public interface JobCustomizations<B extends JobCustomizations<B>> {
     /**
      * Set the sender for this specific signature job.
      * <p>
-     * You may use {@link no.digipost.signature.client.ClientConfiguration.Builder#globalSender(Sender)}
+     * You may use {@link no.digipost.signature.client.ClientConfiguration.Builder#defaultSender(Sender)}
      * to specify a global sender used for all signature jobs.
      */
     B withSender(Sender sender);

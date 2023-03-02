@@ -2,6 +2,7 @@ package no.digipost.signature.client.asice.manifest;
 
 import no.digipost.signature.client.core.IdentifierInSignedDocuments;
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
@@ -22,7 +23,7 @@ class CreatePortalManifestTest {
 
     @Test
     void accept_valid_manifest() {
-        CreatePortalManifest createManifest = new CreatePortalManifest(clock);
+        CreatePortalManifest createManifest = new CreatePortalManifest(MaySpecifySender.specifiedAs(new Sender("123456789")), clock);
 
         PortalDocument document = PortalDocument.builder("Title", "hello".getBytes()).type(TXT).build();
 
@@ -32,7 +33,7 @@ class CreatePortalManifestTest {
                 .withDescription("Message")
                 .withIdentifierInSignedDocuments(IdentifierInSignedDocuments.PERSONAL_IDENTIFICATION_NUMBER_AND_NAME)
                 .build();
-        assertThat(createManifest, where(__ -> __.createManifest(job, new Sender("123456789")), instanceOf(Manifest.class)));
+        assertThat(createManifest, where(__ -> __.createManifest(job), instanceOf(Manifest.class)));
     }
 
 }

@@ -26,12 +26,12 @@ import static java.nio.file.Files.isDirectory;
 
 public class TrustStoreLoader {
 
-    public static KeyStore build(ProvidesCertificateResourcePaths hasCertificatePaths) {
+    public static KeyStore build(ProvidesCertificateResourcePaths trustedCertificates) {
         try {
             KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
             trustStore.load(null, null);
 
-            for (String certificateFolder : hasCertificatePaths.getCertificatePaths()) {
+            for (String certificateFolder : trustedCertificates.certificatePaths()) {
                 loadCertificatesInto(certificateFolder, trustStore);
             }
 

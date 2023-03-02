@@ -15,13 +15,11 @@ import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +37,8 @@ import java.util.zip.ZipInputStream;
 import static java.nio.file.Files.newDirectoryStream;
 import static java.util.Arrays.asList;
 import static java.util.stream.Stream.concat;
+import static no.digipost.DiggExceptions.applyUnchecked;
+import static no.digipost.DiggExceptions.getUnchecked;
 import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.TIMESTAMP_PATTERN;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.referenceFilenamePart;
@@ -50,15 +50,18 @@ public class CreateASiCETest {
 
     private static final Clock clock = Clock.systemDefaultZone();
 
-    @BeforeAll
-    public static void initTempFolder() throws URISyntaxException, IOException {
-        dumpFolder = Paths.get(CreateASiCETest.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent()
+    private static Path dumpFolder; static {
+        Path testFileSystemLocation = getUnchecked(() -> Paths.get(CreateASiCETest.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
+        dumpFolder = testFileSystemLocation.getParent()
                 .resolve(CreateASiCETest.class.getSimpleName())
                 .resolve(DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN).format(ZonedDateTime.now(clock)));
-        Files.createDirectories(dumpFolder);
+        applyUnchecked(Files::createDirectories, dumpFolder);
     }
 
-    private static Path dumpFolder;
+    private static final ClientConfiguration config = ClientConfiguration.builder(CLIENT_KEYSTORE)
+            .defaultSender(new Sender("123456789"))
+            .enableDocumentBundleDiskDump(dumpFolder)
+            .build();
 
     private static final DirectDocument DIRECT_DOCUMENT = DirectDocument.builder("Document title", "hello".getBytes())
             .type(DocumentType.TXT)
@@ -78,7 +81,7 @@ public class CreateASiCETest {
                 .withReference("direct job")
                 .build();
 
-        create_document_bundle_and_dump_to_disk(new CreateDirectManifest(), job);
+        create_document_bundle_and_dump_to_disk(new CreateDirectManifest(config.getDefaultSender()), job);
     }
 
     @Test
@@ -92,14 +95,12 @@ public class CreateASiCETest {
                 .availableFor(Duration.ofDays(30))
                 .build();
 
-        create_document_bundle_and_dump_to_disk(new CreatePortalManifest(clock), job);
+        create_document_bundle_and_dump_to_disk(new CreatePortalManifest(config.getDefaultSender(), clock), job);
     }
 
-    private static <JOB extends SignatureJob> void create_document_bundle_and_dump_to_disk(ManifestCreator<JOB> manifestCreator, JOB job) throws IOException {
-        CreateASiCE<JOB> aSiCECreator = new CreateASiCE<>(manifestCreator, ClientConfiguration.builder(CLIENT_KEYSTORE)
-                .globalSender(new Sender("123456789"))
-                .enableDocumentBundleDiskDump(dumpFolder)
-                .build());
+    private <JOB extends SignatureJob> void create_document_bundle_and_dump_to_disk(ManifestCreator<JOB> manifestCreator, JOB job) throws IOException {
+
+        CreateASiCE<JOB> aSiCECreator = new CreateASiCE<>(manifestCreator, config);
         aSiCECreator.createASiCE(job);
 
         Path asiceFile;

@@ -1,16 +1,15 @@
 package no.digipost.signature.client.asice;
 
-import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.security.KeyStoreConfig;
 
 import java.time.Clock;
-import java.util.Optional;
 
 public interface ASiCEConfiguration {
 
     KeyStoreConfig getKeyStoreConfig();
 
-    Optional<Sender> getGlobalSender();
+    MaySpecifySender getDefaultSender();
 
     Iterable<DocumentBundleProcessor> getDocumentBundleProcessors();
 
