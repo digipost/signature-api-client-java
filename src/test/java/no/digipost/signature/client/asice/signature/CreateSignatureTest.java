@@ -13,20 +13,16 @@ import no.digipost.signature.client.TestKonfigurasjon;
 import no.digipost.signature.client.asice.ASiCEAttachable;
 import no.digipost.signature.client.core.DocumentType;
 import no.digipost.signature.client.security.KeyStoreConfig;
+import no.digipost.signature.jaxb.JaxbMarshaller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.stream.StreamSource;
-
-import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.time.Clock;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -36,7 +32,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static uk.co.probablyfine.matchers.Java8Matchers.where;
 
-public class CreateSignatureTest {
+class CreateSignatureTest {
 
     private CreateSignature createSignature;
 
@@ -48,16 +44,10 @@ public class CreateSignatureTest {
     private KeyStoreConfig noekkelpar;
     private List<ASiCEAttachable> files;
 
-    private static final Unmarshaller unmarshaller; static {
-        try {
-            unmarshaller = JAXBContext.newInstance(XAdESSignatures.class, QualifyingProperties.class).createUnmarshaller();
-        } catch (JAXBException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    private static final JaxbMarshaller unmarshaller = new JaxbMarshaller(new HashSet<>(asList(XAdESSignatures.class, QualifyingProperties.class)));
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         noekkelpar = TestKonfigurasjon.CLIENT_KEYSTORE;
         files = asList(
                 file("dokument.pdf", "hoveddokument-innhold".getBytes(), DocumentType.PDF.getMediaType()),
@@ -69,7 +59,7 @@ public class CreateSignatureTest {
     }
 
     @Test
-    public void test_generated_signatures() throws JAXBException {
+    void test_generated_signatures() {
         /*
          * Expected signature value (Base-64 encoded) from the given keys, files, and time of the signing.
          * If this changes, something has changed in the signature implementation, and must be investigated!
@@ -81,7 +71,7 @@ public class CreateSignatureTest {
                 "nBa0FMipG5jtqUPYJJMTt56wIJlwQ95PhGIEYtdRYwxlgSau9Bw+wYmD4NU0K0hw6FgBQ/UDF87T5Zr7HTPWPMwpngkWg==";
 
         Signature signature = createSignature.createSignature(files, noekkelpar);
-        XAdESSignatures xAdESSignatures = (XAdESSignatures) unmarshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
+        XAdESSignatures xAdESSignatures = unmarshaller.unmarshal(signature.getContent(), XAdESSignatures.class);
 
         assertThat(xAdESSignatures, where(XAdESSignatures::getSignatures, hasSize(1)));
         no.digipost.signature.api.xml.thirdparty.xmldsig.Signature dSignature = xAdESSignatures.getSignatures().get(0);
@@ -91,10 +81,10 @@ public class CreateSignatureTest {
     }
 
     @Test
-    public void test_xades_signed_properties() throws JAXBException {
+    void test_xades_signed_properties() {
         Signature signature = createSignature.createSignature(files, noekkelpar);
 
-        XAdESSignatures xAdESSignatures = (XAdESSignatures) unmarshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
+        XAdESSignatures xAdESSignatures = unmarshaller.unmarshal(signature.getContent(), XAdESSignatures.class);
         no.digipost.signature.api.xml.thirdparty.xmldsig.Object object = xAdESSignatures.getSignatures().get(0).getObjects().get(0);
 
         QualifyingProperties xadesProperties = (QualifyingProperties) object.getContent().get(0);
@@ -106,14 +96,14 @@ public class CreateSignatureTest {
     }
 
     @Test
-    public void should_support_filenames_with_spaces_and_other_characters() throws JAXBException {
+    void should_support_filenames_with_spaces_and_other_characters() {
         List<ASiCEAttachable> otherFiles = asList(
                 file("dokument (2).pdf", "hoveddokument-innhold".getBytes(), DocumentType.PDF.getMediaType()),
                 file("manifest.xml", "manifest-innhold".getBytes(), ASiCEAttachable.XML_MEDIATYPE)
         );
 
         Signature signature = createSignature.createSignature(otherFiles, noekkelpar);
-        XAdESSignatures xAdESSignatures = (XAdESSignatures) unmarshaller.unmarshal(new StreamSource(new ByteArrayInputStream(signature.getContent())));
+        XAdESSignatures xAdESSignatures = unmarshaller.unmarshal(signature.getContent(), XAdESSignatures.class);
         String uri = xAdESSignatures.getSignatures().get(0).getSignedInfo().getReferences().get(0).getURI();
         assertThat(uri, is("dokument+%282%29.pdf"));
     }

@@ -1,41 +1,22 @@
 package no.digipost.signature.client.asice.signature;
 
 import no.digipost.signature.api.xml.thirdparty.xades.QualifyingProperties;
+import no.digipost.signature.jaxb.JaxbMarshaller;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.transform.dom.DOMResult;
-
+import static java.util.Collections.singleton;
 import static java.util.stream.IntStream.range;
 
 final class XAdESArtifacts {
 
-    private static Marshaller marshaller;
-
-    static {
-        try {
-            marshaller = JAXBContext.newInstance(QualifyingProperties.class).createMarshaller();
-        } catch (JAXBException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    private static JaxbMarshaller marshaller = new JaxbMarshaller(singleton(QualifyingProperties.class));
 
 
     public static XAdESArtifacts from(QualifyingProperties qualifyingProperties) {
-        DOMResult domResult = new DOMResult();
-        try {
-            marshaller.marshal(qualifyingProperties, domResult);
-        } catch (JAXBException e) {
-            throw new RuntimeException(
-                    "Failed to marshal qualifying properties, because " +
-                    e.getClass().getSimpleName() + " '" + e.getMessage() + "'", e);
-        }
-        return from((Document) domResult.getNode());
+        return from(marshaller.marshalToDomDocument(qualifyingProperties));
     }
 
     private static XAdESArtifacts from(Document qualifyingPropertiesDocument) {
