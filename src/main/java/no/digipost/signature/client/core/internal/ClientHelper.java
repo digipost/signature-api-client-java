@@ -33,8 +33,6 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -45,6 +43,7 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static no.digipost.signature.client.core.internal.ClientExceptionMapper.exceptionForGeneralError;
@@ -63,7 +62,7 @@ import static org.apache.hc.core5.http.HttpHeaders.CONTENT_TYPE;
 
 public class ClientHelper {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ClientHelper.class);
+    private static final Logger LOG = Logger.getLogger(ClientHelper.class.getName());
 
     private static final String NEXT_PERMITTED_POLL_TIME_HEADER = "X-Next-permitted-poll-time";
     private static final String POLLING_QUEUE_QUERY_PARAMETER = "polling_queue";
@@ -194,10 +193,10 @@ public class ClientHelper {
     public void confirm(final Confirmable confirmable) {
         if (confirmable.getConfirmationReference() != null) {
             URI url = confirmable.getConfirmationReference().getConfirmationUrl();
-            LOG.info("Sends confirmation for '{}' to URL {}", confirmable, url);
+            LOG.info(() -> "Sends confirmation for '" + confirmable + "' to URL " + url);
             postEmptyEntity(url);
         } else {
-            LOG.info("Does not need to send confirmation for '{}'", confirmable);
+            LOG.info(() -> "Does not need to send confirmation for '" + confirmable + "'");
         }
     }
 

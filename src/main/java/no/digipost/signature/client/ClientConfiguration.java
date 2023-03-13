@@ -20,8 +20,6 @@ import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -34,12 +32,14 @@ import java.util.Scanner;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static no.digipost.signature.client.core.internal.MaySpecifySender.NO_SPECIFIED_SENDER;
 
 public final class ClientConfiguration implements ASiCEConfiguration, WithSignatureServiceRootUrl, ArchiveClient.Configuration {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ClientConfiguration.class);
+    private static final Logger LOG = Logger.getLogger(ClientConfiguration.class.getName());
 
 
     private static final String JAVA_DESCRIPTION = System.getProperty("java.vendor", "unknown Java") + ", " + System.getProperty("java.version", "unknown version");
@@ -324,7 +324,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * @param certificateChainValidation the validation for the server's certificate
          */
         public Builder serverCertificateTrustStrategy(CertificateChainValidation certificateChainValidation) {
-            LOG.warn("Overriding server certificate TrustStrategy! This should NOT be done for any integration with Posten signering.");
+            LOG.warning("Overriding server certificate TrustStrategy! This should NOT be done for any integration with Posten signering.");
             this.sslConfigurer.certificatChainValidation(certificateChainValidation);
             return this;
         }
@@ -362,12 +362,12 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
             try (InputStream versionFile = ClientMetadata.class.getResourceAsStream("version"); Scanner scanner = new Scanner(versionFile, "UTF-8")) {
                 version = scanner.next();
             } catch (Exception e) {
-                Logger log = LoggerFactory.getLogger(ClientMetadata.class);
-                log.warn("Unable to resolve library version from classpath resource 'version', because {}: '{}'", e.getClass().getSimpleName(), e.getMessage());
-                if (log.isDebugEnabled()) {
-                    log.debug(e.getMessage(), e);
-                } else {
-                    log.info("Enable debug-logging for logger '{}' to see full stacktrace for above warning" + log.getName());
+                Logger log = Logger.getLogger(ClientMetadata.class.getName());
+                log.warning(
+                        "Unable to resolve library version from classpath resource 'version', because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'" +
+                        (log.isLoggable(Level.FINE) ? "" : ". Enable debug-logging for logger '" + log.getName() + "' to see full stacktrace for this warning"));
+                if (log.isLoggable(Level.FINE)) {
+                    log.log(Level.FINE, e, e::getMessage);
                 }
             } finally {
                 VERSION = version;

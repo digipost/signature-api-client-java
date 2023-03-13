@@ -1,8 +1,6 @@
 package no.digipost.signature.client.asice;
 
 import no.digipost.signature.client.core.SignatureJob;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,13 +11,13 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
-import static java.lang.String.format;
 import static java.nio.file.Files.isDirectory;
 
 public class DumpDocumentBundleToDisk implements DocumentBundleProcessor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DumpDocumentBundleToDisk.class);
+    private static final Logger LOG = Logger.getLogger(DumpDocumentBundleToDisk.class.getName());
 
     static final String TIMESTAMP_PATTERN = "yyyyMMddHHmmssSSS";
 
@@ -39,7 +37,7 @@ public class DumpDocumentBundleToDisk implements DocumentBundleProcessor {
             Optional<String> reference = Optional.ofNullable(job.getReference());
             String filename = timestampFormat.format(ZonedDateTime.now(clock)) + "-" + reference.map(referenceFilenamePart).orElse("") + "asice.zip";
             Path target = directory.resolve(filename);
-            LOG.info("Dumping document bundle{}to {}", reference.map(ref -> format(" for job with reference '%s' ", ref)).orElse(" "), target);
+            LOG.info(() -> "Dumping document bundle" + reference.map(ref -> " for job with reference '" + ref + "'").orElse("") + " to " + target);
             Files.copy(documentBundle, target);
         } else {
             throw new InvalidDirectoryException(directory);
