@@ -7,7 +7,6 @@ import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.StatusCode;
 import no.digipost.signature.client.core.internal.xml.Marshalling;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -63,7 +62,7 @@ class ClientExceptionMapper {
                 }
                 throw new UnexpectedResponseException(
                         HttpHeaders.CONTENT_TYPE + " " + contentType.map(ContentType::getMimeType).orElse("unknown") + ": " +
-                        Optional.ofNullable(errorAsString).filter(StringUtils::isNoneBlank).orElse("<no content in response>"),
+                        Optional.ofNullable(errorAsString).filter(s -> !s.trim().isEmpty()).orElse("<no content in response>"),
                         ResponseStatus.fromHttpResponse(response).get(), StatusCode.OK);
             }
             return error;
