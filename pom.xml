@@ -22,7 +22,7 @@
     <parent>
         <groupId>no.digipost</groupId>
         <artifactId>digipost-open-super-pom</artifactId>
-        <version>12</version>
+        <version>13</version>
     </parent>
 
     <groupId>no.digipost.signature</groupId>
