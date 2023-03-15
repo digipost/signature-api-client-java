@@ -11,6 +11,7 @@ import no.digipost.signature.api.xml.thirdparty.xades.SigningCertificate;
 import no.digipost.signature.api.xml.thirdparty.xmldsig.DigestMethod;
 import no.digipost.signature.api.xml.thirdparty.xmldsig.X509IssuerSerialType;
 import no.digipost.signature.client.core.exceptions.CertificateException;
+import no.digipost.signature.client.core.internal.security.DigestUtils.Algorithm;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -23,7 +24,7 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static javax.xml.crypto.dsig.DigestMethod.SHA1;
-import static org.apache.commons.codec.digest.DigestUtils.sha1;
+import static no.digipost.signature.client.core.internal.security.DigestUtils.digest;
 
 class CreateXAdESArtifacts {
 
@@ -38,7 +39,7 @@ class CreateXAdESArtifacts {
     XAdESArtifacts createArtifactsToSign(List<? extends SignableFileReference> files, X509Certificate certificate) {
         byte[] certificateDigestValue;
         try {
-            certificateDigestValue = sha1(certificate.getEncoded());
+            certificateDigestValue = digest(Algorithm.SHA1, certificate.getEncoded());
         } catch (CertificateEncodingException e) {
             throw new CertificateException("Unable to get encoded from of certificate", e);
         }

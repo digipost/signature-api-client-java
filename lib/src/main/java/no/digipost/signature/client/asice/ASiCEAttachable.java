@@ -2,7 +2,8 @@ package no.digipost.signature.client.asice;
 
 import no.digipost.signature.client.asice.signature.SignableFileReference;
 
-import static org.apache.commons.codec.digest.DigestUtils.sha256;
+import static no.digipost.signature.client.core.internal.security.DigestUtils.digest;
+import static no.digipost.signature.client.core.internal.security.DigestUtils.Algorithm.SHA256;
 
 public interface ASiCEAttachable extends SignableFileReference {
 
@@ -18,6 +19,6 @@ public interface ASiCEAttachable extends SignableFileReference {
 
     @Override
     default byte[] getSha256() {
-        return sha256(getContent());
+        return digest(SHA256, getContent());
     }
 }
