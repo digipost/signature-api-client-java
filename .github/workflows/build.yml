@@ -19,7 +19,7 @@ jobs:
           distribution: temurin
           cache: "maven"
       - name: Build with Maven
-        run: mvn --settings .mvn/settings.xml -B package --no-transfer-progress
+        run: mvn --settings .mvn/settings.xml -B verify -U --no-transfer-progress
 
   makeversion:
     if: github.ref != 'refs/heads/main'
