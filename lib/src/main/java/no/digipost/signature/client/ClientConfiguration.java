@@ -333,7 +333,8 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * Allows for overriding which {@link Clock} is used to convert between Java and XML,
          * may be useful for e.g. automated tests.
          * <p>
-         * Uses {@link Clock#systemDefaultZone() the best available system clock} if not specified.
+         * Uses the {@link Clock#systemDefaultZone() system clock with default time zone}
+         * if not specified.
          */
         public Builder clock(Clock clock) {
             this.clock = clock;
