@@ -16,9 +16,14 @@ public class HttpIOException extends UncheckedIOException {
     }
 
     public HttpIOException(HttpRequest request, IOException cause) {
+        this(request, null, cause);
+    }
+
+    public HttpIOException(HttpRequest request, String message, IOException cause) {
         this(
                 "Error executing " + request + ", because " +
-                cause.getClass().getSimpleName() + " '" + cause.getMessage() + "'",
+                cause.getClass().getSimpleName() + " '" + cause.getMessage() + "'" +
+                (message != null ? ". " + message : ""),
                 cause);
     }
 

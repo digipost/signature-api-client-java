@@ -239,6 +239,29 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
 
 
         /**
+         * Configure the pool used by the client to manage connections
+         * used for integrating with the API.
+         *
+         * @param connectionPool the {@link ConnectionPoolConfigurer connection pool configuration API}
+         */
+        public Builder connectionPool(Consumer<? super ConnectionPoolConfigurer> connectionPool) {
+            connectionPool.accept(defaultHttpClientConfigurer);
+            return this;
+        }
+
+
+        /**
+         * Configure the pool used by the client to manage connections
+         * used specifically for downloading documents.
+         *
+         * @param connectionPool the {@link ConnectionPoolConfigurer connection pool configuration API}
+         */
+        public Builder connectionPoolForDocumentDownloads(Consumer<? super ConnectionPoolConfigurer> connectionPool) {
+            connectionPool.accept(httpClientForDocumentDownloadsConfigurer);
+            return this;
+        }
+
+        /**
          * This method allows for custom configuration of the created {@link HttpClient} if anything is
          * needed that is not already supported by other methods in {@link ClientConfiguration}.
          * <p>
