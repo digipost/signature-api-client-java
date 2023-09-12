@@ -7,6 +7,7 @@ import no.digipost.signature.client.core.internal.http.StatusCode;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicHeader;
@@ -53,6 +54,16 @@ public class DownloadHelper {
             try {
                 try {
                     response = httpClient.executeOpen(null, request, null);
+                } catch (ConnectionRequestTimeoutException connectionRequestTimeoutException) {
+                    throw new HttpIOException(request,
+                            "This happens when an HTTP connection could not be obtained from the connection pool, and " +
+                            "is likely because of missing resource management of responses when downloading data, " +
+                            "e.g. signed documents (PAdESes). Please verify your implemention guarantees that InputStreams " +
+                            "obtained from the client library are properly handled and closed, e.g. using try-with-resources " +
+                            "in Java or .use { .. } in Kotlin. This attention is only necessary for data streams, and not " +
+                            "for methods yielding regular Java objects, where parsing and closing the API responses is " +
+                            "the internal responsibility of the client library.",
+                            connectionRequestTimeoutException);
                 } catch (IOException e) {
                     throw new HttpIOException(request, e);
                 }

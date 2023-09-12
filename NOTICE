@@ -8,17 +8,14 @@ Licensed under Apache 2 - http://www.apache.org/licenses/LICENSE-2.0.html
 
 This software includes third party software subject to the following licenses:
 
-  Apache Commons Codec under Apache License, Version 2.0
   Apache HttpClient under Apache License, Version 2.0
   Apache HttpComponents Core HTTP/1.1 under Apache License, Version 2.0
   Apache HttpComponents Core HTTP/2 under Apache License, Version 2.0
-  Apache HttpCore under Apache License, Version 2.0
   Digipost Certificate Validator under The Apache Software License, Version 2.0
   Digipost JAXB Resolver - com.sun.xml.bind under The Apache Software License, Version 2.0
   JavaBeans Activation Framework API jar under CDDL/GPLv2+CE
   jaxb-api under CDDL 1.1 or GPL2 w/ CPE
   JAXB2 Basics - Runtime under BSD-Style License
-  JCL 1.2 implemented over SLF4J under Apache License, Version 2.0
   Old JAXB Core under CDDL+GPL License
   Old JAXB Runtime under Eclipse Distribution License - v 1.0
   Posten signering - API JAXB Classes under The Apache Software License, Version 2.0

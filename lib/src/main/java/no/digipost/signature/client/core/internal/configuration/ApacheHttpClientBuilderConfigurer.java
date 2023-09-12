@@ -1,6 +1,7 @@
 package no.digipost.signature.client.core.internal.configuration;
 
 import no.digipost.signature.client.ApacheHttpClientConfigurer;
+import no.digipost.signature.client.ConnectionPoolConfigurer;
 import no.digipost.signature.client.TimeoutsConfigurer;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -11,9 +12,10 @@ import org.apache.hc.core5.http.io.SocketConfig;
 import java.time.Duration;
 import java.util.function.Consumer;
 
-public final class ApacheHttpClientBuilderConfigurer implements TimeoutsConfigurer, ApacheHttpClientConfigurer, Configurer<HttpClientBuilder> {
+public final class ApacheHttpClientBuilderConfigurer implements TimeoutsConfigurer, ConnectionPoolConfigurer, ApacheHttpClientConfigurer, Configurer<HttpClientBuilder> {
 
     private final PoolingHttpClientConnectionManagerBuilder connectionManagerConfig = PoolingHttpClientConnectionManagerBuilder.create();
+
     private final SocketConfig.Builder socketConfig = SocketConfig.custom();
     private final ConnectionConfig.Builder connectionConfig = ConnectionConfig.custom();
     private final RequestConfig.Builder requestConfig = RequestConfig.custom();
@@ -26,12 +28,16 @@ public final class ApacheHttpClientBuilderConfigurer implements TimeoutsConfigur
             .setDefaultRequestConfig(requestConfig.build())
             .setConnectionManager(connectionManagerConfig.build());
 
-    private Configurer<? super PoolingHttpClientConnectionManagerBuilder> additionalConnectionManagerConfigurer = Configurer.notConfigured();
-    private Configurer<? super HttpClientBuilder> additionalHttpClientConfigurer = Configurer.notConfigured();
+    private Configurer<PoolingHttpClientConnectionManagerBuilder> additionalConnectionManagerConfigurer = Configurer.notConfigured();
+    private Configurer<HttpClientBuilder> additionalHttpClientConfigurer = Configurer.notConfigured();
 
+
+    public ApacheHttpClientBuilderConfigurer() {
+        maxTotalConnectionsInPool(DEFAULT_TOTAL_CONNECTIONS_IN_POOL);
+    }
 
     public ApacheHttpClientBuilderConfigurer connectionManager(Configurer<PoolingHttpClientConnectionManagerBuilder> connectionManagerConfigurer) {
-        this.additionalConnectionManagerConfigurer = connectionManagerConfigurer;
+        this.additionalConnectionManagerConfigurer = additionalConnectionManagerConfigurer.andThen(connectionManagerConfigurer);
         return this;
     }
 
@@ -60,6 +66,16 @@ public final class ApacheHttpClientBuilderConfigurer implements TimeoutsConfigur
     }
 
     @Override
+    public ApacheHttpClientBuilderConfigurer maxTotalConnectionsInPool(int count) {
+        return connectionManager(connectionMgr -> connectionMgr
+
+                // a "route" is essentially the target host (optionally with proxy hops). The HTTP client
+                // is specifically for one API, and separating connections per route is not applicable,
+                // therefore the per route count is the same as total count of connections
+                .setMaxConnPerRoute(count).setMaxConnTotal(count));
+    }
+
+    @Override
     public ApacheHttpClientBuilderConfigurer configure(
             Consumer<? super SocketConfig.Builder> socketConfig,
             Consumer<? super ConnectionConfig.Builder> connectionConfig,
@@ -73,7 +89,7 @@ public final class ApacheHttpClientBuilderConfigurer implements TimeoutsConfigur
 
     @Override
     public ApacheHttpClientBuilderConfigurer configure(Consumer<? super HttpClientBuilder> httpClientCustomizer) {
-        this.additionalHttpClientConfigurer = Configurer.of(httpClientCustomizer);
+        this.additionalHttpClientConfigurer = additionalHttpClientConfigurer.andThen(Configurer.of(httpClientCustomizer));
         return this;
     }
 
