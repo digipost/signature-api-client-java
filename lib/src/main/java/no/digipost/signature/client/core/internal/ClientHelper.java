@@ -15,16 +15,15 @@ import no.digipost.signature.client.core.exceptions.InvalidStatusQueryTokenExcep
 import no.digipost.signature.client.core.exceptions.JobCannotBeCancelledException;
 import no.digipost.signature.client.core.exceptions.NotCancellableException;
 import no.digipost.signature.client.core.exceptions.TooEagerPollingException;
+import no.digipost.signature.client.core.internal.http.ApacheHttpMarshallingSupport;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.SignatureServiceRoot;
 import no.digipost.signature.client.core.internal.http.StatusCode;
-import no.digipost.signature.client.core.internal.xml.Marshalling;
 import no.digipost.signature.client.direct.WithSignerUrl;
+import no.digipost.signature.jaxb.JaxbMarshaller;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.ByteArrayBody;
-import org.apache.hc.client5.http.entity.mime.InputStreamBody;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.entity.mime.MultipartPartBuilder;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -34,7 +33,6 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -59,6 +57,7 @@ import static org.apache.hc.core5.http.ContentType.APPLICATION_XML;
 import static org.apache.hc.core5.http.ContentType.MULTIPART_MIXED;
 import static org.apache.hc.core5.http.HttpHeaders.ACCEPT;
 import static org.apache.hc.core5.http.HttpHeaders.CONTENT_TYPE;
+import static org.apache.hc.core5.http.io.support.ClassicRequestBuilder.post;
 
 public class ClientHelper {
 
@@ -69,37 +68,38 @@ public class ClientHelper {
 
     private final SignatureServiceRoot serviceRoot;
     private final HttpClient httpClient;
+    private final ApacheHttpMarshallingSupport requestMarshalling;
+    private final JaxbMarshaller responseMarshaller;
 
 
     public ClientHelper(SignatureServiceRoot serviceRoot, HttpClient httpClient) {
+        this(serviceRoot, httpClient, JaxbMarshaller.ForRequestsOfAllApis.singleton(), JaxbMarshaller.ForResponsesOfAllApis.singleton());
+    }
+
+    public ClientHelper(SignatureServiceRoot serviceRoot, HttpClient httpClient, JaxbMarshaller requestMarshaller, JaxbMarshaller responseMarshaller) {
         this.serviceRoot = serviceRoot;
         this.httpClient = httpClient;
+        this.requestMarshalling = new ApacheHttpMarshallingSupport(requestMarshaller);
+        this.responseMarshaller = responseMarshaller;
     }
 
     public <RESPONSE, REQUEST> RESPONSE sendSignatureJobRequest(ApiFlow<REQUEST, RESPONSE, ?> target, REQUEST signatureJobRequest, DocumentBundle documentBundle, Sender sender) {
-        MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
-        multipartEntityBuilder.setContentType(MULTIPART_MIXED);
-
-        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-            Marshalling.marshal(signatureJobRequest, os);
-            multipartEntityBuilder.addPart(MultipartPartBuilder.create()
-                    .setBody(new ByteArrayBody(os.toByteArray(), APPLICATION_XML, ""))
+        MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create()
+                .setContentType(MULTIPART_MIXED)
+                .addPart(MultipartPartBuilder.create()
+                    .setBody(requestMarshalling.createContentBody(signatureJobRequest))
                     .addHeader(CONTENT_TYPE, APPLICATION_XML.getMimeType())
-                    .build());
-
-            multipartEntityBuilder.addPart(MultipartPartBuilder.create()
-                    .setBody(new InputStreamBody(documentBundle.getInputStream(), APPLICATION_OCTET_STREAM, ""))
+                    .build())
+                .addPart(MultipartPartBuilder.create()
+                    .setBody(new ByteArrayBody(documentBundle.toByteArray(), APPLICATION_OCTET_STREAM, ""))
                     .addHeader(CONTENT_TYPE, APPLICATION_OCTET_STREAM.getMimeType()).build());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+
+        ClassicHttpRequest request = ClassicRequestBuilder
+                .post(serviceRoot.constructUrl(uri -> uri.appendPath(target.path(sender))))
+                .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
+                .build();
 
         try (HttpEntity multiPart = multipartEntityBuilder.build()) {
-            ClassicHttpRequest request = ClassicRequestBuilder
-                    .post(serviceRoot.constructUrl(uri -> uri.appendPath(target.path(sender))))
-                    .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
-                    .build();
-
             request.setEntity(multiPart);
             return call(() -> {
                 try {
@@ -114,14 +114,14 @@ public class ClientHelper {
     }
 
     public XMLDirectSignerResponse requestNewRedirectUrl(WithSignerUrl url) {
-        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-            Marshalling.marshal(new XMLDirectSignerUpdateRequest().withRedirectUrl(new XMLEmptyElement()), os);
-            ClassicHttpRequest request = new HttpPost(url.getSignerUrl());
-            request.addHeader(ACCEPT, APPLICATION_XML.getMimeType());
-
+        ClassicHttpRequest request = post(url.getSignerUrl())
+                .addHeader(ACCEPT, APPLICATION_XML.getMimeType())
+                .setEntity(requestMarshalling.createEntity(new XMLDirectSignerUpdateRequest().withRedirectUrl(new XMLEmptyElement())))
+                .build();
+        try {
             return httpClient.execute(request, response -> parseResponse(response, XMLDirectSignerResponse.class));
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new HttpIOException(request, e);
         }
     }
 
@@ -156,12 +156,12 @@ public class ClientHelper {
 
 
     public void cancel(Cancellable cancellable) {
-            if (cancellable.getCancellationUrl() != null) {
-                postEmptyEntity(cancellable.getCancellationUrl().getUrl(), httpResponse -> ResponseStatus.fromHttpResponse(httpResponse)
-                        .throwIf(CONFLICT, status -> new JobCannotBeCancelledException(status, extractError(httpResponse))));
-            } else {
-                throw new NotCancellableException();
-            }
+        if (cancellable.getCancellationUrl() != null) {
+            postEmptyEntity(cancellable.getCancellationUrl().getUrl(), httpResponse -> ResponseStatus.fromHttpResponse(httpResponse)
+                    .throwIf(CONFLICT, status -> new JobCannotBeCancelledException(status, extractError(httpResponse))));
+        } else {
+            throw new NotCancellableException();
+        }
     }
 
     public <RES> JobStatusResponse<RES> getStatusChange(ApiFlow<?, ?, RES> target, Sender sender) {
@@ -177,7 +177,7 @@ public class ClientHelper {
                     StatusCode status = ResponseStatus.fromHttpResponse(response)
                             .throwIf(TOO_MANY_REQUESTS, s -> new TooEagerPollingException())
                             .expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
-                    RES statusResponseBody = status.equals(NO_CONTENT) ? null : Marshalling.unmarshal(response.getEntity().getContent(), target.statusResponseType);
+                    RES statusResponseBody = status.equals(NO_CONTENT) ? null : responseMarshaller.unmarshal(response.getEntity().getContent(), target.statusResponseType);
                     return new JobStatusResponse<>(statusResponseBody, getNextPermittedPollTime(response));
                 });
             } catch (IOException e) {
@@ -242,10 +242,10 @@ public class ClientHelper {
         });
     }
 
-    private static <T> T parseResponse(ClassicHttpResponse response, Class<T> responseType) {
+    private <T> T parseResponse(ClassicHttpResponse response, Class<T> responseType) {
         ResponseStatus.fromHttpResponse(response).expect(SUCCESSFUL).orThrow(unexpectedStatus -> exceptionForGeneralError(response));
         try (InputStream body = response.getEntity().getContent()) {
-            return Marshalling.unmarshal(body, responseType);
+            return responseMarshaller.unmarshal(body, responseType);
         } catch (IOException e) {
             throw new HttpIOException(response, e);
         }

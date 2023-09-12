@@ -6,7 +6,7 @@ import no.digipost.signature.client.core.exceptions.SignatureException;
 import no.digipost.signature.client.core.exceptions.UnexpectedResponseException;
 import no.digipost.signature.client.core.internal.http.ResponseStatus;
 import no.digipost.signature.client.core.internal.http.StatusCode;
-import no.digipost.signature.client.core.internal.xml.Marshalling;
+import no.digipost.signature.jaxb.JaxbMarshaller;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -44,7 +44,7 @@ class ClientExceptionMapper {
             Optional<ContentType> contentType = Optional.ofNullable(response.getHeader(CONTENT_TYPE)).map(NameValuePair::getValue).map(ContentType::parse);
             if (contentType.filter(APPLICATION_XML::isSameMimeType).isPresent()) {
                 try(InputStream body = response.getEntity().getContent()) {
-                    error = Marshalling.unmarshal(body, XMLError.class);
+                    error = JaxbMarshaller.ForResponsesOfAllApis.singleton().unmarshal(body, XMLError.class);
                 } catch (IOException e) {
                     throw new UncheckedIOException("Could not extract error from body.", e);
                 }

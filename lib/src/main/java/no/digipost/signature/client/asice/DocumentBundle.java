@@ -14,4 +14,8 @@ public class DocumentBundle {
     public InputStream getInputStream() {
         return new ByteArrayInputStream(bytes);
     }
+
+    public byte[] toByteArray() {
+        return bytes;
+    }
 }
