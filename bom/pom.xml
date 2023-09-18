@@ -30,7 +30,7 @@
     <name>Posten signering - Java API Client BOM</name>
 
     <properties>
-        <signature.api.version>3.0.0-RC5</signature.api.version>
+        <signature.api.version>3.0.0</signature.api.version>
     </properties>
 
     <dependencyManagement>

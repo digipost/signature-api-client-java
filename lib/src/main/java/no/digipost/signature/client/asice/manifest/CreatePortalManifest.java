@@ -20,6 +20,7 @@ import no.digipost.signature.client.portal.Notifications;
 import no.digipost.signature.client.portal.NotificationsUsingLookup;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
+import no.digipost.signature.jaxb.JaxbMarshaller;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -36,6 +37,7 @@ public class CreatePortalManifest extends ManifestCreator<PortalJob> {
     private final Clock clock;
 
     public CreatePortalManifest(MaySpecifySender defaultSenderConfiguration, Clock clock) {
+        super(JaxbMarshaller.ForRequestsOfAllApis.singleton());
         this.defaultSenderConfiguration = defaultSenderConfiguration;
         this.clock = clock;
     }

@@ -12,6 +12,7 @@ import no.digipost.signature.client.core.SignatureType;
 import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.direct.DirectJob;
 import no.digipost.signature.client.direct.DirectSigner;
+import no.digipost.signature.jaxb.JaxbMarshaller;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ public class CreateDirectManifest extends ManifestCreator<DirectJob> {
     private final MaySpecifySender defaultSenderConfiguration;
 
     public CreateDirectManifest(MaySpecifySender defaultSenderConfiguration) {
+        super(JaxbMarshaller.ForRequestsOfAllApis.singleton());
         this.defaultSenderConfiguration = defaultSenderConfiguration;
     }
 
