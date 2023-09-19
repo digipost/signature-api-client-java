@@ -25,7 +25,7 @@ public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClie
     public ApacheHttpClientSslConfigurer(KeyStoreConfig keyStoreConfig, ProvidesCertificateResourcePaths trustedCertificates) {
         this.keyStoreConfig = keyStoreConfig;
         this.trustedCertificates = trustedCertificates;
-        this.certificateChainValidation = new OrganizationNumberValidation("984661185"); // Posten Norge AS organization number
+        this.certificateChainValidation = new OrganizationNumberValidation("984661185"); // Posten Bring AS organization number
     }
 
     public ApacheHttpClientSslConfigurer trust(ProvidesCertificateResourcePaths certificates) {
