@@ -326,7 +326,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
 
         /**
          * Override which organization number which is expected from the server's certificate.
-         * By default, this is the organization number of Posten Norge AS, and should <em>not</em>
+         * By default, this is the organization number of Posten Bring AS, and should <em>not</em>
          * be overridden unless you have a specific need such as doing testing against your own
          * stubbed implementation of the Posten signering API.
          *
@@ -340,7 +340,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         /**
          * Override the validation of the server's certificate. This method is mainly
          * intended for tests if you need to override (or even disable) the default
-         * validation that the server identifies itself as "Posten Norge AS".
+         * validation that the server identifies itself as "Posten Bring AS".
          *
          * Calling this method for a production deployment is probably <em>not</em> what you intend to do!
          *
