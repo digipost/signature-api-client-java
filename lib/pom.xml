@@ -55,7 +55,7 @@
         <dependency>
             <groupId>no.digipost</groupId>
             <artifactId>certificate-validator</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.bouncycastle</groupId>
