@@ -8,7 +8,3 @@ This repo is the Java client library for integrating with Posten signering. Plea
 ## 📕 Documentation
 
 Get started by [reading the documentation](http://signering-docs.rtfd.io/).
- 
-## Releasing (only for Digipost members)
-
-See docs/systemer/open-source-biblioteker.md
