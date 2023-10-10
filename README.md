@@ -1,5 +1,6 @@
 # Posten Signering – Java client Library
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.digipost.signature/signature-api-client-java/badge.svg)](https://maven-badges.herokuapp.com/maven-central/no.digipost.signature/signature-api-client-java)
+[![javadoc](https://javadoc.io/badge2/no.digipost.signature/signature-api-client-java/javadoc.svg?logo=java&color=yellow)](https://javadoc.io/doc/no.digipost.signature/signature-api-client-java)
 ![](https://github.com/digipost/signature-api-client-java/workflows/Build%20and%20deploy/badge.svg)
 [![License](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/digipost/signature-api-client-java/blob/main/LICENCE)
 
