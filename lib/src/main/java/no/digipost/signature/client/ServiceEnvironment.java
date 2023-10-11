@@ -87,7 +87,7 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
 }
 
 
-enum Certificates implements ProvidesCertificateResourcePaths {
+enum Certificates {
 
     TEST(
             "test/Buypass_Class_3_Test4_CA_3.cer",
@@ -123,11 +123,6 @@ enum Certificates implements ProvidesCertificateResourcePaths {
         this.certificatePaths = Stream.of(certificatePaths)
                 .map("classpath:/certificates/"::concat)
                 .collect(toList());
-    }
-
-    @Override
-    public List<String> certificatePaths() {
-        return certificatePaths();
     }
 
 }
