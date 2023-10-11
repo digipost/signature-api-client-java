@@ -28,7 +28,7 @@ public class OrganizationNumberValidation implements CertificateChainValidation 
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " trusting '" + trustedOrganizationNumber + "'";
+        return getClass().getSimpleName() + " trusting organization number '" + trustedOrganizationNumber + "'";
     }
 
 }

@@ -5,7 +5,13 @@ import no.digipost.signature.client.security.CertificateChainValidation;
 import no.digipost.signature.client.security.CertificateChainValidation.Result;
 import org.apache.hc.core5.ssl.TrustStrategy;
 
+import java.math.BigInteger;
 import java.security.cert.X509Certificate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Optional;
+
+import static javax.security.auth.x500.X500Principal.RFC1779;
 
 public final class SignatureApiTrustStrategy implements TrustStrategy {
 
@@ -35,11 +41,23 @@ public final class SignatureApiTrustStrategy implements TrustStrategy {
             case TRUSTED_AND_SKIP_FURTHER_VALIDATION: return true;
             case TRUSTED: return false;
             case UNTRUSTED: default:
-                String subjectDN = chain[0].getSubjectX500Principal().getName();
+                String certificateDescription = Optional.ofNullable(chain)
+                        .filter(certs -> certs.length > 0)
+                        .map(certs -> certs[0])
+                        .map(cert -> {
+                            String subjectDN = cert.getSubjectX500Principal().getName(RFC1779);
+                            BigInteger serialNumber = cert.getSerialNumber();
+                            String issuerDN = cert.getIssuerX500Principal().getName(RFC1779);
+                            ZonedDateTime expires = cert.getNotAfter().toInstant().atZone(ZoneId.systemDefault());
+                            return subjectDN + " (serial number " + serialNumber + ", expires " + expires + "), issued by " + issuerDN;
+                        })
+                        .orElse("<no server certificate>");
                 throw new SecurityException(
                     "Untrusted server certificate, according to " + certificateChainValidation + ". " +
-                    "Make sure the server URI is correct. Actual certificate: " + subjectDN + ". " +
-                    "This could indicate a misconfiguration of the client or server, or potentially a man-in-the-middle attack.");
+                    "Actual certificate from server response: " + certificateDescription + ". " +
+                    "This normally indicates either a misconfiguration of this client library, or a mixup of URLs used to communicate with the API. " +
+                    "Make sure the request URL is correct, is actually for the API, and it aligns with the configured ServiceEnvironment. " +
+                    "It should e.g. not be a URL that is to be accessed by a user from a web browser.");
         }
     }
 
