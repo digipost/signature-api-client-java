@@ -22,7 +22,6 @@ import java.time.Clock;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Base64;
-import java.util.HashSet;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -44,7 +43,7 @@ class CreateSignatureTest {
     private KeyStoreConfig noekkelpar;
     private List<ASiCEAttachable> files;
 
-    private static final JaxbMarshaller unmarshaller = new JaxbMarshaller(new HashSet<>(asList(XAdESSignatures.class, QualifyingProperties.class)));
+    private static final JaxbMarshaller unmarshaller = new JaxbMarshaller(XAdESSignatures.class, QualifyingProperties.class);
 
     @BeforeEach
     void setUp() {
