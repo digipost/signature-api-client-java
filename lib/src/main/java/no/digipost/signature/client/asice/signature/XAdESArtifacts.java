@@ -7,12 +7,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import static java.util.Collections.singleton;
 import static java.util.stream.IntStream.range;
 
 final class XAdESArtifacts {
 
-    private static JaxbMarshaller marshaller = new JaxbMarshaller(singleton(QualifyingProperties.class));
+    private static JaxbMarshaller marshaller = new JaxbMarshaller(QualifyingProperties.class);
 
 
     public static XAdESArtifacts from(QualifyingProperties qualifyingProperties) {
