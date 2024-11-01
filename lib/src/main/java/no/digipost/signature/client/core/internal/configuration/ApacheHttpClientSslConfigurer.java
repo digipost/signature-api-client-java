@@ -8,8 +8,8 @@ import no.digipost.signature.client.security.CertificateChainValidation;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import no.digipost.signature.client.security.OrganizationNumberValidation;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.ssl.SSLContexts;
 
 import javax.net.ssl.SSLContext;
@@ -40,10 +40,7 @@ public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClie
 
     @Override
     public void applyTo(PoolingHttpClientConnectionManagerBuilder connectionManager) {
-        connectionManager.setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
-                .setSslContext(sslContext())
-                .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-                .build());
+        connectionManager.setTlsSocketStrategy(new DefaultClientTlsStrategy(sslContext(), NoopHostnameVerifier.INSTANCE));
     }
 
 
