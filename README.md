@@ -23,7 +23,7 @@ The recommended way to declare dependency on the library is to utilize the [BOM]
         <dependency>
             <groupId>no.digipost.signature</groupId>
             <artifactId>signature-api-client-bom</artifactId>
-            <version>7.0.1</version> <!-- replace with any later version -->
+            <version>7.0.4</version> <!-- replace with any later version -->
             <type>pom</type>
             <scope>import</scope>
         </dependency>
