@@ -22,7 +22,7 @@
     <parent>
         <groupId>no.digipost</groupId>
         <artifactId>digipost-open-super-pom</artifactId>
-        <version>13</version>
+        <version>14</version>
     </parent>
 
     <groupId>no.digipost.signature</groupId>
@@ -54,7 +54,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.4.1</version>
+                    <version>3.5.0</version>
                     <configuration>
                         <filesets>
                             <fileset>
