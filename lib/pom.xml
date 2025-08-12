@@ -62,7 +62,7 @@
         <dependency>
             <groupId>no.digipost</groupId>
             <artifactId>certificate-validator</artifactId>
-            <version>3.0.5</version>
+            <version>3.0.6</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.bouncycastle</groupId>
@@ -148,7 +148,7 @@
         <dependency>
             <groupId>no.digipost</groupId>
             <artifactId>digg</artifactId>
-            <version>0.37</version>
+            <version>0.38</version>
             <scope>test</scope>
         </dependency>
 
@@ -167,7 +167,7 @@
         <dependency>
             <groupId>no.digipost</groupId>
             <artifactId>jul-to-slf4j-junit-extension</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -244,7 +244,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>3.5.0</version>
+                    <version>3.6.1</version>
                     <configuration>
                         <rules>
                             <bannedDependencies>

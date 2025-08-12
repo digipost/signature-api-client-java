@@ -30,7 +30,7 @@
     <name>Posten signering - Java API Client BOM</name>
 
     <properties>
-        <signature.api.version>3.1.0</signature.api.version>
+        <signature.api.version>3.1.1</signature.api.version>
     </properties>
 
     <dependencyManagement>
@@ -38,7 +38,7 @@
             <dependency>
                 <groupId>no.digipost</groupId>
                 <artifactId>jaxb-resolver-com.sun.xml.bind-bom</artifactId>
-                <version>1.0</version>
+                <version>1.0.1</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
