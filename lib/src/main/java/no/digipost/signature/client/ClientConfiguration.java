@@ -61,7 +61,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
     /**
      * Prefix of the OAuth 2.0 {@code scope} which access tokens are requested for when using
      * {@link Builder#jwtAuthentication(JwtAuthConfig) JWT/mTLS authentication}, completed with the
-     * organization number of the {@link Builder#defaultSender(Sender) default sender}.
+     * {@link no.digipost.signature.client.security.BrokerId broker id} of the {@link JwtAuthConfig}.
      * <p>
      * <strong>Note:</strong> this value is a contract with the identity provider issuing the access
      * tokens, which matches it as an exact string. It is not defined by this library, and should not
@@ -230,11 +230,13 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * <p>The organization certificate passed to {@link ClientConfiguration#builder(KeyStoreConfig)}
          * is still required, and is used to authenticate against the token endpoint.
          *
-         * <p>This authentication method requires a {@link #defaultSender(Sender) default sender} to
-         * be configured, as the organization number of the sender is part of the scope which access
-         * tokens are requested for.
+         * <p>Access tokens are acquired as the {@link no.digipost.signature.client.security.BrokerId
+         * broker} of the given configuration, for the entire lifetime of the client. This is
+         * independent of which {@link Sender sender} a signature job is created on behalf of: a
+         * broker permitted to act on behalf of several organizations specifies that per job as
+         * before, and {@link #defaultSender(Sender) defaultSender(..)} remains optional.
          *
-         * @param jwtAuthConfig the token endpoint configuration
+         * @param jwtAuthConfig the client id and broker id to acquire access tokens with
          */
         public Builder jwtAuthentication(JwtAuthConfig jwtAuthConfig) {
             requireNonNull(jwtAuthConfig, "jwtAuthConfig");
@@ -470,11 +472,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * identity provider issuing the tokens, and is <em>not</em> defined by this library.
          */
         private String accessTokenScope() {
-            Sender sender = defaultSender.getSender().orElseThrow(() -> new ConfigurationException(
-                    "A default sender is required when authenticating with " + jwtAuthConfig + ", because the " +
-                    "organization number of the sender is part of the scope which access tokens are requested " +
-                    "for. Use defaultSender(..) to specify it."));
-            return ACCESS_TOKEN_SCOPE_PREFIX + sender.getOrganizationNumber();
+            return ACCESS_TOKEN_SCOPE_PREFIX + jwtAuthConfig.brokerId.value();
         }
 
     }

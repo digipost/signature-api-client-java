@@ -35,26 +35,36 @@ public final class JwtAuthConfig {
     public final String clientId;
 
     /**
-     * Configure JWT/mTLS authentication for the given client id.
+     * A JWT client is configured for a specific broker in signature-api and is used as part of the scope.
+     * This is not the sender a signature job is created on behalf of.
+     */
+    public final BrokerId brokerId;
+
+    /**
+     * Configure JWT/mTLS authentication for the given client id and broker id, which are issued
+     * together and belong to each other.
      *
      * @param clientId the client id registered for your certificate,
-     * identifying this integration to the token endpoint
+     *                 identifying this integration to the token endpoint
+     * @param brokerId the {@link BrokerId broker} to acquire access tokens as
      */
-    public static JwtAuthConfig forClient(String clientId) {
+    public static JwtAuthConfig forClient(String clientId, BrokerId brokerId) {
         requireNonNull(clientId, "client id");
+        requireNonNull(brokerId, "broker id");
         if (clientId.trim().isEmpty()) {
             throw new ConfigurationException("The client id must not be blank");
         }
-        return new JwtAuthConfig(clientId);
+        return new JwtAuthConfig(clientId, brokerId);
     }
 
-    private JwtAuthConfig(String clientId) {
+    private JwtAuthConfig(String clientId, BrokerId brokerId) {
         this.clientId = clientId;
+        this.brokerId = brokerId;
     }
 
     @Override
     public String toString() {
-        return "JWT/mTLS authentication for client '" + clientId + "'";
+        return "JWT/mTLS authentication for client '" + clientId + "' as " + brokerId;
     }
 
 }
