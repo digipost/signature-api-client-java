@@ -10,6 +10,7 @@ import no.digipost.signature.client.portal.PortalClient;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
+import no.digipost.signature.client.security.BrokerId;
 import no.digipost.signature.client.security.JwtAuthConfig;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import no.digipost.signature.jaxb.JaxbMarshaller;
@@ -73,7 +74,7 @@ class ClientConfigurationJwtAuthTest {
         this.unitTestEnv = STAGING
                 .withServiceUrl(URI.create(wireMockInfo.getHttpBaseUrl()))
                 .withTokenEndpoint(URI.create(wireMockInfo.getHttpBaseUrl() + TOKEN_PATH));
-        this.jwtAuthConfig = JwtAuthConfig.forClient("my-client-id");
+        this.jwtAuthConfig = JwtAuthConfig.forClient("my-client-id", BrokerId.of("555444"));
         this.configBuilder = ClientConfiguration.builder(CLIENT_KEYSTORE)
                 .serviceEnvironment(unitTestEnv)
                 .defaultSender(new Sender("123456789"));
@@ -81,24 +82,52 @@ class ClientConfigurationJwtAuthTest {
 
 
     @Test
-    void requiresADefaultSenderToDeriveTheScopeFrom() {
-        ClientConfiguration.Builder withoutSender = ClientConfiguration.builder(CLIENT_KEYSTORE)
-                .serviceEnvironment(unitTestEnv)
-                .jwtAuthentication(jwtAuthConfig);
-
-        ConfigurationException thrown = assertThrows(ConfigurationException.class, withoutSender::build);
-        assertThat(thrown, where(Throwable::getMessage, containsString("default sender")));
-    }
-
-    @Test
-    void requestsAnAccessTokenForTheScopeOfTheDefaultSender() {
+    void requestsAnAccessTokenForTheScopeOfTheConfiguredBroker() {
         stubTokenEndpoint("a-token");
         stubCreateJob();
 
         new PortalClient(configBuilder.jwtAuthentication(jwtAuthConfig).build()).create(aPortalJob());
 
         verify(postRequestedFor(urlEqualTo(TOKEN_PATH))
-                .withRequestBody(containing("scope=signering-api%3A123456789")));
+                .withRequestBody(containing("scope=signering-api%3A555444")));
+    }
+
+    /**
+     * A broker acquires its access tokens as itself, and may act on behalf of several organizations.
+     * Which sender a job is for is stated in the job itself, and must not influence the scope the
+     * token is requested for.
+     */
+    @Test
+    void theScopeIsTheBrokersRegardlessOfWhichSenderAJobIsFor() {
+        stubTokenEndpoint("a-token");
+        stubCreateJob();
+
+        PortalClient client = new PortalClient(configBuilder.jwtAuthentication(jwtAuthConfig).build());
+        client.create(aPortalJobFor(new Sender("999888777")));
+
+        verify(postRequestedFor(urlEqualTo(TOKEN_PATH))
+                .withRequestBody(containing("scope=signering-api%3A555444")));
+        assertThat(tokenRequestParameter("scope"), is("signering-api:555444"));
+    }
+
+    /**
+     * The scope is the broker's, so nothing about acquiring an access token depends on a sender. A
+     * broker specifying the sender per job does not need a default one.
+     */
+    @Test
+    void doesNotRequireADefaultSender() {
+        stubTokenEndpoint("a-token");
+        stubCreateJob();
+
+        ClientConfiguration withoutDefaultSender = ClientConfiguration.builder(CLIENT_KEYSTORE)
+                .serviceEnvironment(unitTestEnv)
+                .jwtAuthentication(jwtAuthConfig)
+                .build();
+
+        new PortalClient(withoutDefaultSender).create(aPortalJobFor(new Sender("999888777")));
+
+        verify(postRequestedFor(urlEqualTo(TOKEN_PATH))
+                .withRequestBody(containing("scope=signering-api%3A555444")));
     }
 
     @Test
@@ -246,10 +275,17 @@ class ClientConfigurationJwtAuthTest {
     }
 
     private static PortalJob aPortalJob() {
+        return aPortalJobBuilder().build();
+    }
+
+    private static PortalJob aPortalJobFor(Sender sender) {
+        return aPortalJobBuilder().withSender(sender).build();
+    }
+
+    private static PortalJob.Builder aPortalJobBuilder() {
         return PortalJob.builder("Job title",
                     PortalDocument.builder("Document title", "contents".getBytes(UTF_8)).build(),
-                    PortalSigner.identifiedByEmail("jane@example.com").build())
-                .build();
+                    PortalSigner.identifiedByEmail("jane@example.com").build());
     }
 
 }

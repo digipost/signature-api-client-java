@@ -109,7 +109,7 @@ class MutualTlsTokenProviderClientCertificateTest {
         return new AccessTokenRequest(
                 URI.create(tokenEndpointBaseUri + "/token"),
                 "my-client-id",
-                "signering-api:123456789",
+                "signering-api:555444",
                 "https://api.example.com");
     }
 
