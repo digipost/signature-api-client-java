@@ -52,7 +52,7 @@ class MutualTlsTokenProviderTest {
         this.accessTokenRequest = new AccessTokenRequest(
                 URI.create(wireMockInfo.getHttpBaseUrl() + TOKEN_PATH),
                 "my-client-id",
-                "signering-api:123456789",
+                "signering-api:555444",
                 "https://api.signering.posten.no/api");
     }
 
@@ -78,7 +78,7 @@ class MutualTlsTokenProviderTest {
                 .withHeader("Content-Type", containing("application/x-www-form-urlencoded"))
                 .withRequestBody(containing("grant_type=client_credentials"))
                 .withRequestBody(containing("client_id=my-client-id"))
-                .withRequestBody(containing("scope=signering-api%3A123456789"))
+                .withRequestBody(containing("scope=signering-api%3A555444"))
                 .withRequestBody(containing("resource=https%3A%2F%2Fapi.signering.posten.no%2Fapi")));
     }
 

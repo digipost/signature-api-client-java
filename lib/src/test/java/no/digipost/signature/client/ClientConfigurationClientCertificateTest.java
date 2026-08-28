@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.security.CertificateChainValidation;
+import no.digipost.signature.client.security.BrokerId;
 import no.digipost.signature.client.security.JwtAuthConfig;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -49,7 +50,7 @@ class ClientConfigurationClientCertificateTest {
     private final URI tokenEndpoint;
 
     ClientConfigurationClientCertificateTest(WireMockRuntimeInfo wireMockInfo) {
-        this.jwtAuthConfig = JwtAuthConfig.forClient("my-client-id");
+        this.jwtAuthConfig = JwtAuthConfig.forClient("my-client-id", BrokerId.of("555444"));
         this.tokenEndpoint = URI.create(wireMockInfo.getHttpBaseUrl() + TOKEN_PATH);
     }
 

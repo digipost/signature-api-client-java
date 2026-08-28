@@ -13,6 +13,7 @@ import no.digipost.signature.client.portal.PortalClient;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
+import no.digipost.signature.client.security.BrokerId;
 import no.digipost.signature.client.security.JwtAuthConfig;
 import no.digipost.signature.jaxb.JaxbMarshaller;
 import org.apache.commons.io.IOUtils;
@@ -70,7 +71,7 @@ class ClientConfigurationRejectedTokenTest {
         this.configBuilder = ClientConfiguration.builder(CLIENT_KEYSTORE)
                 .serviceEnvironment(unitTestEnv)
                 .defaultSender(new Sender("123456789"))
-                .jwtAuthentication(JwtAuthConfig.forClient("my-client-id"));
+                .jwtAuthentication(JwtAuthConfig.forClient("my-client-id", BrokerId.of("555444")));
     }
 
 
