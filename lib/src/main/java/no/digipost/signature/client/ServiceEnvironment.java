@@ -27,8 +27,8 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
             "Posten signering Difitest", URI.create("https://api.difitest.signering.posten.no/api"), Certificates.TEST.certificatePaths,
             URI.create("https://midp.difitest.digipost.no/oauth2/token"));
 
-    public static final ServiceEnvironment DIFIQA = new ServiceEnvironment(
-            "Posten signering Difiqa", URI.create("https://api.difiqa.signering.posten.no/api"), Certificates.TEST.certificatePaths,
+    public static final ServiceEnvironment QA = new ServiceEnvironment(
+            "Posten signering QA", URI.create("https://api.qa.signering.posten.no/api"), Certificates.TEST.certificatePaths,
             URI.create("https://midp.qa.digipost.no/oauth2/token"));
 
     public static final ServiceEnvironment STAGING = DIFITEST.withDescription("Posten signering Staging");
