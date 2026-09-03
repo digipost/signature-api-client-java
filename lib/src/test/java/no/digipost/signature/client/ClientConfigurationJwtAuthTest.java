@@ -89,7 +89,7 @@ class ClientConfigurationJwtAuthTest {
         new PortalClient(configBuilder.jwtAuthentication(jwtAuthConfig).build()).create(aPortalJob());
 
         verify(postRequestedFor(urlEqualTo(TOKEN_PATH))
-                .withRequestBody(containing("scope=signering-api%3A555444")));
+                .withRequestBody(containing("scope=signering%3A555444")));
     }
 
     /**
@@ -106,8 +106,8 @@ class ClientConfigurationJwtAuthTest {
         client.create(aPortalJobFor(new Sender("999888777")));
 
         verify(postRequestedFor(urlEqualTo(TOKEN_PATH))
-                .withRequestBody(containing("scope=signering-api%3A555444")));
-        assertThat(tokenRequestParameter("scope"), is("signering-api:555444"));
+                .withRequestBody(containing("scope=signering%3A555444")));
+        assertThat(tokenRequestParameter("scope"), is("signering:555444"));
     }
 
     /**
@@ -127,7 +127,7 @@ class ClientConfigurationJwtAuthTest {
         new PortalClient(withoutDefaultSender).create(aPortalJobFor(new Sender("999888777")));
 
         verify(postRequestedFor(urlEqualTo(TOKEN_PATH))
-                .withRequestBody(containing("scope=signering-api%3A555444")));
+                .withRequestBody(containing("scope=signering%3A555444")));
     }
 
     @Test
