@@ -466,7 +466,9 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * The identity provider matches this value as an exact string.
          */
         private String accessTokenResource() {
-            return serviceEnvironment.signatureServiceRootUrl().toString();
+            // Service root URI contains "/api" path which should be removed to match resource
+            URI serviceUri = serviceEnvironment.signatureServiceRootUrl();
+            return serviceUri.getScheme() + "://" + serviceUri.getAuthority();
         }
 
         /**
