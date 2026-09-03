@@ -67,7 +67,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
      * tokens, which matches it as an exact string. It is not defined by this library, and should not
      * be changed without coordinating with the identity provider.
      */
-    static final String ACCESS_TOKEN_SCOPE_PREFIX = "signering-api:";
+    static final String ACCESS_TOKEN_SCOPE_PREFIX = "signering:";
 
     private final MaySpecifySender defaultSender;
     private final URI serviceRoot;

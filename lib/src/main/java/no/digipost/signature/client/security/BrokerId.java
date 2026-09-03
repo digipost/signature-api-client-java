@@ -10,7 +10,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * The brokerId tied to the JWT client you've configured. It is used as part of the {@code scope} access
  * tokens are requested for. It is issued together with the {@link JwtAuthConfig#clientId client id},
- * and there is exactly one broker id for a given client id in the signature-api specifically.
+ * this and there is exactly one broker id for a given client id in the signature-api specifically.
  *
  * <p>Note that this is <em>not</em> an organization number, and not an id used anywhere else in this
  * library. If you only act on behalf of your own organization, it is simply another id for it.
