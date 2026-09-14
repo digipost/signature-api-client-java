@@ -98,18 +98,26 @@ class ClientConfigurationRejectedTokenTest {
         verify(2, postRequestedFor(urlEqualTo(TOKEN_PATH)));
     }
 
+    /**
+     * Creating a signature job is a POST with a multipart body, and is retried like any other
+     * request: the API rejects a request with 401 before acting on it, so repeating the request
+     * cannot create the job twice.
+     */
     @Test
-    void doesNotRetryCreatingASignatureJobButStillDiscardsTheRejectedToken() {
+    void retriesCreatingASignatureJobOnceWithAFreshTokenWhenTheFirstIsRejected() {
         stubTwoTokensInSequence();
-        givenThat(post(urlPathMatching(JOBS_PATH)).willReturn(aResponse().withStatus(401).withBody("token rejected")));
+
+        String scenario = "rejected token";
+        givenThat(post(urlPathMatching(JOBS_PATH)).inScenario(scenario).whenScenarioStateIs(STARTED)
+                .willReturn(aResponse().withStatus(401).withBody("token rejected"))
+                .willSetStateTo("token rejected once"));
+        givenThat(post(urlPathMatching(JOBS_PATH)).inScenario(scenario).whenScenarioStateIs("token rejected once")
+                .willReturn(ok(responseMarshaller.marshalToString(
+                        new XMLPortalSignatureJobResponse(null, 42, unitTestEnv.signatureServiceRootUrl())))));
 
         PortalClient client = new PortalClient(configBuilder.build());
+        client.create(aPortalJob());
 
-        // The rejected request is not retried, as sending a signature job twice is not safe.
-        assertThrows(SignatureException.class, () -> client.create(aPortalJob()));
-        assertThrows(SignatureException.class, () -> client.create(aPortalJob()));
-
-        // ... but the token was discarded, so the second attempt used a newly acquired one.
         assertThat(authorizationHeadersOf(findAll(postRequestedFor(urlPathMatching(JOBS_PATH)))),
                 contains("Bearer first-token", "Bearer second-token"));
         verify(2, postRequestedFor(urlEqualTo(TOKEN_PATH)));
@@ -131,11 +139,11 @@ class ClientConfigurationRejectedTokenTest {
     }
 
     /**
-     * Requesting a new redirect URL is a POST whose entity <em>is</em> repeatable, unlike creating a
-     * signature job. It must still not be retried, as it is not a safe request to repeat.
+     * Requesting a new redirect URL is a POST, and is retried like the rest. Neither the method of a
+     * request nor the shape of its body decides whether it is retried.
      */
     @Test
-    void doesNotRetryAnUnsafeRequestEvenWhenItsBodyCouldBeResent() {
+    void retriesANonSafeRequestOnceWithAFreshToken() {
         stubTwoTokensInSequence();
         givenThat(post(urlPathMatching(SIGNER_PATH)).willReturn(aResponse().withStatus(401).withBody("token rejected")));
 
@@ -145,9 +153,10 @@ class ClientConfigurationRejectedTokenTest {
 
         assertThrows(SignatureException.class, () -> client.requestNewRedirectUrl(signerUrl));
 
-        verify(1, postRequestedFor(urlPathMatching(SIGNER_PATH)));
+        // Two attempts, the second with the replacement token.
+        verify(2, postRequestedFor(urlPathMatching(SIGNER_PATH)));
         assertThat(authorizationHeadersOf(findAll(postRequestedFor(urlPathMatching(SIGNER_PATH)))),
-                contains("Bearer first-token"));
+                contains("Bearer first-token", "Bearer second-token"));
     }
 
     @Test
