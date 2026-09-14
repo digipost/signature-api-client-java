@@ -47,12 +47,15 @@ public final class JwtAuthConfig {
      * @param clientId the client id registered for your certificate,
      *                 identifying this integration to the token endpoint
      * @param brokerId the {@link BrokerId broker} to acquire access tokens as
+     *
+     * @throws ConfigurationException if the client id is empty or contains whitespace. It is sent
+     *                                verbatim to the token endpoint, which matches it as an exact string.
      */
     public static JwtAuthConfig forClient(String clientId, BrokerId brokerId) {
         requireNonNull(clientId, "client id");
         requireNonNull(brokerId, "broker id");
-        if (clientId.trim().isEmpty()) {
-            throw new ConfigurationException("The client id must not be blank");
+        if (clientId.isEmpty() || clientId.chars().anyMatch(Character::isWhitespace)) {
+            throw new ConfigurationException("The client id must not be empty or contain whitespace, but was '" + clientId + "'");
         }
         return new JwtAuthConfig(clientId, brokerId);
     }

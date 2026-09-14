@@ -32,10 +32,22 @@ class JwtAuthConfigTest {
     }
 
     @Test
-    void rejectsABlankClientId() {
+    void rejectsAnEmptyClientId() {
         assertThat(assertThrows(ConfigurationException.class, () -> JwtAuthConfig.forClient("", BROKER)),
-                where(Throwable::getMessage, containsString("must not be blank")));
+                where(Throwable::getMessage, containsString("must not be empty or contain whitespace")));
+    }
+
+    /**
+     * The client id is sent verbatim to the token endpoint, which matches it as an exact string. A
+     * stray space from a copy-pasted configuration would otherwise surface as an opaque rejection
+     * from the token endpoint rather than as the configuration mistake it is.
+     */
+    @Test
+    void rejectsAClientIdContainingWhitespace() {
         assertThrows(ConfigurationException.class, () -> JwtAuthConfig.forClient("   ", BROKER));
+        assertThrows(ConfigurationException.class, () -> JwtAuthConfig.forClient(" my-client-id", BROKER));
+        assertThrows(ConfigurationException.class, () -> JwtAuthConfig.forClient("my-client-id ", BROKER));
+        assertThrows(ConfigurationException.class, () -> JwtAuthConfig.forClient("my client id", BROKER));
     }
 
     @Test
