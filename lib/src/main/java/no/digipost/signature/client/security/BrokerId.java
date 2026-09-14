@@ -29,11 +29,15 @@ public final class BrokerId {
 
     /**
      * @param id the broker id for your client in signature-api
+     *
+     * @throws ConfigurationException if the id is empty or contains whitespace. It is used verbatim
+     *                                as part of the scope, which the identity provider matches as an
+     *                                exact string.
      */
     public static BrokerId of(String id) {
         requireNonNull(id, "broker id");
-        if (id.trim().isEmpty()) {
-            throw new ConfigurationException("The broker id must not be blank");
+        if (id.isEmpty() || id.chars().anyMatch(Character::isWhitespace)) {
+            throw new ConfigurationException("The broker id must not be empty or contain whitespace, but was '" + id + "'");
         }
         return new BrokerId(id);
     }

@@ -224,7 +224,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * Authenticate with Posten signering using an OAuth 2.0 <em>client credentials</em> grant
          * over a mutually authenticated TLS connection, instead of relying on the organization
          * certificate alone. Access tokens are acquired from the token endpoint given by the
-         * {@link JwtAuthConfig}, and sent as an {@code Authorization: Bearer} header on all
+         * {@link ServiceEnvironment}, and sent as an {@code Authorization: Bearer} header on all
          * requests to the API.
          *
          * <p>The organization certificate passed to {@link ClientConfiguration#builder(KeyStoreConfig)}
@@ -415,7 +415,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
                 // The certificate authenticates this client to the token endpoint only. Requests to the API
                 // authenticate with the access token, and must not present a client certificate. This applies
                 // to both API clients, as they share the same ssl configurer.
-                //
+
                 // Note that this configures the builder, not the ClientConfiguration being built: the ssl
                 // configurer is applied lazily, when the http clients are created. Any ClientConfiguration
                 // previously built by this builder will therefore also stop presenting the certificate. That is
@@ -465,6 +465,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          */
         private String accessTokenResource() {
             // Service root URI contains "/api" path which should be removed to match resource
+            // I.e. for service root 'https://api.signering.posten.no/api', it returns 'https://api.signering.posten.no'
             URI serviceUri = serviceEnvironment.signatureServiceRootUrl();
             return serviceUri.getScheme() + "://" + serviceUri.getAuthority();
         }

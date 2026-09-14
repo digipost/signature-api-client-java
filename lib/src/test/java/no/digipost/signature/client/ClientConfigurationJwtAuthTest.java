@@ -130,14 +130,26 @@ class ClientConfigurationJwtAuthTest {
                 .withRequestBody(containing("scope=signering%3A555444")));
     }
 
+    /**
+     * The service root URL of the real environments has an {@code /api} path, e.g.
+     * {@code https://api.signering.posten.no/api}, while the resource the token is requested for is
+     * the API without that path, {@code https://api.signering.posten.no}. The identity provider
+     * matches the resource as an exact string, so the path has to be stripped.
+     * <p>
+     * The service URL is given the same shape as the real environments here, as a URL without a path
+     * would be its own resource and prove nothing.
+     */
     @Test
-    void requestsAnAccessTokenForTheApiOfTheServiceEnvironment() {
+    void requestsAnAccessTokenForTheApiOfTheServiceEnvironmentWithoutItsPath() {
         stubTokenEndpoint("a-token");
         stubCreateJob();
 
-        new PortalClient(configBuilder.jwtAuthentication(jwtAuthConfig).build()).create(aPortalJob());
+        ServiceEnvironment apiWithPath = unitTestEnv.withServiceUrl(URI.create(wireMockBaseUri + "/api"));
 
-        assertThat(tokenRequestParameter("resource"), is(unitTestEnv.signatureServiceRootUrl().toString()));
+        new PortalClient(configBuilder.serviceEnvironment(apiWithPath).jwtAuthentication(jwtAuthConfig).build())
+                .create(aPortalJob());
+
+        assertThat(tokenRequestParameter("resource"), is(wireMockBaseUri.toString()));
     }
 
     @Test
