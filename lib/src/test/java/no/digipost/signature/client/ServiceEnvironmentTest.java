@@ -23,7 +23,11 @@ class ServiceEnvironmentTest {
     void thePredefinedEnvironmentsKnowTheirTokenEndpoint() {
         assertThat(PRODUCTION.tokenEndpoint(), contains(URI.create("https://midp.digipost.no/oauth2/token")));
         assertThat(DIFITEST.tokenEndpoint(), contains(URI.create("https://midp.difitest.digipost.no/oauth2/token")));
-        // environment is deprecated, no tokenUrl for this env
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void deprecatedDifiQaDoesNotHaveTokenEndpoint() {
         assertThat(DIFIQA.tokenEndpoint(), empty());
     }
 
