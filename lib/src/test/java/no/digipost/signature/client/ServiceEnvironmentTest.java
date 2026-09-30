@@ -6,7 +6,6 @@ import java.net.URI;
 import java.util.Arrays;
 
 import static java.util.Collections.singletonList;
-import static no.digipost.signature.client.ServiceEnvironment.DIFIQA;
 import static no.digipost.signature.client.ServiceEnvironment.DIFITEST;
 import static no.digipost.signature.client.ServiceEnvironment.PRODUCTION;
 import static no.digipost.signature.client.ServiceEnvironment.STAGING;
@@ -23,8 +22,6 @@ class ServiceEnvironmentTest {
     void thePredefinedEnvironmentsKnowTheirTokenEndpoint() {
         assertThat(PRODUCTION.tokenEndpoint(), contains(URI.create("https://midp.digipost.no/oauth2/token")));
         assertThat(DIFITEST.tokenEndpoint(), contains(URI.create("https://midp.difitest.digipost.no/oauth2/token")));
-        // environment is deprecated, no tokenUrl for this env
-        assertThat(DIFIQA.tokenEndpoint(), empty());
     }
 
     @Test
