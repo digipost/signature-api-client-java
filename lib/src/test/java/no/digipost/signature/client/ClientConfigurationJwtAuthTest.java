@@ -25,7 +25,6 @@ import java.net.URLDecoder;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -57,8 +56,7 @@ class ClientConfigurationJwtAuthTest {
     private static final String TOKEN_PATH = "/token";
 
     /**
-     * Matches the token endpoint whether or not the request is sent through a proxy, as a proxied
-     * request states the whole URI rather than just the path.
+     * A proxied request states the whole URI, not just the path.
      */
     private static final String ANY_TOKEN_PATH = ".*" + TOKEN_PATH + "$";
 
@@ -92,11 +90,6 @@ class ClientConfigurationJwtAuthTest {
                 .withRequestBody(containing("scope=signering%3A555444")));
     }
 
-    /**
-     * A broker acquires its access tokens as itself, and may act on behalf of several organizations.
-     * Which sender a job is for is stated in the job itself, and must not influence the scope the
-     * token is requested for.
-     */
     @Test
     void theScopeIsTheBrokersRegardlessOfWhichSenderAJobIsFor() {
         stubTokenEndpoint("a-token");
@@ -110,10 +103,6 @@ class ClientConfigurationJwtAuthTest {
         assertThat(tokenRequestParameter("scope"), is("signering:555444"));
     }
 
-    /**
-     * The scope is the broker's, so nothing about acquiring an access token depends on a sender. A
-     * broker specifying the sender per job does not need a default one.
-     */
     @Test
     void doesNotRequireADefaultSender() {
         stubTokenEndpoint("a-token");
@@ -131,13 +120,7 @@ class ClientConfigurationJwtAuthTest {
     }
 
     /**
-     * The service root URL of the real environments has an {@code /api} path, e.g.
-     * {@code https://api.signering.posten.no/api}, while the resource the token is requested for is
-     * the API without that path, {@code https://api.signering.posten.no}. The identity provider
-     * matches the resource as an exact string, so the path has to be stripped.
-     * <p>
-     * The service URL is given the same shape as the real environments here, as a URL without a path
-     * would be its own resource and prove nothing.
+     * The service root has an {@code /api} path like the real environments, which the resource must not include.
      */
     @Test
     void requestsAnAccessTokenForTheApiOfTheServiceEnvironmentWithoutItsPath() {
@@ -216,10 +199,6 @@ class ClientConfigurationJwtAuthTest {
         verify(postRequestedFor(urlPathMatching(JOBS_PATH)).withHeader("Authorization", absent()));
     }
 
-    /**
-     * A proxy is configured for the client as a whole, and acquiring access tokens must go through it
-     * as well. In a proxied environment the token endpoint would otherwise be unreachable.
-     */
     @Test
     void routesTokenRequestsThroughTheConfiguredProxy() {
         givenThat(post(urlPathMatching(ANY_TOKEN_PATH))
@@ -253,8 +232,7 @@ class ClientConfigurationJwtAuthTest {
 
 
     /**
-     * The decoded value of a single form parameter from the one expected token request, so that
-     * assertions can be made on the actual value rather than on its url-encoded form.
+     * The decoded value of a form parameter from the single token request.
      */
     private static String tokenRequestParameter(String name) {
         List<LoggedRequest> tokenRequests = findAll(postRequestedFor(urlEqualTo(TOKEN_PATH)));

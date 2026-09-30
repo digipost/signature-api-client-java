@@ -29,9 +29,7 @@ class BrokerIdTest {
     }
 
     /**
-     * The id is used verbatim as part of the scope, which the identity provider matches as an exact
-     * string. A stray space from a copy-pasted configuration would otherwise surface as an opaque
-     * rejection from the token endpoint rather than as the configuration mistake it is.
+     * Used verbatim in the scope, so a stray space should fail here rather than at the token endpoint.
      */
     @Test
     void rejectsAnIdContainingWhitespace() {

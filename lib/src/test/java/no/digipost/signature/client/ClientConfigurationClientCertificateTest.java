@@ -29,16 +29,10 @@ import static no.digipost.signature.client.ServiceEnvironment.STAGING;
 import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static uk.co.probablyfine.matchers.OptionalMatchers.contains;
 import static uk.co.probablyfine.matchers.OptionalMatchers.empty;
 
 /**
- * Verifies which certificate, if any, is actually presented to the API. This uses a real TLS
- * handshake against a local server, as no amount of inspecting the client configuration can prove
- * what ends up on the wire.
- *
- * @see no.digipost.signature.client.core.internal.http.MutualTlsTokenProviderClientCertificateTest
- * for the same kind of assertion on the connection to the token endpoint
+ * Verifies with a real TLS handshake that no client certificate is presented to the API.
  */
 @WireMockTest
 class ClientConfigurationClientCertificateTest {
@@ -97,10 +91,6 @@ class ClientConfigurationClientCertificateTest {
     }
 
 
-    /**
-     * The API test server presents the test client certificate. Which certificate it is does not
-     * matter here, as the client is configured below to accept it as-is.
-     */
     private static TestClientCertificateRecordingServer startApiServer() throws IOException, GeneralSecurityException {
         SSLContext serverSslContext = TestClientCertificateRecordingServer.sslContextPresenting(
                 CLIENT_KEYSTORE.keyStore, CLIENT_KEYSTORE.privatekeyPassword.toCharArray());
@@ -113,8 +103,7 @@ class ClientConfigurationClientCertificateTest {
     }
 
     /**
-     * The test server presents a self-signed certificate, so the usual validation that the server
-     * identifies itself as Posten Bring AS is replaced with one which accepts it as-is.
+     * The test server's certificate is self-signed, so it is accepted as-is.
      */
     private ClientConfiguration.Builder configFor(URI apiBaseUri) {
         return ClientConfiguration.builder(CLIENT_KEYSTORE)
