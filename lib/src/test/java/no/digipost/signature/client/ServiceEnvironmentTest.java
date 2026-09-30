@@ -32,10 +32,6 @@ class ServiceEnvironmentTest {
         assertThat(STAGING.tokenEndpoint(), is(DIFITEST.tokenEndpoint()));
     }
 
-    /**
-     * Every copy method has to carry the token endpoint over, or enabling JWT authentication would
-     * silently stop working for anyone customizing their environment.
-     */
     @Test
     void copyingAnEnvironmentRetainsTheTokenEndpoint() {
         assertThat(DIFITEST.withDescription("Other").tokenEndpoint(), is(DIFITEST.tokenEndpoint()));

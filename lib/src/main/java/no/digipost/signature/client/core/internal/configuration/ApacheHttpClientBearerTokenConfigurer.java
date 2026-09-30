@@ -22,25 +22,13 @@ import java.util.logging.Logger;
 import static org.apache.hc.core5.http.HttpHeaders.AUTHORIZATION;
 
 /**
- * Makes the client send an {@code Authorization: Bearer <token>} header on every request, using an
- * access token acquired from the configured OAuth 2.0 token endpoint.
- *
- * <p>Also recovers from a token being rejected. A token can stop working before it is considered
- * stale by the {@link MutualTlsTokenProvider}, for instance if it is revoked, if the token endpoint
- * is restarted, or if this host's clock runs ahead of the token endpoint's. Without this, every
- * subsequent request would keep failing until the cached token expired on its own.
- *
- * <p>A {@code 401} which turns out to signal a permanent authorization problem rather than a
- * rejected token will therefore cost one extra attempt before the failure is passed on to the
- * caller. That is a deliberate trade-off, and is bounded to a single retry.
- *
- * <p>This class is not part of the public API of this library and may change without notice.
+ * Sends an {@code Authorization: Bearer <token>} header on every request. On a {@code 401}, the token
+ * is discarded and the request is retried once with a new one, e.g. if the token was revoked.
  */
 public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<HttpClientBuilder> {
 
     /**
-     * The {@link HttpContext} attribute holding the access token which was put on the request, so
-     * that it can be identified as the rejected one if the response turns out to be a 401.
+     * The token sent with the request, to know which one to discard on a 401.
      */
     static final String APPLIED_ACCESS_TOKEN = "no.digipost.signature.client.applied-access-token";
 
@@ -56,9 +44,7 @@ public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<H
     public void applyTo(HttpClientBuilder httpClientBuilder) {
         httpClientBuilder
                 .addRequestInterceptorLast(new RequestBearerTokenInterceptor(tokenProvider))
-                // Placed outside the protocol chain element, which is what runs the request
-                // interceptors. A retry from here therefore runs the interceptor above again, which
-                // puts a freshly acquired token on the retried request.
+                // Before PROTOCOL, so a retry runs the interceptor above again and gets a new token
                 .addExecInterceptorBefore(
                         ChainElement.PROTOCOL.name(), RECOVERY_EXEC_NAME, new RejectedTokenRecoveryExec(tokenProvider));
     }
@@ -112,9 +98,7 @@ public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<H
             LOG.fine(() -> "Retrying " + request.getMethod() + " " + request.getPath() +
                     " once with a new access token, as the one used was rejected");
 
-            // Retried from a pristine copy of the original request, the same way the http client's own
-            // retry handling does it. The request just attempted has had protocol headers such as
-            // Content-Length or Transfer-Encoding added to it, and those cannot be applied a second time.
+            // Retry a copy of the original request, as protocol headers have been added to the attempted one
             return chain.proceed(ClassicRequestBuilder.copy(scope.originalRequest).build(), scope);
         }
     }

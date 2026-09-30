@@ -53,12 +53,7 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
     }
 
     /**
-     * Set the endpoint to acquire access tokens from when authenticating with
-     * {@link ClientConfiguration.Builder#jwtAuthentication(no.digipost.signature.client.security.JwtAuthConfig) JWT/mTLS authentication}.
-     * The predefined environments already know their own token endpoint, so this is only needed for
-     * custom setups, such as testing against your own stubbed implementation.
-     *
-     * @param tokenEndpointUrl the URL of the token endpoint
+     * Set the endpoint to acquire access tokens from. Only needed for custom environments.
      */
     public ServiceEnvironment withTokenEndpoint(URI tokenEndpointUrl) {
         return new ServiceEnvironment(this.description, this.serviceRootUrl, this.certificatePaths, tokenEndpointUrl);
@@ -96,8 +91,7 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
     }
 
     /**
-     * The endpoint to acquire access tokens from, if this environment has one. Empty for custom
-     * environments which have not been given one with {@link #withTokenEndpoint(URI)}.
+     * The endpoint to acquire access tokens from, empty if not set with {@link #withTokenEndpoint(URI)}.
      */
     public Optional<URI> tokenEndpoint() {
         return Optional.ofNullable(tokenEndpointUrl);
