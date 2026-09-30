@@ -40,6 +40,7 @@ import static java.util.stream.Stream.concat;
 import static no.digipost.DiggExceptions.applyUnchecked;
 import static no.digipost.DiggExceptions.getUnchecked;
 import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
+import static no.digipost.signature.client.TestKonfigurasjon.JWT_AUTH_CONFIG;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.TIMESTAMP_PATTERN;
 import static no.digipost.signature.client.asice.DumpDocumentBundleToDisk.referenceFilenamePart;
 import static no.digipost.signature.client.direct.ExitUrls.singleExitUrl;
@@ -58,7 +59,7 @@ public class CreateASiCETest {
         applyUnchecked(Files::createDirectories, dumpFolder);
     }
 
-    private static final ClientConfiguration config = ClientConfiguration.builder(CLIENT_KEYSTORE)
+    private static final ClientConfiguration config = ClientConfiguration.builder(CLIENT_KEYSTORE, JWT_AUTH_CONFIG)
             .defaultSender(new Sender("123456789"))
             .enableDocumentBundleDiskDump(dumpFolder)
             .build();

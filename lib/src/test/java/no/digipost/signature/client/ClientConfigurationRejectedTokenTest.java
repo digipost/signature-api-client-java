@@ -63,10 +63,9 @@ class ClientConfigurationRejectedTokenTest {
         this.unitTestEnv = STAGING
                 .withServiceUrl(URI.create(wireMockInfo.getHttpBaseUrl()))
                 .withTokenEndpoint(URI.create(wireMockInfo.getHttpBaseUrl() + TOKEN_PATH));
-        this.configBuilder = ClientConfiguration.builder(CLIENT_KEYSTORE)
+        this.configBuilder = ClientConfiguration.builder(CLIENT_KEYSTORE, JwtAuthConfig.forClient("my-client-id", BrokerId.of("555444")))
                 .serviceEnvironment(unitTestEnv)
-                .defaultSender(new Sender("123456789"))
-                .jwtAuthentication(JwtAuthConfig.forClient("my-client-id", BrokerId.of("555444")));
+                .defaultSender(new Sender("123456789"));
     }
 
 

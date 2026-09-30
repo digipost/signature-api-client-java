@@ -2,6 +2,8 @@ package no.digipost.signature.client.docs;
 
 import no.digipost.signature.client.ClientConfiguration;
 import no.digipost.signature.client.core.Sender;
+import no.digipost.signature.client.security.BrokerId;
+import no.digipost.signature.client.security.JwtAuthConfig;
 import no.digipost.signature.client.security.KeyStoreConfig;
 
 import java.io.IOException;
@@ -38,7 +40,9 @@ public class InitialSetup {
     static void create_client_configuration() {
         KeyStoreConfig keyStoreConfig = null; //As initialized earlier
 
-        ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreConfig)
+        JwtAuthConfig jwtAuthConfig = JwtAuthConfig.forClient("your-client-id", BrokerId.of("123456789"));
+
+        ClientConfiguration clientConfiguration = ClientConfiguration.builder(keyStoreConfig, jwtAuthConfig)
                 .serviceEnvironment(STAGING)
                 .defaultSender(new Sender("123456789"))
                 .build();
