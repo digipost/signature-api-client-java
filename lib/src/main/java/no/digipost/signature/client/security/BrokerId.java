@@ -8,31 +8,19 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The brokerId tied to the JWT client you've configured. It is used as part of the {@code scope} access
- * tokens are requested for. It is issued together with the {@link JwtAuthConfig#clientId client id},
- * this and there is exactly one broker id for a given client id in the signature-api specifically.
- *
- * <p>Note that this is <em>not</em> an organization number, and not an id used anywhere else in this
- * library. If you only act on behalf of your own organization, it is simply another id for it.
- *
- * <p>The broker id never changes for a client, so access tokens are always acquired as the same
- * organization. Which {@link Sender sender} a signature job is created for is separate from this,
- * and a broker acting on behalf of several organizations can set it per job with
- * {@link no.digipost.signature.client.portal.PortalJob.Builder#withSender(Sender) PortalJob.Builder.withSender(..)}
- * or {@link no.digipost.signature.client.direct.DirectJob.Builder#withSender(Sender) DirectJob.Builder.withSender(..)}.
- *
- * @see JwtAuthConfig
+ * The broker id issued together with your {@link JwtAuthConfig#clientId client id}. Both can be found in
+ * Digipost's self-service portal for managing certificates and clients.
+ * <p>
+ * BrokerId is not an organization number. If you only act on behalf of your own organization, it is simply another id
+ * for it. A broker acting on behalf of several organizations sets the {@link Sender sender} per job with
+ * {@code PortalJob.Builder.withSender(..)} or {@code DirectJob.Builder.withSender(..)}.
  */
 public final class BrokerId {
 
     private final String id;
 
     /**
-     * @param id the broker id for your client in signature-api
-     *
-     * @throws ConfigurationException if the id is empty or contains whitespace. It is used verbatim
-     *                                as part of the scope, which the identity provider matches as an
-     *                                exact string.
+     * @throws ConfigurationException if the id is empty or contains whitespace
      */
     public static BrokerId of(String id) {
         requireNonNull(id, "broker id");
@@ -46,9 +34,6 @@ public final class BrokerId {
         this.id = id;
     }
 
-    /**
-     * The broker id as the identity provider knows it.
-     */
     public String value() {
         return id;
     }

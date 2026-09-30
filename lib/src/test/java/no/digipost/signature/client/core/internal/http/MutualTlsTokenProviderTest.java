@@ -106,18 +106,13 @@ class MutualTlsTokenProviderTest {
         clock.advance(ofSeconds(3600 - MutualTlsTokenProvider.REFRESH_MARGIN_SECONDS - 1));
         assertThat(tokenProvider.getToken(), is("first-token"));
 
-        // Now within the refresh margin, and a new token is acquired even though the first has not
-        // technically expired yet.
+        // Within the refresh margin, so a new token is acquired before the first expires
         clock.advance(ofSeconds(2));
         assertThat(tokenProvider.getToken(), is("second-token"));
 
         verify(2, postRequestedFor(urlEqualTo(TOKEN_PATH)));
     }
 
-    /**
-     * Several threads may need an access token before any of them has one. Acquiring a token for each
-     * of them would be both wasteful and needless load on the token endpoint.
-     */
     @Test
     void concurrentCallersShareTheOneAcquiredToken() throws Exception {
         givenThat(post(urlEqualTo(TOKEN_PATH))
@@ -161,9 +156,7 @@ class MutualTlsTokenProviderTest {
     }
 
     /**
-     * Two requests may fail with the same rejected token, or one may fail while another thread has
-     * already replaced it. Invalidating a token which is no longer the cached one must not throw away
-     * the replacement.
+     * Invalidating a token which has already been replaced must not discard the replacement.
      */
     @Test
     void invalidatingATokenWhichIsNoLongerTheCachedOneKeepsTheCachedOne() {
@@ -190,9 +183,7 @@ class MutualTlsTokenProviderTest {
     }
 
     /**
-     * A token which is already stale when it arrives is still handed out, as it is the only one there
-     * is, but it can not be cached. This is warned about, as it means the token endpoint is called for
-     * every single request.
+     * A token which is already stale on arrival is handed out, but not cached, and warned about.
      */
     @Test
     void aTokenExpiringWithinTheRefreshMarginIsUsedButNotCached() {
@@ -221,10 +212,6 @@ class MutualTlsTokenProviderTest {
         assertThrows(AccessTokenException.class, () -> tokenProvider().getToken());
     }
 
-    /**
-     * A lifetime this large would overflow when added to the current time, and must be reported as the
-     * unusable response it is, not as an arithmetic error.
-     */
     @Test
     void anExpiresInWhichCannotBeAddedToTheCurrentTimeIsRejected() {
         givenThat(post(urlEqualTo(TOKEN_PATH))

@@ -28,18 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.co.probablyfine.matchers.OptionalMatchers.contains;
 
 /**
- * Verifies that the connection to the token endpoint really is mutually authenticated, i.e. that the
- * client certificate is presented during the TLS handshake. This is the entire premise of
- * {@link MutualTlsTokenProvider}, and only a real handshake against a real server can show it.
- *
- * <p>The token endpoint client validates the server against the <em>JVM's default trust store</em>
- * with ordinary host name verification, deliberately without the escape hatches the Posten signering
- * API client has. That is the behaviour under test, so it is not circumvented here: instead the test
- * server presents a certificate issued for {@code localhost}, and the JVM's default trust store is
- * pointed at that certificate while the client is being built.
- *
- * @see no.digipost.signature.client.ClientConfigurationClientCertificateTest
- * for the same kind of assertion on the connection to the API itself
+ * Verifies that the client certificate is presented to the token endpoint. The client uses the
+ * JVM's default trust store, so it is pointed at the test server's {@code localhost} certificate.
  */
 class MutualTlsTokenProviderClientCertificateTest {
 
@@ -81,15 +71,13 @@ class MutualTlsTokenProviderClientCertificateTest {
     }
 
     /**
-     * The token endpoint is a separate service from the Posten signering API, and is not covered by
-     * the API's trust configuration. It must be validated the ordinary way, which means an unknown
-     * certificate is refused rather than accepted.
+     * The token endpoint is not covered by the API's trust configuration.
      */
     @Test
     void refusesATokenEndpointWhoseCertificateTheJvmDoesNotTrust() throws Exception {
         try (TestClientCertificateRecordingServer tokenEndpoint = startTokenEndpoint(serverKeyStore())) {
 
-            // Note: no trust store override, so the self signed certificate of the test server is unknown.
+            // No trust store override, so the test server's certificate is unknown
             MutualTlsTokenProvider tokenProvider = MutualTlsTokenProvider.create(
                     tokenRequestTo(tokenEndpoint.baseUri()), CLIENT_KEYSTORE,
                     Configurer.notConfigured(), Clock.systemUTC());
@@ -121,10 +109,6 @@ class MutualTlsTokenProviderClientCertificateTest {
         return keyStore;
     }
 
-    /**
-     * A trust store containing only the test server's certificate, written to a file, as the JVM's
-     * default trust store is configured as a file path.
-     */
     private static Path trustStoreContaining(KeyStore serverKeyStore, Path directory) throws Exception {
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(null, null);
@@ -138,11 +122,7 @@ class MutualTlsTokenProviderClientCertificateTest {
     }
 
     /**
-     * Run the given action with the JVM's default trust store replaced by the given one.
-     * <p>
-     * The action must be the creation of the {@link MutualTlsTokenProvider} itself, and nothing more:
-     * the {@link SSLContext} resolves its trust managers when it is initialized, so the replacement
-     * only has to be in place while the client is built, not while it is used.
+     * Replace the JVM's default trust store while building the client, which is when the trust managers are resolved.
      */
     private static <T> T withDefaultTrustStore(Path trustStore, Supplier<T> action) {
         String previousPath = System.getProperty("javax.net.ssl.trustStore");

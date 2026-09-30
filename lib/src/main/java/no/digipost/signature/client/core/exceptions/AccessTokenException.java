@@ -1,10 +1,8 @@
 package no.digipost.signature.client.core.exceptions;
 
 /**
- * Thrown when an access token could not be acquired from the configured OAuth 2.0 token endpoint,
- * or when the token endpoint's response could not be understood.
- *
- * @see no.digipost.signature.client.security.JwtAuthConfig
+ * Thrown from API calls when an access token could not be acquired, e.g. if the token endpoint
+ * rejects the client id or broker id. Tokens are acquired on first use, not when the client is built.
  */
 public class AccessTokenException extends SignatureException {
 

@@ -59,13 +59,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
 
 
     /**
-     * Prefix of the OAuth 2.0 {@code scope} which access tokens are requested for when using
-     * {@link Builder#jwtAuthentication(JwtAuthConfig) JWT/mTLS authentication}, completed with the
-     * {@link no.digipost.signature.client.security.BrokerId broker id} of the {@link JwtAuthConfig}.
-     * <p>
-     * <strong>Note:</strong> this value is a contract with the identity provider issuing the access
-     * tokens, which matches it as an exact string. It is not defined by this library, and should not
-     * be changed without coordinating with the identity provider.
+     * Prefix of the access token {@code scope}, followed by the broker id. Must match mIdP exactly.
      */
     static final String ACCESS_TOKEN_SCOPE_PREFIX = "signering:";
 
@@ -448,10 +442,6 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
             );
         }
 
-        /**
-         * The endpoint to acquire access tokens from, which belongs to the configured
-         * {@link ServiceEnvironment}.
-         */
         private URI resolveTokenEndpoint() {
             return serviceEnvironment.tokenEndpoint().orElseThrow(() -> new ConfigurationException(
                     "No token endpoint to acquire access tokens from. The " + serviceEnvironment + " does not have " +
@@ -460,20 +450,13 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         }
 
         /**
-         * The resource the access token is requested for, which is the root URL of the API itself.
-         * The identity provider matches this value as an exact string.
+         * The API root without path, e.g. {@code https://api.signering.posten.no}. Must match mIdP exactly.
          */
         private String accessTokenResource() {
-            // Service root URI contains "/api" path which should be removed to match resource
-            // I.e. for service root 'https://api.signering.posten.no/api', it returns 'https://api.signering.posten.no'
             URI serviceUri = serviceEnvironment.signatureServiceRootUrl();
             return serviceUri.getScheme() + "://" + serviceUri.getAuthority();
         }
 
-        /**
-         * The scope to request access tokens for. The format of this string is a contract with the
-         * identity provider issuing the tokens, and is <em>not</em> defined by this library.
-         */
         private String accessTokenScope() {
             return ACCESS_TOKEN_SCOPE_PREFIX + jwtAuthConfig.brokerId.value();
         }

@@ -28,13 +28,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
- * A local HTTPS server which records the client certificate presented to it, if any, and answers
- * every request with the same canned response. Used to assert what a client actually puts on the
- * wire during the TLS handshake, which no amount of inspecting its configuration can prove.
- *
- * <p>The server is configured to <em>want</em>, not <em>require</em>, a client certificate.
- * Requiring one would make a client that sends none fail the handshake, which would prove only that
- * something went wrong, not that no certificate was sent.
+ * A local HTTPS server recording the client certificate presented to it, if any. It <em>wants</em>
+ * rather than requires a client certificate, so a client presenting none still completes the handshake.
  */
 public final class TestClientCertificateRecordingServer implements AutoCloseable {
 
@@ -46,12 +41,7 @@ public final class TestClientCertificateRecordingServer implements AutoCloseable
     }
 
     /**
-     * Start a server on a free port on localhost.
-     *
-     * @param serverSslContext the {@link SSLContext} the server presents itself with,
-     *                         cf. {@link #sslContextPresenting(KeyStore, char[])}
-     * @param contentType      the {@code Content-Type} of the canned response
-     * @param body             the body of the canned response
+     * Start a server on a free port on localhost, answering every request with the given response.
      */
     public static TestClientCertificateRecordingServer start(SSLContext serverSslContext, String contentType, String body)
             throws IOException {
@@ -90,9 +80,7 @@ public final class TestClientCertificateRecordingServer implements AutoCloseable
     }
 
     /**
-     * An {@link SSLContext} presenting the certificate of the given key store, and accepting any
-     * client certificate. The point of this server is to record what the client presented, not to
-     * judge it.
+     * Presents the given key store, and accepts any client certificate.
      */
     public static SSLContext sslContextPresenting(KeyStore keyStore, char[] keyPassword) throws GeneralSecurityException {
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -103,17 +91,12 @@ public final class TestClientCertificateRecordingServer implements AutoCloseable
         return sslContext;
     }
 
-    /**
-     * The base URI of this server, using the host name {@code localhost}. Clients which verify the
-     * server's host name will need its certificate to be issued for that name.
-     */
     public URI baseUri() {
         return URI.create("https://localhost:" + server.getAddress().getPort());
     }
 
     /**
-     * The client certificate presented for each request the server has received, in order, empty for
-     * the requests where the client presented none.
+     * The client certificate presented per request, in order.
      */
     public List<Optional<X509Certificate>> presentedClientCertificates() {
         return presentedClientCertificates;

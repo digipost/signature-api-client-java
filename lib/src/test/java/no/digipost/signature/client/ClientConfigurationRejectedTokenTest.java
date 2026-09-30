@@ -46,11 +46,6 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * An access token can be rejected before this client considers it stale, e.g. if it is revoked or if
- * this host's clock runs ahead of the token endpoint's. The rejected token must then be discarded,
- * and the request retried when it is safe to do so.
- */
 @WireMockTest
 class ClientConfigurationRejectedTokenTest {
 
@@ -99,9 +94,7 @@ class ClientConfigurationRejectedTokenTest {
     }
 
     /**
-     * Creating a signature job is a POST with a multipart body, and is retried like any other
-     * request: the API rejects a request with 401 before acting on it, so repeating the request
-     * cannot create the job twice.
+     * The API rejects with 401 before acting on a request, so retrying a POST cannot create the job twice.
      */
     @Test
     void retriesCreatingASignatureJobOnceWithAFreshTokenWhenTheFirstIsRejected() {
@@ -138,10 +131,6 @@ class ClientConfigurationRejectedTokenTest {
         verify(1, postRequestedFor(urlEqualTo(TOKEN_PATH)));
     }
 
-    /**
-     * Requesting a new redirect URL is a POST, and is retried like the rest. Neither the method of a
-     * request nor the shape of its body decides whether it is retried.
-     */
     @Test
     void retriesANonSafeRequestOnceWithAFreshToken() {
         stubTwoTokensInSequence();

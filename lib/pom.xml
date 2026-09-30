@@ -82,11 +82,6 @@
             <version>5.4.3</version>
         </dependency>
 
-        <!--
-          Only the streaming parser is needed, to read the few fields of the token endpoint's
-          response. jackson-databind is deliberately not used, as it additionally pulls in
-          byte-buddy and byte-buddy-agent.
-        -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
