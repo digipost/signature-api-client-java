@@ -58,11 +58,12 @@ public class MutualTlsTokenProvider {
     private static final String ACCESS_TOKEN_FIELD = "access_token";
     private static final String EXPIRES_IN_FIELD = "expires_in";
 
+    /** Longer lifetimes are treated as malformed, which also prevents overflow in {@link Instant#plusSeconds(long)} */
+    private static final long MAX_TOKEN_LIFETIME_SECONDS = Duration.ofDays(365).getSeconds();
+
     private static final JsonFactory JSON = new JsonFactory();
 
-    /**
-     * Response bodies included in exception messages are truncated to this length.
-     */
+    /** Response bodies included in exception messages are truncated to this length */
     private static final int MAX_REPORTED_ERROR_BODY_LENGTH = 512;
 
 
@@ -199,17 +200,13 @@ public class MutualTlsTokenProvider {
                         "Expected the response from the token endpoint " + tokenEndpointUri + " to be a JSON object, " +
                         "but it was: " + truncate(responseBody));
             }
-            while (json.nextToken() == JsonToken.FIELD_NAME) {
-                // Using getCurrentName() and JsonProcessingException from older versions
-                // in case consumers pin their own Jackson version and get a NoSuchMethodError at runtime
-                String field = json.getCurrentName();
+            for (String field = json.nextFieldName(); field != null; field = json.nextFieldName()) {
                 JsonToken value = json.nextToken();
                 if (ACCESS_TOKEN_FIELD.equals(field) && value == JsonToken.VALUE_STRING) {
                     accessToken = json.getText();
                 } else if (EXPIRES_IN_FIELD.equals(field) && value == JsonToken.VALUE_NUMBER_INT) {
                     expiresInSeconds = json.getLongValue();
                 } else {
-                    // No-op for scalars, and skips past the contents of nested objects and arrays.
                     json.skipChildren();
                 }
             }
@@ -219,24 +216,31 @@ public class MutualTlsTokenProvider {
                     e.getClass().getSimpleName() + ": '" + e.getOriginalMessage() + "'", e);
         }
 
+        return new TokenResponse(requireAccessToken(accessToken), requireUsableLifetime(expiresInSeconds));
+    }
+
+    private String requireAccessToken(String accessToken) {
         if (accessToken == null || accessToken.isEmpty()) {
             throw new AccessTokenException(
                     "The response from the token endpoint " + tokenEndpointUri + " did not contain a non-empty " +
                     "'" + ACCESS_TOKEN_FIELD + "' string field.");
         }
+        return accessToken;
+    }
+
+    private long requireUsableLifetime(Long expiresInSeconds) {
         if (expiresInSeconds == null) {
             throw new AccessTokenException(
                     "The response from the token endpoint " + tokenEndpointUri + " did not contain an " +
                     "'" + EXPIRES_IN_FIELD + "' integer field, so it is not known how long the access token is valid.");
         }
-        if (expiresInSeconds <= 0 || expiresInSeconds > theoreticalMaxExpiry) {
+        if (expiresInSeconds <= 0 || expiresInSeconds > MAX_TOKEN_LIFETIME_SECONDS) {
             throw new AccessTokenException(
                     "The response from the token endpoint " + tokenEndpointUri + " stated a lifetime of " +
                     expiresInSeconds + " seconds for the access token, which is not a usable value. Expected a " +
-                    "positive number of seconds, and at most " + theoreticalMaxExpiry + ".");
+                    "positive number of seconds, and at most " + MAX_TOKEN_LIFETIME_SECONDS + ".");
         }
-
-        return new TokenResponse(accessToken, expiresInSeconds);
+        return expiresInSeconds;
     }
 
     private static String readBody(ClassicHttpResponse response) throws IOException, ParseException {
