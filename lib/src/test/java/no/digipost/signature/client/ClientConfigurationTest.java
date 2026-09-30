@@ -9,11 +9,12 @@ import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.co.probablyfine.matchers.OptionalMatchers.contains;
 
 class ClientConfigurationTest {
 
-    private final ClientConfiguration.Builder config = ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE);
+    private final ClientConfiguration.Builder config = ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE, TestKonfigurasjon.JWT_AUTH_CONFIG);
 
     @Test
     void givesDefaultUserAgent() {
@@ -27,5 +28,10 @@ class ClientConfigurationTest {
                 contains(both(startsWith(MANDATORY_USER_AGENT))
                 .and(containsString(VERSION))
                 .and(containsString("My Corporation"))));
+    }
+
+    @Test
+    void requiresJwtAuthConfig() {
+        assertThrows(NullPointerException.class, () -> ClientConfiguration.builder(TestKonfigurasjon.CLIENT_KEYSTORE, null));
     }
 }
