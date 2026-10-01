@@ -238,6 +238,23 @@ class MutualTlsTokenProviderTest {
     }
 
     @Test
+    void aNullExpiresInIsReported() {
+        givenThat(post(urlEqualTo(TOKEN_PATH))
+                .willReturn(okJson("{\"access_token\":\"an-opaque-token\",\"expires_in\":null}")));
+
+        AccessTokenException thrown = assertThrows(AccessTokenException.class, () -> tokenProvider().getToken());
+        assertThat(thrown, where(Throwable::getMessage, containsString("expires_in")));
+    }
+
+    @Test
+    void aFractionalExpiresInIsNotAccepted() {
+        givenThat(post(urlEqualTo(TOKEN_PATH))
+                .willReturn(okJson("{\"access_token\":\"an-opaque-token\",\"expires_in\":3600.5}")));
+
+        assertThrows(AccessTokenException.class, () -> tokenProvider().getToken());
+    }
+
+    @Test
     void ignoresOtherFieldsOfTheResponseIncludingNestedOnes() {
         givenThat(post(urlEqualTo(TOKEN_PATH)).willReturn(okJson(
                 "{\"token_type\":\"Bearer\"," +
@@ -278,6 +295,14 @@ class MutualTlsTokenProviderTest {
     @Test
     void aResponseWithoutAnAccessTokenIsReported() {
         givenThat(post(urlEqualTo(TOKEN_PATH)).willReturn(okJson("{\"token_type\":\"Bearer\",\"expires_in\":60}")));
+
+        AccessTokenException thrown = assertThrows(AccessTokenException.class, () -> tokenProvider().getToken());
+        assertThat(thrown, where(Throwable::getMessage, containsString("access_token")));
+    }
+
+    @Test
+    void aNullAccessTokenIsReported() {
+        givenThat(post(urlEqualTo(TOKEN_PATH)).willReturn(okJson("{\"access_token\":null,\"expires_in\":60}")));
 
         AccessTokenException thrown = assertThrows(AccessTokenException.class, () -> tokenProvider().getToken());
         assertThat(thrown, where(Throwable::getMessage, containsString("access_token")));
