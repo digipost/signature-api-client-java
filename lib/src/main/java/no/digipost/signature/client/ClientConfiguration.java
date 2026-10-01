@@ -7,13 +7,18 @@ import no.digipost.signature.client.asice.DumpDocumentBundleToDisk;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.WithSignatureServiceRootUrl;
+import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import no.digipost.signature.client.core.internal.MaySpecifySender;
+import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBearerTokenConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBuilderConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientProxyConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientSslConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientUserAgentConfigurer;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
+import no.digipost.signature.client.core.internal.http.AccessTokenRequest;
+import no.digipost.signature.client.core.internal.http.MutualTlsTokenProvider;
 import no.digipost.signature.client.security.CertificateChainValidation;
+import no.digipost.signature.client.security.JwtAuthConfig;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import no.digipost.signature.client.security.OrganizationNumberValidation;
 import org.apache.hc.client5.http.classic.HttpClient;
@@ -35,6 +40,7 @@ import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.util.Objects.requireNonNull;
 import static no.digipost.signature.client.core.internal.MaySpecifySender.NO_SPECIFIED_SENDER;
 
 public final class ClientConfiguration implements ASiCEConfiguration, WithSignatureServiceRootUrl, ArchiveClient.Configuration {
@@ -52,6 +58,10 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
     public static final String MANDATORY_USER_AGENT = "posten-signature-api-client-java/" + ClientMetadata.VERSION + " (" + JAVA_DESCRIPTION + ")";
 
 
+    /**
+     * Prefix of the access token {@code scope}, followed by the broker id. Must match mIdP exactly.
+     */
+    static final String ACCESS_TOKEN_SCOPE_PREFIX = "signering:";
 
     private final MaySpecifySender defaultSender;
     private final URI serviceRoot;
@@ -118,16 +128,26 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
     }
 
     /**
-     * Build a new {@link ClientConfiguration}.
+     * Build a new {@link ClientConfiguration}. The API is called with an access token, acquired with the
+     * given {@link JwtAuthConfig} and organization certificate. See the
+     * <a href="https://signering-docs.readthedocs.io/en/latest/client-integration/create-client-configuration.html">docs</a>
+     * for how to set this up.
+     * <p>
+     * Tokens are cached per built configuration, so build it once and reuse it, along with the
+     * clients created from it.
+     *
+     * @param keystore      the organization certificate, used for the token endpoint and for signing document bundles
+     * @param jwtAuthConfig the client id and broker id to acquire access tokens with
      */
-    public static Builder builder(KeyStoreConfig keystore) {
-        return new Builder(keystore);
+    public static Builder builder(KeyStoreConfig keystore, JwtAuthConfig jwtAuthConfig) {
+        return new Builder(keystore, jwtAuthConfig);
     }
 
 
     public static class Builder {
 
         private final KeyStoreConfig keyStoreConfig;
+        private final JwtAuthConfig jwtAuthConfig;
 
         final ApacheHttpClientUserAgentConfigurer userAgentConfigurer = new ApacheHttpClientUserAgentConfigurer(MANDATORY_USER_AGENT);
         private final ApacheHttpClientSslConfigurer sslConfigurer;
@@ -141,9 +161,10 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         private Clock clock = Clock.systemDefaultZone();
 
 
-        private Builder(KeyStoreConfig keyStoreConfig) {
-            this.keyStoreConfig = keyStoreConfig;
-            this.sslConfigurer = new ApacheHttpClientSslConfigurer(keyStoreConfig, serviceEnvironment);
+        private Builder(KeyStoreConfig keyStoreConfig, JwtAuthConfig jwtAuthConfig) {
+            this.keyStoreConfig = requireNonNull(keyStoreConfig, "keyStoreConfig");
+            this.jwtAuthConfig = requireNonNull(jwtAuthConfig, "jwtAuthConfig");
+            this.sslConfigurer = new ApacheHttpClientSslConfigurer(serviceEnvironment);
             this.defaultHttpClientConfigurer = new ApacheHttpClientBuilderConfigurer()
                     .connectionManager(sslConfigurer)
                     .socketTimeout(Duration.ofSeconds(5))
@@ -354,7 +375,8 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
 
         /**
          * Allows for overriding which {@link Clock} is used to convert between Java and XML,
-         * may be useful for e.g. automated tests.
+         * may be useful for e.g. automated tests. The clock value is also passed on to
+         * access token expiry validation for jwt functionality.
          * <p>
          * Uses the {@link Clock#systemDefaultZone() system clock with default time zone}
          * if not specified.
@@ -367,13 +389,48 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         public ClientConfiguration build() {
             Configurer<HttpClientBuilder> commonConfig = userAgentConfigurer.andThen(proxyConfigurer);
 
-            return new ClientConfiguration(defaultSender, serviceEnvironment.signatureServiceRootUrl(), keyStoreConfig,
-                    commonConfig.andThen(defaultHttpClientConfigurer), commonConfig.andThen(httpClientForDocumentDownloadsConfigurer),
-                    documentBundleProcessors, clock);
+            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                    resolveTokenEndpoint(),
+                    jwtAuthConfig.clientId,
+                    accessTokenScope(),
+                    accessTokenResource()
+            );
+
+            // The token client gets commonConfig only, as it must not send a bearer token itself
+            MutualTlsTokenProvider tokenProvider = MutualTlsTokenProvider.create(
+                    accessTokenRequest, keyStoreConfig, commonConfig, clock);
+            Configurer<HttpClientBuilder> apiConfig = commonConfig.andThen(new ApacheHttpClientBearerTokenConfigurer(tokenProvider));
+
+            return new ClientConfiguration(defaultSender,
+                    serviceEnvironment.signatureServiceRootUrl(),
+                    keyStoreConfig,
+                    apiConfig.andThen(defaultHttpClientConfigurer),
+                    apiConfig.andThen(httpClientForDocumentDownloadsConfigurer),
+                    documentBundleProcessors,
+                    clock
+            );
+        }
+
+        private URI resolveTokenEndpoint() {
+            return serviceEnvironment.tokenEndpoint().orElseThrow(() -> new ConfigurationException(
+                    "No token endpoint to acquire access tokens from. The " + serviceEnvironment + " does not have " +
+                    "one, which is expected for custom environments. Specify it with " +
+                    "serviceEnvironment(env -> env.withTokenEndpoint(..))."));
+        }
+
+        /**
+         * The API root without path, e.g. {@code https://api.signering.posten.no}. Must match mIdP exactly.
+         */
+        private String accessTokenResource() {
+            URI serviceUri = serviceEnvironment.signatureServiceRootUrl();
+            return serviceUri.getScheme() + "://" + serviceUri.getAuthority();
+        }
+
+        private String accessTokenScope() {
+            return ACCESS_TOKEN_SCOPE_PREFIX + jwtAuthConfig.brokerId.value();
         }
 
     }
-
 
 
 
