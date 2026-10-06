@@ -50,12 +50,24 @@ class ClientConfigurationClientCertificateTest {
 
 
     @Test
-    void doesNotPresentTheClientCertificateToTheApi() throws Exception {
+    void presentsTheClientCertificateWhenAuthenticatingWithTheCertificate() throws Exception {
+        try (TestClientCertificateRecordingServer apiServer = startApiServer()) {
+
+            callApi(configFor(apiServer.baseUri()).build(), apiServer.baseUri());
+
+            List<Optional<X509Certificate>> presented = apiServer.presentedClientCertificates();
+            assertThat(presented, hasSize(1));
+            assertThat(presented.get(0), contains(CLIENT_KEYSTORE.getCertificate()));
+        }
+    }
+
+    @Test
+    void doesNotPresentTheClientCertificateWhenAuthenticatingWithAnAccessToken() throws Exception {
         stubTokenEndpoint();
 
         try (TestClientCertificateRecordingServer apiServer = startApiServer()) {
 
-            callApi(configFor(apiServer.baseUri()).build(), apiServer.baseUri());
+            callApi(configFor(apiServer.baseUri()).jwtAuthentication(jwtAuthConfig).build(), apiServer.baseUri());
 
             List<Optional<X509Certificate>> presented = apiServer.presentedClientCertificates();
             assertThat(presented, hasSize(1));
@@ -68,7 +80,7 @@ class ClientConfigurationClientCertificateTest {
         stubTokenEndpoint();
 
         try (TestClientCertificateRecordingServer apiServer = startApiServer()) {
-            ClientConfiguration config = configFor(apiServer.baseUri()).build();
+            ClientConfiguration config = configFor(apiServer.baseUri()).jwtAuthentication(jwtAuthConfig).build();
 
             call(config.httpClientForDocumentDownloads(), apiServer.baseUri());
 
@@ -94,7 +106,7 @@ class ClientConfigurationClientCertificateTest {
      * The test server's certificate is self-signed, so it is accepted as-is.
      */
     private ClientConfiguration.Builder configFor(URI apiBaseUri) {
-        return ClientConfiguration.builder(CLIENT_KEYSTORE, jwtAuthConfig)
+        return ClientConfiguration.builder(CLIENT_KEYSTORE)
                 .serviceEnvironment(STAGING.withServiceUrl(apiBaseUri).withTokenEndpoint(tokenEndpoint))
                 .defaultSender(new Sender("123456789"))
                 .serverCertificateTrustStrategy(
