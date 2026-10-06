@@ -11,7 +11,7 @@ import static java.util.Objects.requireNonNull;
  * See the <a href="https://signering-docs.readthedocs.io/en/latest/client-integration/create-client-configuration.html">docs</a>
  * for more information.
  *
- * @see no.digipost.signature.client.ClientConfiguration#builder(KeyStoreConfig, JwtAuthConfig)
+ * @see no.digipost.signature.client.ClientConfiguration.Builder#jwtAuthentication(JwtAuthConfig)
  */
 public final class JwtAuthConfig {
 
