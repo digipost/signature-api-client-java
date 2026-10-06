@@ -29,6 +29,7 @@ import static no.digipost.signature.client.ServiceEnvironment.STAGING;
 import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static uk.co.probablyfine.matchers.OptionalMatchers.contains;
 import static uk.co.probablyfine.matchers.OptionalMatchers.empty;
 
 /**
