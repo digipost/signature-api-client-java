@@ -128,7 +128,11 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
     }
 
     /**
-     * Build a new {@link ClientConfiguration}.
+     * Build a new {@link ClientConfiguration}. Authenticates to the API with the organization
+     * certificate by default. Enabling {@link Builder#jwtAuthentication(JwtAuthConfig) JWT authentication}
+     * is recommended for new and existing integrations.
+     *
+     * @param keystore the organization certificate
      */
     public static Builder builder(KeyStoreConfig keystore) {
         return new Builder(keystore);
@@ -215,20 +219,14 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         }
 
         /**
-         * Authenticate with Posten signering using an OAuth 2.0 <em>client credentials</em> grant
-         * over a mutually authenticated TLS connection, instead of relying on the organization
-         * certificate alone. Access tokens are acquired from the token endpoint given by the
-         * {@link ServiceEnvironment}, and sent as an {@code Authorization: Bearer} header on all
-         * requests to the API.
-         *
-         * <p>The organization certificate passed to {@link ClientConfiguration#builder(KeyStoreConfig)}
-         * is still required, and is used to authenticate against the token endpoint.
-         *
-         * <p>Access tokens are acquired as the {@link no.digipost.signature.client.security.BrokerId
-         * broker} of the given configuration, for the entire lifetime of the client. This is
-         * independent of which {@link Sender sender} a signature job is created on behalf of: a
-         * broker permitted to act on behalf of several organizations specifies that per job as
-         * before, and {@link #defaultSender(Sender) defaultSender(..)} remains optional.
+         * Authenticate to the API with an access token instead of the organization certificate.
+         * This is recommended for all integrations. See the
+         * <a href="https://signering-docs.readthedocs.io/en/latest/client-integration/create-client-configuration.html">docs</a>
+         * for how to set it up.
+         * <p>
+         * The organization certificate is still required, to acquire access tokens and sign
+         * document bundles. Tokens are cached per built configuration, so build it once and reuse it.
+         * The {@link Sender sender} of each signature job is unaffected by the broker id.
          *
          * @param jwtAuthConfig the client id and broker id to acquire access tokens with
          */
@@ -406,15 +404,8 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
 
             Configurer<HttpClientBuilder> apiConfig = commonConfig;
             if (jwtAuthConfig != null) {
-                // The certificate authenticates this client to the token endpoint only. Requests to the API
-                // authenticate with the access token, and must not present a client certificate. This applies
-                // to both API clients, as they share the same ssl configurer.
-
-                // Note that this configures the builder, not the ClientConfiguration being built: the ssl
-                // configurer is applied lazily, when the http clients are created. Any ClientConfiguration
-                // previously built by this builder will therefore also stop presenting the certificate. That is
-                // acceptable, as a builder is expected to be used to build one configuration, and enabling
-                // authentication for some clients but not others is not a meaningful thing to do.
+                // The API is called with the access token only. Note that this also affects
+                // configurations previously built by this builder, as the ssl configurer is shared.
                 sslConfigurer.withoutClientCertificate();
 
                 AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
@@ -424,9 +415,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
                         accessTokenResource()
                 );
 
-                // The token endpoint client is deliberately configured with commonConfig only, i.e. before the
-                // bearer token configurer is added below. It must not attempt to authenticate itself with a
-                // bearer token, as acquiring one is exactly what it is used for.
+                // The token client gets commonConfig only, as it must not send a bearer token itself
                 MutualTlsTokenProvider tokenProvider = MutualTlsTokenProvider.create(
                         accessTokenRequest, keyStoreConfig, commonConfig, clock);
                 apiConfig = commonConfig.andThen(new ApacheHttpClientBearerTokenConfigurer(tokenProvider));
