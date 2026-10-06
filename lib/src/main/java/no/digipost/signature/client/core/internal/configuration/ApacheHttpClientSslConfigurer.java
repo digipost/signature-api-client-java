@@ -37,12 +37,8 @@ public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClie
     }
 
     /**
-     * Connect without presenting the client certificate, i.e. use ordinary TLS rather than mutual
-     * TLS. Validation of the <em>server's</em> certificate is unaffected.
-     * <p>
-     * This is used when requests are authenticated with an access token instead of with the
-     * certificate. The certificate is still required, but for other purposes: acquiring the access
-     * token, and signing document bundles.
+     * Connect without presenting the client certificate, as requests are authenticated with an
+     * access token instead. Validation of the server's certificate is unaffected.
      *
      * @see no.digipost.signature.client.ClientConfiguration.Builder#jwtAuthentication(no.digipost.signature.client.security.JwtAuthConfig)
      */
