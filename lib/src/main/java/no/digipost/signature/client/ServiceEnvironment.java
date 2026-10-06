@@ -27,6 +27,11 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
             "Posten signering Difitest", URI.create("https://api.difitest.signering.posten.no/api"), Certificates.TEST.certificatePaths,
             URI.create("https://midp.difitest.digipost.no/oauth2/token"));
 
+    @Deprecated // Difiqa is not an environment used anymore
+    public static final ServiceEnvironment DIFIQA = new ServiceEnvironment(
+            "Posten signering Difiqa", URI.create("https://api.difiqa.signering.posten.no/api"), Certificates.TEST.certificatePaths,
+            null); // no token endpoint for this env
+
     public static final ServiceEnvironment STAGING = DIFITEST.withDescription("Posten signering Staging");
 
 

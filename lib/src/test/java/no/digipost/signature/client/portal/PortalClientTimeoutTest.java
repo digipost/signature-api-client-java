@@ -10,7 +10,6 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.exceptions.HttpIOException;
 import no.digipost.signature.jaxb.JaxbMarshaller;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -21,7 +20,6 @@ import java.util.stream.Stream;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.givenThat;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
@@ -31,7 +29,6 @@ import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static no.digipost.signature.client.ServiceEnvironment.STAGING;
 import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
-import static no.digipost.signature.client.TestKonfigurasjon.JWT_AUTH_CONFIG;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isA;
@@ -49,19 +46,10 @@ class PortalClientTimeoutTest {
     private final ClientConfiguration.Builder configBuilder;
 
     PortalClientTimeoutTest(WireMockRuntimeInfo wireMockInfo) {
-        this.unitTestEnv = STAGING
-                .withServiceUrl(URI.create(wireMockInfo.getHttpBaseUrl()))
-                .withTokenEndpoint(URI.create(wireMockInfo.getHttpBaseUrl() + "/token"));
-        this.configBuilder = ClientConfiguration.builder(CLIENT_KEYSTORE, JWT_AUTH_CONFIG)
+        this.unitTestEnv = STAGING.withServiceUrl(URI.create(wireMockInfo.getHttpBaseUrl()));
+        this.configBuilder = ClientConfiguration.builder(CLIENT_KEYSTORE)
                 .serviceEnvironment(unitTestEnv)
                 .defaultSender(new Sender("123456789"));
-    }
-
-    @BeforeEach
-    void stubTokenEndpoint() {
-        // Takes precedence over the stubs for any request in the tests
-        givenThat(post(urlPathMatching("/token")).atPriority(1)
-                .willReturn(okJson("{\"access_token\":\"a-token\",\"expires_in\":3600}")));
     }
 
     @Test
