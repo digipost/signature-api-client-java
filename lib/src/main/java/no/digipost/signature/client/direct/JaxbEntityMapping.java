@@ -73,7 +73,7 @@ final class JaxbEntityMapping {
                 nextPermittedPollTime);
     }
 
-    private static Predicate<XMLSignerSpecificUrl> forSigner(final String signer) {
+    private static Predicate<XMLSignerSpecificUrl> forSigner(String signer) {
         return url -> url.getSigner().equals(signer);
     }
 }

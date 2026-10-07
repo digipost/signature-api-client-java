@@ -45,7 +45,7 @@ public class Signature {
         return this.status == status;
     }
 
-    static Predicate<Signature> signatureFrom(final SignerIdentifier signer) {
+    static Predicate<Signature> signatureFrom(SignerIdentifier signer) {
         return signature -> signature.signer.isSameAs(signer);
     }
 

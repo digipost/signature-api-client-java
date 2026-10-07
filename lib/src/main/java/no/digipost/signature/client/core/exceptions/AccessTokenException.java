@@ -6,11 +6,11 @@ package no.digipost.signature.client.core.exceptions;
  */
 public class AccessTokenException extends SignatureException {
 
-    public AccessTokenException(final String message) {
-        super(message);
+    public AccessTokenException(String message) {
+        this(message, null);
     }
 
-    public AccessTokenException(final String message, final Throwable cause) {
+    public AccessTokenException(String message, Throwable cause) {
         super(message, cause);
     }
 }

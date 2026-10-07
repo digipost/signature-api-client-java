@@ -11,7 +11,7 @@ import java.util.zip.ZipOutputStream;
 
 public class CreateZip {
 
-    public byte[] zipIt(final List<ASiCEAttachable> files) {
+    public byte[] zipIt(List<ASiCEAttachable> files) {
         try (ByteArrayOutputStream archive = new ByteArrayOutputStream()) {
             try (ZipOutputStream zipOutputStream = new ZipOutputStream(archive)) {
                 for (ASiCEAttachable file : files) {
