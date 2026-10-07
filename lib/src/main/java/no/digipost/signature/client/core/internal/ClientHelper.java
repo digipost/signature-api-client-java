@@ -190,7 +190,7 @@ public class ClientHelper {
         return ZonedDateTime.parse(response.getHeader(NEXT_PERMITTED_POLL_TIME_HEADER).getValue(), ISO_DATE_TIME).toInstant();
     }
 
-    public void confirm(final Confirmable confirmable) {
+    public void confirm(Confirmable confirmable) {
         if (confirmable.getConfirmationReference() != null) {
             URI url = confirmable.getConfirmationReference().getConfirmationUrl();
             LOG.info(() -> "Sends confirmation for '" + confirmable + "' to URL " + url);
