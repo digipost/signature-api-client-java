@@ -36,7 +36,7 @@ public class KeyStoreConfig {
     public final String keystorePassword;
     public final String privatekeyPassword;
 
-    public KeyStoreConfig(final KeyStore keyStore, final String alias, final String keystorePassword, final String privatekeyPassword) {
+    public KeyStoreConfig(KeyStore keyStore, String alias, String keystorePassword, String privatekeyPassword) {
         this.keyStore = keyStore;
         this.alias = alias;
         this.keystorePassword = keystorePassword;
@@ -92,7 +92,7 @@ public class KeyStoreConfig {
      * certificate using {{@link #fromOrganizationCertificate(InputStream, String)}}
      */
     @Deprecated
-    public static KeyStoreConfig fromKeyStore(final InputStream javaKeyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
+    public static KeyStoreConfig fromKeyStore(InputStream javaKeyStore, String alias, String keyStorePassword, String privatekeyPassword) {
         return fromJavaKeyStore(javaKeyStore, alias, keyStorePassword, privatekeyPassword);
     }
 
@@ -105,7 +105,7 @@ public class KeyStoreConfig {
      * @param privatekeyPassword The password for the private key of the organization certificate within the key store.
      * @return The config, containing the certificate, the private key and the certificate chain.
      */
-    public static KeyStoreConfig fromJavaKeyStore(final InputStream javaKeyStore, final String alias, final String keyStorePassword, final String privatekeyPassword) {
+    public static KeyStoreConfig fromJavaKeyStore(InputStream javaKeyStore, String alias, String keyStorePassword, String privatekeyPassword) {
         KeyStore ks = KeyStoreType.JCEKS.loadKeyStore(javaKeyStore, keyStorePassword);
         return new KeyStoreConfig(ks, alias, keyStorePassword, privatekeyPassword);
 
@@ -118,7 +118,7 @@ public class KeyStoreConfig {
      * @param privatekeyPassword            The password for the private key of the organization certificate.
      * @return The config, containing the certificate, the private key and the certificate chain.
      */
-    public static KeyStoreConfig fromOrganizationCertificate(final InputStream organizationCertificateStream, final String privatekeyPassword) {
+    public static KeyStoreConfig fromOrganizationCertificate(InputStream organizationCertificateStream, String privatekeyPassword) {
         KeyStore ks = KeyStoreType.PKCS12.loadKeyStore(organizationCertificateStream, privatekeyPassword);
         Enumeration<String> aliases;
         try {

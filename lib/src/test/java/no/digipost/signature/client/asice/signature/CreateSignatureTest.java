@@ -107,7 +107,7 @@ class CreateSignatureTest {
         assertThat(uri, is("dokument+%282%29.pdf"));
     }
 
-    private void verify_signed_data_object_properties(final SignedDataObjectProperties signedDataObjectProperties) {
+    private void verify_signed_data_object_properties(SignedDataObjectProperties signedDataObjectProperties) {
         assertThat(signedDataObjectProperties.getDataObjectFormats(), hasSize(2)); // One per file
         DataObjectFormat dokumentDataObjectFormat = signedDataObjectProperties.getDataObjectFormats().get(0);
         assertThat(dokumentDataObjectFormat.getObjectReference(), is("#ID_0"));
@@ -118,7 +118,7 @@ class CreateSignatureTest {
         assertThat(manifestDataObjectFormat.getMimeType(), is("application/xml"));
     }
 
-    private void verify_signing_certificate(final SigningCertificate signingCertificate) {
+    private void verify_signing_certificate(SigningCertificate signingCertificate) {
         assertThat(signingCertificate.getCerts(), hasSize(1));
 
         DigestAlgAndValueType certDigest = signingCertificate.getCerts().get(0).getCertDigest();
@@ -130,7 +130,7 @@ class CreateSignatureTest {
         assertThat(issuerSerial.getX509SerialNumber(), is(new BigInteger("589725471")));
     }
 
-    private void verify_signed_info(final SignedInfo signedInfo) {
+    private void verify_signed_info(SignedInfo signedInfo) {
         assertThat(signedInfo.getCanonicalizationMethod().getAlgorithm(), is("http://www.w3.org/TR/2001/REC-xml-c14n-20010315"));
         assertThat(signedInfo.getSignatureMethod().getAlgorithm(), is("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"));
 
@@ -141,7 +141,7 @@ class CreateSignatureTest {
         verify_signed_properties_reference(references.get(2));
     }
 
-    private void verify_signed_properties_reference(final Reference signedPropertiesReference) {
+    private void verify_signed_properties_reference(Reference signedPropertiesReference) {
         assertThat(signedPropertiesReference.getURI(), is("#SignedProperties"));
         assertThat(signedPropertiesReference.getType(), is("http://uri.etsi.org/01903#SignedProperties"));
         assertThat(signedPropertiesReference.getDigestMethod().getAlgorithm(), is("http://www.w3.org/2001/04/xmlenc#sha256"));
@@ -149,7 +149,7 @@ class CreateSignatureTest {
         assertThat(signedPropertiesReference.getTransforms().getTransforms().get(0).getAlgorithm(), is("http://www.w3.org/TR/2001/REC-xml-c14n-20010315"));
     }
 
-    private void assert_dokument_reference(final Reference dokumentReference) {
+    private void assert_dokument_reference(Reference dokumentReference) {
         assertThat(dokumentReference.getURI(), is("dokument.pdf"));
         assertThat(dokumentReference.getDigestValue(), is(expectedDokumentHash));
         assertThat(dokumentReference.getDigestMethod().getAlgorithm(), is("http://www.w3.org/2001/04/xmlenc#sha256"));
