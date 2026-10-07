@@ -1,5 +1,6 @@
 package no.digipost.signature.client;
 
+import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -12,8 +13,7 @@ import static no.digipost.signature.client.ServiceEnvironment.PRODUCTION;
 import static no.digipost.signature.client.ServiceEnvironment.STAGING;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static uk.co.probablyfine.matchers.OptionalMatchers.contains;
-import static uk.co.probablyfine.matchers.OptionalMatchers.empty;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ServiceEnvironmentTest {
 
@@ -21,10 +21,16 @@ class ServiceEnvironmentTest {
 
     @Test
     void thePredefinedEnvironmentsKnowTheirTokenEndpoint() {
-        assertThat(PRODUCTION.tokenEndpoint(), contains(URI.create("https://midp.digipost.no/oauth2/token")));
-        assertThat(DIFITEST.tokenEndpoint(), contains(URI.create("https://midp.difitest.digipost.no/oauth2/token")));
+        assertThat(PRODUCTION.tokenEndpoint(), is(URI.create("https://midp.digipost.no/oauth2/token")));
+        assertThat(DIFITEST.tokenEndpoint(), is(URI.create("https://midp.difitest.digipost.no/oauth2/token")));
         // environment is deprecated, no tokenUrl for this env
-        assertThat(DIFIQA.tokenEndpoint(), empty());
+
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void difiQaIsDeprecatedAndDefunct() {
+        assertThrows(ConfigurationException.class, DIFIQA::tokenEndpoint);
     }
 
     @Test
@@ -44,18 +50,19 @@ class ServiceEnvironmentTest {
 
     @Test
     void aCustomEnvironmentHasNoTokenEndpointUntilGivenOne() {
+        @SuppressWarnings("deprecation")
         ServiceEnvironment custom = new ServiceEnvironment(
                 "Custom", URI.create("https://localhost:8443/api"), Arrays.asList("some/certificate.cer"));
 
-        assertThat(custom.tokenEndpoint(), empty());
-        assertThat(custom.withTokenEndpoint(CUSTOM_TOKEN_ENDPOINT).tokenEndpoint(), contains(CUSTOM_TOKEN_ENDPOINT));
+        assertThrows(ConfigurationException.class, custom::tokenEndpoint);
+        assertThat(custom.withTokenEndpoint(CUSTOM_TOKEN_ENDPOINT).tokenEndpoint(), is(CUSTOM_TOKEN_ENDPOINT));
     }
 
     @Test
     void theTokenEndpointOfAPredefinedEnvironmentCanBeOverridden() {
-        assertThat(DIFITEST.withTokenEndpoint(CUSTOM_TOKEN_ENDPOINT).tokenEndpoint(), contains(CUSTOM_TOKEN_ENDPOINT));
+        assertThat(DIFITEST.withTokenEndpoint(CUSTOM_TOKEN_ENDPOINT).tokenEndpoint(), is(CUSTOM_TOKEN_ENDPOINT));
         // without affecting the predefined environment itself
-        assertThat(DIFITEST.tokenEndpoint(), contains(URI.create("https://midp.difitest.digipost.no/oauth2/token")));
+        assertThat(DIFITEST.tokenEndpoint(), is(URI.create("https://midp.difitest.digipost.no/oauth2/token")));
     }
 
 }

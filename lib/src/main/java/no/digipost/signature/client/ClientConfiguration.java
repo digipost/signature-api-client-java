@@ -7,7 +7,6 @@ import no.digipost.signature.client.asice.DumpDocumentBundleToDisk;
 import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.WithSignatureServiceRootUrl;
-import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBearerTokenConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBuilderConfigurer;
@@ -409,7 +408,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
                 sslConfigurer.withoutClientCertificate();
 
                 AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
-                        resolveTokenEndpoint(),
+                        serviceEnvironment.tokenEndpoint(),
                         jwtAuthConfig.clientId,
                         accessTokenScope(),
                         accessTokenResource()
@@ -429,13 +428,6 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
                     documentBundleProcessors,
                     clock
             );
-        }
-
-        private URI resolveTokenEndpoint() {
-            return serviceEnvironment.tokenEndpoint().orElseThrow(() -> new ConfigurationException(
-                    "No token endpoint to acquire access tokens from. The " + serviceEnvironment + " does not have " +
-                    "one, which is expected for custom environments. Specify it with " +
-                    "serviceEnvironment(env -> env.withTokenEndpoint(..))."));
         }
 
         /**

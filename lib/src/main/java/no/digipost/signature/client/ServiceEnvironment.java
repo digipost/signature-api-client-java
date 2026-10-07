@@ -1,13 +1,13 @@
 package no.digipost.signature.client;
 
 import no.digipost.signature.client.core.WithSignatureServiceRootUrl;
+import no.digipost.signature.client.core.exceptions.ConfigurationException;
 import no.digipost.signature.client.core.internal.security.ProvidesCertificateResourcePaths;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
@@ -27,12 +27,16 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
             "Posten signering Difitest", URI.create("https://api.difitest.signering.posten.no/api"), Certificates.TEST.certificatePaths,
             URI.create("https://midp.difitest.digipost.no/oauth2/token"));
 
-    @Deprecated // Difiqa is not an environment used anymore
+    public static final ServiceEnvironment STAGING = DIFITEST.withDescription("Posten signering Staging");
+
+    /**
+     * @deprecated Difiqa is not operational anymore, use e.g. {@link #STAGING} instead
+     */
+    @Deprecated
     public static final ServiceEnvironment DIFIQA = new ServiceEnvironment(
             "Posten signering Difiqa", URI.create("https://api.difiqa.signering.posten.no/api"), Certificates.TEST.certificatePaths,
             null); // no token endpoint for this env
 
-    public static final ServiceEnvironment STAGING = DIFITEST.withDescription("Posten signering Staging");
 
 
     private final String description;
@@ -41,6 +45,12 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
     private final URI tokenEndpointUrl;
 
 
+    /**
+     * @deprecated This constructor produces an invalid ServiceEnvironment missing a {@link #tokenEndpoint()},
+     *             and will be removed in the future. Refer to one of the predefined constants (e.g.
+     *             {@link #STAGING}, {@link #PRODUCTION}), and {@link #withServiceUrl(URI) customize} them if needed.
+     */
+    @Deprecated
     public ServiceEnvironment(String description, URI serviceRootUrl, Collection<String> certificatePaths) {
         this(description, serviceRootUrl, certificatePaths, null);
     }
@@ -90,11 +100,14 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
         return serviceRootUrl;
     }
 
-    /**
-     * The endpoint to acquire access tokens from, empty if not set with {@link #withTokenEndpoint(URI)}.
-     */
-    public Optional<URI> tokenEndpoint() {
-        return Optional.ofNullable(tokenEndpointUrl);
+    public URI tokenEndpoint() {
+        if (tokenEndpointUrl == null) {
+            throw new ConfigurationException(
+                    "No token endpoint to acquire access tokens from. The " + this + " does not have " +
+                    "one, which is expected for custom environments. Specify it with " +
+                    "serviceEnvironment(env -> env.withTokenEndpoint(..)).");
+        }
+        return tokenEndpointUrl;
     }
 
     @Override
