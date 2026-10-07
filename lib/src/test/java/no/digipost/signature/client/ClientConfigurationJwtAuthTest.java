@@ -2,6 +2,7 @@ package no.digipost.signature.client;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import no.digipost.signature.api.xml.XMLPortalSignatureJobResponse;
 import no.digipost.signature.client.core.PAdESReference;
 import no.digipost.signature.client.core.Sender;
@@ -12,7 +13,6 @@ import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
 import no.digipost.signature.client.security.BrokerId;
 import no.digipost.signature.client.security.JwtAuthConfig;
-import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import no.digipost.signature.jaxb.JaxbMarshaller;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -26,12 +26,12 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.absent;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.givenThat;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -138,9 +138,11 @@ class ClientConfigurationJwtAuthTest {
 
     @Test
     void requiresTheServiceEnvironmentToKnowATokenEndpoint() {
+        @SuppressWarnings("deprecation")
+        ServiceEnvironment serviceEnvWithNoTokenEndpoint =
+            new ServiceEnvironment("Custom", unitTestEnv.signatureServiceRootUrl(), unitTestEnv.certificatePaths());
         ClientConfiguration.Builder customEnvironmentWithoutTokenEndpoint = ClientConfiguration.builder(CLIENT_KEYSTORE)
-                .serviceEnvironment(new ServiceEnvironment(
-                        "Custom", unitTestEnv.signatureServiceRootUrl(), unitTestEnv.certificatePaths()))
+                .serviceEnvironment(serviceEnvWithNoTokenEndpoint)
                 .defaultSender(new Sender("123456789"))
                 .jwtAuthentication(jwtAuthConfig);
 
