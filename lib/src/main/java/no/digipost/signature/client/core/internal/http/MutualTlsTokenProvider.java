@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import no.digipost.signature.client.core.exceptions.AccessTokenException;
 import no.digipost.signature.client.core.exceptions.HttpIOException;
@@ -26,6 +25,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.ssl.SSLContexts;
+import org.threeten.extra.AmountFormats;
 
 import javax.net.ssl.SSLContext;
 
@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableList;
+import static java.util.Locale.ENGLISH;
 import static java.util.Objects.requireNonNull;
 import static no.digipost.signature.client.core.internal.http.StatusCode.Family.SUCCESSFUL;
 import static org.apache.hc.core5.http.ContentType.APPLICATION_JSON;
@@ -47,16 +48,14 @@ import static org.apache.hc.core5.http.HttpHeaders.ACCEPT;
 
 /**
  * Acquires OAuth 2.0 access tokens with the <em>client credentials</em> grant over mTLS. Tokens are
- * cached, and replaced on the first {@link #getToken()} within {@value #REFRESH_MARGIN_SECONDS}
- * seconds of expiry.
+ * cached, and replaced on the first {@link #getToken()} within the duration of
+ * {@link #REFRESH_MARGIN} of expiry.
  */
 public class MutualTlsTokenProvider {
 
+    static final Duration REFRESH_MARGIN = Duration.ofSeconds(30);
+
     private static final Logger LOG = Logger.getLogger(MutualTlsTokenProvider.class.getName());
-
-    static final long REFRESH_MARGIN_SECONDS = 30;
-
-    private static final Duration REFRESH_MARGIN = Duration.ofSeconds(REFRESH_MARGIN_SECONDS);
 
     private static final String ACCESS_TOKEN_FIELD = "access_token";
     private static final String EXPIRES_IN_FIELD = "expires_in";
@@ -64,14 +63,11 @@ public class MutualTlsTokenProvider {
     /** Longer lifetimes are treated as malformed, which also prevents overflow in {@link Instant#plusSeconds(long)} */
     private static final long MAX_TOKEN_LIFETIME_SECONDS = Duration.ofDays(365).getSeconds();
 
-    private static final ObjectMapper JSON = JsonMapper.builder()
+    private static final JsonMapper JSON = JsonMapper.builder()
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT)
             .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS)
             .build();
-
-    /** Response bodies included in exception messages are truncated to this length */
-    private static final int MAX_REPORTED_ERROR_BODY_LENGTH = 512;
 
 
     private final URI tokenEndpointUri;
@@ -186,7 +182,7 @@ public class MutualTlsTokenProvider {
         Instant staleAt = expiry.minus(REFRESH_MARGIN);
         if (!staleAt.isAfter(Instant.now(clock))) {
             LOG.warning("The access token acquired from " + tokenEndpointUri + " expires at " + expiry + ", which is " +
-                    "already within the " + REFRESH_MARGIN_SECONDS + " second refresh margin. A new token will be " +
+                    "already within the " + AmountFormats.wordBased(REFRESH_MARGIN, ENGLISH) + " refresh margin. A new token will be " +
                     "acquired for every request, which may put considerable load on the token endpoint.");
         }
 
@@ -246,9 +242,7 @@ public class MutualTlsTokenProvider {
         if (body.isEmpty()) {
             return "(empty)";
         }
-        return body.length() <= MAX_REPORTED_ERROR_BODY_LENGTH
-            ? body
-            : body.substring(0, MAX_REPORTED_ERROR_BODY_LENGTH) + "... (truncated)";
+        return body.length() <= 512 ? body : body.substring(0, 512) + "... (truncated)";
     }
 
     private static List<NameValuePair> clientCredentialsParameters(AccessTokenRequest request) {
