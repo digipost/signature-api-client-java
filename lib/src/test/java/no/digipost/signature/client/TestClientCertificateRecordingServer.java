@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsExchange;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
+import org.apache.commons.io.IOUtils;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -31,6 +32,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * A local HTTPS server recording the client certificate presented to it, if any. It <em>wants</em>
  * rather than requires a client certificate, so a client presenting none still completes the handshake.
  */
+@SuppressWarnings("restriction")
 public final class TestClientCertificateRecordingServer implements AutoCloseable {
 
     private final HttpsServer server;
@@ -63,10 +65,7 @@ public final class TestClientCertificateRecordingServer implements AutoCloseable
 
             // The request body must be consumed before the response can be written.
             try (InputStream request = exchange.getRequestBody()) {
-                byte[] discarded = new byte[4096];
-                while (request.read(discarded) != -1) {
-                    // just draining
-                }
+                IOUtils.consume(request);
             }
 
             exchange.getResponseHeaders().set("Content-Type", contentType);
