@@ -1,10 +1,10 @@
 package no.digipost.signature.client.asice.archive;
 
 import no.digipost.signature.client.asice.ASiCEAttachable;
-import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -24,7 +24,7 @@ public class CreateZip {
             }
             return archive.toByteArray();
         } catch (IOException e) {
-            throw new RuntimeIOException(e);
+            throw new UncheckedIOException(e);
         }
 
     }
