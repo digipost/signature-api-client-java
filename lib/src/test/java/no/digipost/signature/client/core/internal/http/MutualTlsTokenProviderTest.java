@@ -4,16 +4,14 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import no.digipost.signature.client.core.exceptions.AccessTokenException;
 import no.digipost.signature.client.core.exceptions.HttpIOException;
+import no.digipost.time.ControllableClock;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -31,6 +29,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static java.time.Duration.ofSeconds;
+import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -45,7 +44,7 @@ class MutualTlsTokenProviderTest {
     private static final Instant NOW = Instant.parse("2026-08-17T12:00:00Z");
 
     private final AccessTokenRequest accessTokenRequest;
-    private final MutableClock clock = new MutableClock(NOW);
+    private final ControllableClock clock = ControllableClock.freezedAt(NOW, UTC);
     private final HttpClient httpClient = HttpClientBuilder.create().build();
 
     MutualTlsTokenProviderTest(WireMockRuntimeInfo wireMockInfo) {
@@ -89,7 +88,7 @@ class MutualTlsTokenProviderTest {
         MutualTlsTokenProvider tokenProvider = tokenProvider();
         assertThat(tokenProvider.getToken(), is("a-token"));
         assertThat(tokenProvider.getToken(), is("a-token"));
-        clock.advance(ofSeconds(3600 - MutualTlsTokenProvider.REFRESH_MARGIN_SECONDS - 1));
+        clock.timePasses(Duration.ofHours(1).minus(MutualTlsTokenProvider.REFRESH_MARGIN).minus(Duration.ofSeconds(1)));
         assertThat(tokenProvider.getToken(), is("a-token"));
 
         verify(1, postRequestedFor(urlEqualTo(TOKEN_PATH)));
@@ -103,11 +102,11 @@ class MutualTlsTokenProviderTest {
         assertThat(tokenProvider.getToken(), is("first-token"));
 
         // Still outside the refresh margin, so the first token is reused.
-        clock.advance(ofSeconds(3600 - MutualTlsTokenProvider.REFRESH_MARGIN_SECONDS - 1));
+        clock.timePasses(Duration.ofHours(1).minus(MutualTlsTokenProvider.REFRESH_MARGIN).minus(Duration.ofSeconds(1)));
         assertThat(tokenProvider.getToken(), is("first-token"));
 
         // Within the refresh margin, so a new token is acquired before the first expires
-        clock.advance(ofSeconds(2));
+        clock.timePasses(ofSeconds(2));
         assertThat(tokenProvider.getToken(), is("second-token"));
 
         verify(2, postRequestedFor(urlEqualTo(TOKEN_PATH)));
@@ -332,34 +331,6 @@ class MutualTlsTokenProviderTest {
                 .willSetStateTo("first token acquired"));
         givenThat(post(urlEqualTo(TOKEN_PATH)).inScenario(scenario).whenScenarioStateIs("first token acquired")
                 .willReturn(okJson("{\"access_token\":\"second-token\",\"expires_in\":3600}")));
-    }
-
-    private static final class MutableClock extends Clock {
-
-        private Instant now;
-
-        MutableClock(Instant now) {
-            this.now = now;
-        }
-
-        void advance(Duration amount) {
-            this.now = this.now.plus(amount);
-        }
-
-        @Override
-        public Instant instant() {
-            return now;
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return ZoneOffset.UTC;
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            return this;
-        }
     }
 
 }

@@ -25,5 +25,6 @@ This software includes third party software subject to the following licenses:
   Posten signering - API Schema under The Apache Software License, Version 2.0
   Posten signering - Java API Client Library under The Apache Software License, Version 2.0
   SLF4J API Module under MIT
+  ThreeTen-Extra under BSD 3-clause
 
 
