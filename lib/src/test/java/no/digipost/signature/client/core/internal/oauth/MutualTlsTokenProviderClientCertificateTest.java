@@ -1,4 +1,4 @@
-package no.digipost.signature.client.core.internal.http;
+package no.digipost.signature.client.core.internal.oauth;
 
 import no.digipost.signature.client.TestClientCertificateRecordingServer;
 import no.digipost.signature.client.core.exceptions.HttpIOException;
