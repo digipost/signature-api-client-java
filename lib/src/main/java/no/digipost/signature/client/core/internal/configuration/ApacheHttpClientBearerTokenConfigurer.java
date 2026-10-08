@@ -1,6 +1,6 @@
 package no.digipost.signature.client.core.internal.configuration;
 
-import no.digipost.signature.client.core.internal.http.MutualTlsTokenProvider;
+import no.digipost.signature.client.core.internal.oauth.MutualTlsTokenProvider;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.impl.ChainElement;
