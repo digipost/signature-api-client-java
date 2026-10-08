@@ -401,7 +401,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         public ClientConfiguration build() {
             Configurer<HttpClientBuilder> commonConfig = userAgentConfigurer.andThen(proxyConfigurer);
 
-            Configurer<HttpClientBuilder> apiConfig = commonConfig;
+            Configurer<HttpClientBuilder> apiConfig;
             if (jwtAuthConfig != null) {
                 // The API is called with the access token only. Note that this also affects
                 // configurations previously built by this builder, as the ssl configurer is shared.
@@ -417,7 +417,9 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
                 // The token client gets commonConfig only, as it must not send a bearer token itself
                 MutualTlsTokenProvider tokenProvider = MutualTlsTokenProvider.create(
                         accessTokenRequest, keyStoreConfig, commonConfig, clock);
-                apiConfig = commonConfig.andThen(new ApacheHttpClientBearerTokenConfigurer(tokenProvider));
+                apiConfig = commonConfig.andThen(new ApacheHttpClientBearerTokenConfigurer(tokenProvider::getToken, tokenProvider::invalidate));
+            } else {
+                apiConfig = commonConfig;
             }
 
             return new ClientConfiguration(defaultSender,
