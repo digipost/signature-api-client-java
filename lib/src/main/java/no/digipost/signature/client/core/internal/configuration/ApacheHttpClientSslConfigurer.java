@@ -11,6 +11,7 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.ssl.SSLContexts;
 
 import javax.net.ssl.SSLContext;
@@ -22,6 +23,7 @@ public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClie
     private final KeyStoreConfig keyStoreConfig;
     private ProvidesCertificateResourcePaths trustedCertificates;
     private CertificateChainValidation certificateChainValidation;
+    private boolean presentClientCertificate = true;
 
     public ApacheHttpClientSslConfigurer(KeyStoreConfig keyStoreConfig, ProvidesCertificateResourcePaths trustedCertificates) {
         this.keyStoreConfig = keyStoreConfig;
@@ -31,6 +33,17 @@ public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClie
 
     public ApacheHttpClientSslConfigurer trust(ProvidesCertificateResourcePaths certificates) {
         this.trustedCertificates = certificates;
+        return this;
+    }
+
+    /**
+     * Connect without presenting the client certificate, as requests are authenticated with an
+     * access token instead. Validation of the server's certificate is unaffected.
+     *
+     * @see no.digipost.signature.client.ClientConfiguration.Builder#jwtAuthentication(no.digipost.signature.client.security.JwtAuthConfig)
+     */
+    public ApacheHttpClientSslConfigurer withoutClientCertificate() {
+        this.presentClientCertificate = false;
         return this;
     }
 
@@ -48,10 +61,12 @@ public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClie
 
     private SSLContext sslContext() {
         try {
-            return SSLContexts.custom()
-                    .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), (aliases, socket) -> keyStoreConfig.alias)
-                    .loadTrustMaterial(TrustStoreLoader.build(trustedCertificates), new SignatureApiTrustStrategy(certificateChainValidation))
-                    .build();
+            SSLContextBuilder sslContext = SSLContexts.custom()
+                    .loadTrustMaterial(TrustStoreLoader.build(trustedCertificates), new SignatureApiTrustStrategy(certificateChainValidation));
+            if (presentClientCertificate) {
+                sslContext.loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), (aliases, socket) -> keyStoreConfig.alias);
+            }
+            return sslContext.build();
         } catch (Exception e) {
             if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
                 throw new KeyException(

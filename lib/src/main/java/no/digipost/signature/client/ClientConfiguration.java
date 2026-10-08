@@ -8,12 +8,16 @@ import no.digipost.signature.client.core.Sender;
 import no.digipost.signature.client.core.SignatureJob;
 import no.digipost.signature.client.core.WithSignatureServiceRootUrl;
 import no.digipost.signature.client.core.internal.MaySpecifySender;
+import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBearerTokenConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBuilderConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientProxyConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientSslConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientUserAgentConfigurer;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
+import no.digipost.signature.client.core.internal.oauth.AccessTokenRequest;
+import no.digipost.signature.client.core.internal.oauth.MutualTlsTokenProvider;
 import no.digipost.signature.client.security.CertificateChainValidation;
+import no.digipost.signature.client.security.JwtAuthConfig;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import no.digipost.signature.client.security.OrganizationNumberValidation;
 import org.apache.hc.client5.http.classic.HttpClient;
@@ -35,6 +39,7 @@ import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.util.Objects.requireNonNull;
 import static no.digipost.signature.client.core.internal.MaySpecifySender.NO_SPECIFIED_SENDER;
 
 public final class ClientConfiguration implements ASiCEConfiguration, WithSignatureServiceRootUrl, ArchiveClient.Configuration {
@@ -52,6 +57,10 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
     public static final String MANDATORY_USER_AGENT = "posten-signature-api-client-java/" + ClientMetadata.VERSION + " (" + JAVA_DESCRIPTION + ")";
 
 
+    /**
+     * Prefix of the access token {@code scope}, followed by the broker id. Must match mIdP exactly.
+     */
+    static final String ACCESS_TOKEN_SCOPE_PREFIX = "signering:";
 
     private final MaySpecifySender defaultSender;
     private final URI serviceRoot;
@@ -118,7 +127,11 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
     }
 
     /**
-     * Build a new {@link ClientConfiguration}.
+     * Build a new {@link ClientConfiguration}. Authenticates to the API with the organization
+     * certificate by default. Enabling {@link Builder#jwtAuthentication(JwtAuthConfig) JWT authentication}
+     * is recommended for new and existing integrations.
+     *
+     * @param keystore the organization certificate
      */
     public static Builder builder(KeyStoreConfig keystore) {
         return new Builder(keystore);
@@ -139,6 +152,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         private MaySpecifySender defaultSender = NO_SPECIFIED_SENDER;
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
         private Clock clock = Clock.systemDefaultZone();
+        private JwtAuthConfig jwtAuthConfig;
 
 
         private Builder(KeyStoreConfig keyStoreConfig) {
@@ -202,6 +216,25 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
             this.defaultSender = MaySpecifySender.specifiedAs(sender);
             return this;
         }
+
+        /**
+         * Authenticate to the API with an access token instead of the organization certificate.
+         * This is recommended for all integrations. See the
+         * <a href="https://signering-docs.readthedocs.io/en/latest/client-integration/create-client-configuration.html">docs</a>
+         * for how to set it up.
+         * <p>
+         * The organization certificate is still required, to acquire access tokens and sign
+         * document bundles. Tokens are cached per built configuration, so build it once and reuse it.
+         * The {@link Sender sender} of each signature job is unaffected by the broker id.
+         *
+         * @param jwtAuthConfig the client id and broker id to acquire access tokens with
+         */
+        public Builder jwtAuthentication(JwtAuthConfig jwtAuthConfig) {
+            requireNonNull(jwtAuthConfig, "jwtAuthConfig");
+            this.jwtAuthConfig = jwtAuthConfig;
+            return this;
+        }
+
 
         /**
          * Customize the {@link HttpHeaders#USER_AGENT User-Agent} header value to include the
@@ -354,7 +387,8 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
 
         /**
          * Allows for overriding which {@link Clock} is used to convert between Java and XML,
-         * may be useful for e.g. automated tests.
+         * may be useful for e.g. automated tests. The clock value is also passed on to
+         * access token expiry validation for jwt functionality.
          * <p>
          * Uses the {@link Clock#systemDefaultZone() system clock with default time zone}
          * if not specified.
@@ -367,13 +401,50 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         public ClientConfiguration build() {
             Configurer<HttpClientBuilder> commonConfig = userAgentConfigurer.andThen(proxyConfigurer);
 
-            return new ClientConfiguration(defaultSender, serviceEnvironment.signatureServiceRootUrl(), keyStoreConfig,
-                    commonConfig.andThen(defaultHttpClientConfigurer), commonConfig.andThen(httpClientForDocumentDownloadsConfigurer),
-                    documentBundleProcessors, clock);
+            Configurer<HttpClientBuilder> apiConfig;
+            if (jwtAuthConfig != null) {
+                // The API is called with the access token only. Note that this also affects
+                // configurations previously built by this builder, as the ssl configurer is shared.
+                sslConfigurer.withoutClientCertificate();
+
+                AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                        serviceEnvironment.tokenEndpoint(),
+                        jwtAuthConfig.clientId,
+                        accessTokenScope(),
+                        accessTokenResource()
+                );
+
+                // The token client gets commonConfig only, as it must not send a bearer token itself
+                MutualTlsTokenProvider tokenProvider = MutualTlsTokenProvider.create(
+                        accessTokenRequest, keyStoreConfig, commonConfig, clock);
+                apiConfig = commonConfig.andThen(new ApacheHttpClientBearerTokenConfigurer(tokenProvider::getToken, tokenProvider::invalidate));
+            } else {
+                apiConfig = commonConfig;
+            }
+
+            return new ClientConfiguration(defaultSender,
+                    serviceEnvironment.signatureServiceRootUrl(),
+                    keyStoreConfig,
+                    apiConfig.andThen(defaultHttpClientConfigurer),
+                    apiConfig.andThen(httpClientForDocumentDownloadsConfigurer),
+                    documentBundleProcessors,
+                    clock
+            );
+        }
+
+        /**
+         * The API root without path, e.g. {@code https://api.signering.posten.no}. Must match mIdP exactly.
+         */
+        private String accessTokenResource() {
+            URI serviceUri = serviceEnvironment.signatureServiceRootUrl();
+            return serviceUri.getScheme() + "://" + serviceUri.getAuthority();
+        }
+
+        private String accessTokenScope() {
+            return ACCESS_TOKEN_SCOPE_PREFIX + jwtAuthConfig.brokerId.value();
         }
 
     }
-
 
 
 

@@ -13,6 +13,9 @@ This software includes third party software subject to the following licenses:
   Apache HttpComponents Core HTTP/2 under Apache License, Version 2.0
   Digipost Certificate Validator under The Apache Software License, Version 2.0
   Digipost JAXB Resolver - com.sun.xml.bind under The Apache Software License, Version 2.0
+  Jackson-annotations under The Apache Software License, Version 2.0
+  Jackson-core under The Apache Software License, Version 2.0
+  jackson-databind under The Apache Software License, Version 2.0
   JavaBeans Activation Framework API jar under CDDL/GPLv2+CE
   JAXB Tools :: JAXB Basics :: Runtime under BSD-Style License
   jaxb-api under CDDL 1.1 or GPL2 w/ CPE
@@ -22,5 +25,6 @@ This software includes third party software subject to the following licenses:
   Posten signering - API Schema under The Apache Software License, Version 2.0
   Posten signering - Java API Client Library under The Apache Software License, Version 2.0
   SLF4J API Module under MIT
+  ThreeTen-Extra under BSD 3-clause
 
 
