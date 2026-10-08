@@ -138,19 +138,8 @@ public class MutualTlsTokenProvider {
         }
     }
 
-
-    /**
-     * Discard the given token if it is still the cached one, so that the next {@link #getToken()}
-     * acquires a new one. Used when the API rejects a token.
-     */
-    public void invalidate(String rejectedToken) {
-        synchronized (refreshLock) {
-            CachedAccessToken current = cachedToken;
-            if (current != null && current.token.equals(rejectedToken)) {
-                cachedToken = null;
-                LOG.fine(() -> "Discarded the cached access token from " + tokenEndpointUri + ", as it was rejected");
-            }
-        }
+    public void invalidate() {
+        cachedToken = null;
     }
 
     private CachedAccessToken acquireToken() {

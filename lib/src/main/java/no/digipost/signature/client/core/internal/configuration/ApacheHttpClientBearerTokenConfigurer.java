@@ -26,17 +26,12 @@ import static org.apache.hc.core5.http.HttpHeaders.AUTHORIZATION;
  */
 public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<HttpClientBuilder> {
 
-    /**
-     * The token sent with the request, to know which one to discard on a 401.
-     */
-    static final String APPLIED_ACCESS_TOKEN = "no.digipost.signature.client.applied-access-token";
-
     public interface BearerTokenProvider {
         String getBearerToken();
     }
 
     public interface TokenRefreshTrigger {
-        void triggerTokenRefresh(String rejectedToken);
+        void triggerTokenRefresh();
     }
 
     private static final String RECOVERY_EXEC_NAME = "bearer-token-recovery";
@@ -71,7 +66,6 @@ public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<H
         public void process(HttpRequest request, EntityDetails entityDetails, HttpContext context) {
             String accessToken = tokenProvider.getBearerToken();
             request.setHeader(AUTHORIZATION, "Bearer " + accessToken);
-            context.setAttribute(APPLIED_ACCESS_TOKEN, accessToken);
         }
     }
 
@@ -95,8 +89,8 @@ public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<H
                 return response;
             }
 
-            String appliedAccessToken = scope.clientContext.getAttribute(APPLIED_ACCESS_TOKEN, String.class);
-            tokenRefreshTrigger.triggerTokenRefresh(appliedAccessToken);
+            tokenRefreshTrigger.triggerTokenRefresh();
+            LOG.fine(() -> "Discarded the cached access token from " + request.getRequestUri() + ", as it was rejected");
 
             // The connection must be released before it can be used for the retry.
             EntityUtils.consume(response.getEntity());

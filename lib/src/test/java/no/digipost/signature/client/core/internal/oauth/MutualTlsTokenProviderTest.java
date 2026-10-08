@@ -148,34 +148,19 @@ class MutualTlsTokenProviderTest {
         MutualTlsTokenProvider tokenProvider = tokenProvider();
         assertThat(tokenProvider.getToken(), is("first-token"));
 
-        tokenProvider.invalidate("first-token");
+        tokenProvider.invalidate();
 
         assertThat(tokenProvider.getToken(), is("second-token"));
         verify(2, postRequestedFor(urlEqualTo(TOKEN_PATH)));
     }
 
-    /**
-     * Invalidating a token which has already been replaced must not discard the replacement.
-     */
-    @Test
-    void invalidatingATokenWhichIsNoLongerTheCachedOneKeepsTheCachedOne() {
-        stubTwoTokensInSequence();
-
-        MutualTlsTokenProvider tokenProvider = tokenProvider();
-        assertThat(tokenProvider.getToken(), is("first-token"));
-
-        tokenProvider.invalidate("a-token-acquired-before-this-one");
-
-        assertThat(tokenProvider.getToken(), is("first-token"));
-        verify(1, postRequestedFor(urlEqualTo(TOKEN_PATH)));
-    }
 
     @Test
     void invalidatingWhenNoTokenIsCachedIsHarmless() {
         stubTwoTokensInSequence();
 
         MutualTlsTokenProvider tokenProvider = tokenProvider();
-        tokenProvider.invalidate("a-token-which-was-never-acquired");
+        tokenProvider.invalidate();
 
         assertThat(tokenProvider.getToken(), is("first-token"));
         verify(1, postRequestedFor(urlEqualTo(TOKEN_PATH)));
