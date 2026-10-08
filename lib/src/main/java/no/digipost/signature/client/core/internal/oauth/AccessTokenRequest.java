@@ -1,4 +1,4 @@
-package no.digipost.signature.client.core.internal.http;
+package no.digipost.signature.client.core.internal.oauth;
 
 import java.net.URI;
 

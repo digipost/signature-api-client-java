@@ -1,4 +1,4 @@
-package no.digipost.signature.client.core.internal.http;
+package no.digipost.signature.client.core.internal.oauth;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,6 +11,7 @@ import no.digipost.signature.client.core.exceptions.HttpIOException;
 import no.digipost.signature.client.core.exceptions.KeyException;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBuilderConfigurer;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
+import no.digipost.signature.client.core.internal.http.StatusCode;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;

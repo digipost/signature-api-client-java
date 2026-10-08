@@ -14,8 +14,8 @@ import no.digipost.signature.client.core.internal.configuration.ApacheHttpClient
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientSslConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientUserAgentConfigurer;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
-import no.digipost.signature.client.core.internal.http.AccessTokenRequest;
-import no.digipost.signature.client.core.internal.http.MutualTlsTokenProvider;
+import no.digipost.signature.client.core.internal.oauth.AccessTokenRequest;
+import no.digipost.signature.client.core.internal.oauth.MutualTlsTokenProvider;
 import no.digipost.signature.client.security.CertificateChainValidation;
 import no.digipost.signature.client.security.JwtAuthConfig;
 import no.digipost.signature.client.security.KeyStoreConfig;
