@@ -1,6 +1,5 @@
 package no.digipost.signature.client.core.internal.configuration;
 
-import no.digipost.signature.client.core.internal.oauth.MutualTlsTokenProvider;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.impl.ChainElement;
@@ -32,12 +31,22 @@ public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<H
      */
     static final String APPLIED_ACCESS_TOKEN = "no.digipost.signature.client.applied-access-token";
 
+    public interface BearerTokenProvider {
+        String getBearerToken();
+    }
+
+    public interface TokenRefreshTrigger {
+        void triggerTokenRefresh(String rejectedToken);
+    }
+
     private static final String RECOVERY_EXEC_NAME = "bearer-token-recovery";
 
-    private final MutualTlsTokenProvider tokenProvider;
+    private final BearerTokenProvider tokenProvider;
+    private final TokenRefreshTrigger tokenRefreshTrigger;
 
-    public ApacheHttpClientBearerTokenConfigurer(MutualTlsTokenProvider tokenProvider) {
+    public ApacheHttpClientBearerTokenConfigurer(BearerTokenProvider tokenProvider, TokenRefreshTrigger tokenRefreshTrigger) {
         this.tokenProvider = tokenProvider;
+        this.tokenRefreshTrigger = tokenRefreshTrigger;
     }
 
     @Override
@@ -46,21 +55,21 @@ public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<H
                 .addRequestInterceptorLast(new RequestBearerTokenInterceptor(tokenProvider))
                 // Before PROTOCOL, so a retry runs the interceptor above again and gets a new token
                 .addExecInterceptorBefore(
-                        ChainElement.PROTOCOL.name(), RECOVERY_EXEC_NAME, new RejectedTokenRecoveryExec(tokenProvider));
+                        ChainElement.PROTOCOL.name(), RECOVERY_EXEC_NAME, new RejectedTokenRecoveryExec(tokenRefreshTrigger));
     }
 
 
     private static final class RequestBearerTokenInterceptor implements HttpRequestInterceptor {
 
-        private final MutualTlsTokenProvider tokenProvider;
+        private final BearerTokenProvider tokenProvider;
 
-        RequestBearerTokenInterceptor(MutualTlsTokenProvider tokenProvider) {
+        RequestBearerTokenInterceptor(BearerTokenProvider tokenProvider) {
             this.tokenProvider = tokenProvider;
         }
 
         @Override
         public void process(HttpRequest request, EntityDetails entityDetails, HttpContext context) {
-            String accessToken = tokenProvider.getToken();
+            String accessToken = tokenProvider.getBearerToken();
             request.setHeader(AUTHORIZATION, "Bearer " + accessToken);
             context.setAttribute(APPLIED_ACCESS_TOKEN, accessToken);
         }
@@ -71,10 +80,10 @@ public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<H
 
         private static final Logger LOG = Logger.getLogger(RejectedTokenRecoveryExec.class.getName());
 
-        private final MutualTlsTokenProvider tokenProvider;
+        private final TokenRefreshTrigger tokenRefreshTrigger;
 
-        RejectedTokenRecoveryExec(MutualTlsTokenProvider tokenProvider) {
-            this.tokenProvider = tokenProvider;
+        RejectedTokenRecoveryExec(TokenRefreshTrigger tokenRefreshTrigger) {
+            this.tokenRefreshTrigger = tokenRefreshTrigger;
         }
 
         @Override
@@ -87,7 +96,7 @@ public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<H
             }
 
             String appliedAccessToken = scope.clientContext.getAttribute(APPLIED_ACCESS_TOKEN, String.class);
-            tokenProvider.invalidate(appliedAccessToken);
+            tokenRefreshTrigger.triggerTokenRefresh(appliedAccessToken);
 
             // The connection must be released before it can be used for the retry.
             EntityUtils.consume(response.getEntity());
