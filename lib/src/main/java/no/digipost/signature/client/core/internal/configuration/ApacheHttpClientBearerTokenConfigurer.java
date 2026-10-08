@@ -86,10 +86,8 @@ public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<H
                 return response;
             }
 
-            Object appliedAccessToken = scope.clientContext.getAttribute(APPLIED_ACCESS_TOKEN);
-            if (appliedAccessToken instanceof String) {
-                tokenProvider.invalidate((String) appliedAccessToken);
-            }
+            String appliedAccessToken = scope.clientContext.getAttribute(APPLIED_ACCESS_TOKEN, String.class);
+            tokenProvider.invalidate(appliedAccessToken);
 
             // The connection must be released before it can be used for the retry.
             EntityUtils.consume(response.getEntity());
