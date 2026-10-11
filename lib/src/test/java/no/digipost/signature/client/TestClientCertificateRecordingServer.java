@@ -13,7 +13,6 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -27,6 +26,8 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static no.digipost.DiggExceptions.asUnchecked;
+import static no.digipost.DiggExceptions.getUnchecked;
 
 /**
  * A local HTTPS server recording the client certificate presented to it, if any. It <em>wants</em>
@@ -45,10 +46,9 @@ public final class TestClientCertificateRecordingServer implements AutoCloseable
     /**
      * Start a server on a free port on localhost, answering every request with the given response.
      */
-    public static TestClientCertificateRecordingServer start(SSLContext serverSslContext, String contentType, String body)
-            throws IOException {
+    public static TestClientCertificateRecordingServer start(SSLContext serverSslContext, String contentType, String body) {
 
-        HttpsServer server = HttpsServer.create(new InetSocketAddress("localhost", 0), 0);
+        HttpsServer server = getUnchecked(() -> HttpsServer.create(new InetSocketAddress("localhost", 0), 0));
         server.setHttpsConfigurator(new HttpsConfigurator(serverSslContext) {
             @Override
             public void configure(HttpsParameters params) {
@@ -81,13 +81,17 @@ public final class TestClientCertificateRecordingServer implements AutoCloseable
     /**
      * Presents the given key store, and accepts any client certificate.
      */
-    public static SSLContext sslContextPresenting(KeyStore keyStore, char[] keyPassword) throws GeneralSecurityException {
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, keyPassword);
+    public static SSLContext sslContextPresenting(KeyStore keyStore, char[] keyPassword) {
+        try {
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            keyManagerFactory.init(keyStore, keyPassword);
 
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(keyManagerFactory.getKeyManagers(), new TrustManager[]{acceptAnyClientCertificate()}, null);
-        return sslContext;
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(keyManagerFactory.getKeyManagers(), new TrustManager[]{acceptAnyClientCertificate()}, null);
+            return sslContext;
+        } catch (GeneralSecurityException e) {
+            throw asUnchecked(e);
+        }
     }
 
     public URI baseUri() {

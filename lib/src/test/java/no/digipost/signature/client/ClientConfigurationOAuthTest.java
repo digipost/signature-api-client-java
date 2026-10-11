@@ -11,8 +11,8 @@ import no.digipost.signature.client.portal.PortalClient;
 import no.digipost.signature.client.portal.PortalDocument;
 import no.digipost.signature.client.portal.PortalJob;
 import no.digipost.signature.client.portal.PortalSigner;
-import no.digipost.signature.client.security.BrokerId;
-import no.digipost.signature.client.security.JwtAuthConfig;
+import no.digipost.signature.client.security.oauth.ClientId;
+import no.digipost.signature.client.security.oauth.Scope;
 import no.digipost.signature.jaxb.JaxbMarshaller;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.co.probablyfine.matchers.Java8Matchers.where;
 
 @WireMockTest
-class ClientConfigurationJwtAuthTest {
+class ClientConfigurationOAuthTest {
 
     private static final JaxbMarshaller responseMarshaller = JaxbMarshaller.ForResponsesOfAllApis.singleton();
 
@@ -63,17 +63,18 @@ class ClientConfigurationJwtAuthTest {
 
     private static final String JOBS_PATH = ".*/portal/signature-jobs";
 
+    private static final ClientId OAUTH_CLIENT_ID = new ClientId("my-client-id");
+    private static final Scope OAUTH_SCOPE = Scope.fromAccountId(555444);
+
     private final ServiceEnvironment unitTestEnv;
-    private final JwtAuthConfig jwtAuthConfig;
     private final ClientConfiguration.Builder configBuilder;
     private final URI wireMockBaseUri;
 
-    ClientConfigurationJwtAuthTest(WireMockRuntimeInfo wireMockInfo) {
+    ClientConfigurationOAuthTest(WireMockRuntimeInfo wireMockInfo) {
         this.wireMockBaseUri = URI.create(wireMockInfo.getHttpBaseUrl());
         this.unitTestEnv = STAGING
                 .withServiceUrl(URI.create(wireMockInfo.getHttpBaseUrl()))
                 .withTokenEndpoint(URI.create(wireMockInfo.getHttpBaseUrl() + TOKEN_PATH));
-        this.jwtAuthConfig = JwtAuthConfig.forClient("my-client-id", BrokerId.of("555444"));
         this.configBuilder = ClientConfiguration.builder(CLIENT_KEYSTORE)
                 .serviceEnvironment(unitTestEnv)
                 .defaultSender(new Sender("123456789"));
@@ -85,7 +86,7 @@ class ClientConfigurationJwtAuthTest {
         stubTokenEndpoint("a-token");
         stubCreateJob();
 
-        new PortalClient(configBuilder.jwtAuthentication(jwtAuthConfig).build()).create(aPortalJob());
+        new PortalClient(configBuilder.useOAuth(OAUTH_CLIENT_ID, OAUTH_SCOPE).build()).create(aPortalJob());
 
         verify(postRequestedFor(urlEqualTo(TOKEN_PATH))
                 .withRequestBody(containing("scope=signering%3A555444")));
@@ -96,7 +97,7 @@ class ClientConfigurationJwtAuthTest {
         stubTokenEndpoint("a-token");
         stubCreateJob();
 
-        PortalClient client = new PortalClient(configBuilder.jwtAuthentication(jwtAuthConfig).build());
+        PortalClient client = new PortalClient(configBuilder.useOAuth(OAUTH_CLIENT_ID, OAUTH_SCOPE).build());
         client.create(aPortalJobFor(new Sender("999888777")));
 
         verify(postRequestedFor(urlEqualTo(TOKEN_PATH))
@@ -111,29 +112,13 @@ class ClientConfigurationJwtAuthTest {
 
         ClientConfiguration withoutDefaultSender = ClientConfiguration.builder(CLIENT_KEYSTORE)
                 .serviceEnvironment(unitTestEnv)
-                .jwtAuthentication(jwtAuthConfig)
+                .useOAuth(OAUTH_CLIENT_ID, OAUTH_SCOPE)
                 .build();
 
         new PortalClient(withoutDefaultSender).create(aPortalJobFor(new Sender("999888777")));
 
         verify(postRequestedFor(urlEqualTo(TOKEN_PATH))
                 .withRequestBody(containing("scope=signering%3A555444")));
-    }
-
-    /**
-     * The service root has an {@code /api} path like the real environments, which the resource must not include.
-     */
-    @Test
-    void requestsAnAccessTokenForTheApiOfTheServiceEnvironmentWithoutItsPath() {
-        stubTokenEndpoint("a-token");
-        stubCreateJob();
-
-        ServiceEnvironment apiWithPath = unitTestEnv.withServiceUrl(URI.create(wireMockBaseUri + "/api"));
-
-        new PortalClient(configBuilder.serviceEnvironment(apiWithPath).jwtAuthentication(jwtAuthConfig).build())
-                .create(aPortalJob());
-
-        assertThat(tokenRequestParameter("resource"), is(wireMockBaseUri.toString()));
     }
 
     @Test
@@ -144,11 +129,11 @@ class ClientConfigurationJwtAuthTest {
         ClientConfiguration.Builder customEnvironmentWithoutTokenEndpoint = ClientConfiguration.builder(CLIENT_KEYSTORE)
                 .serviceEnvironment(serviceEnvWithNoTokenEndpoint)
                 .defaultSender(new Sender("123456789"))
-                .jwtAuthentication(jwtAuthConfig);
+                .useOAuth(OAUTH_CLIENT_ID, OAUTH_SCOPE);
 
         ConfigurationException thrown = assertThrows(
                 ConfigurationException.class, customEnvironmentWithoutTokenEndpoint::build);
-        assertThat(thrown, where(Throwable::getMessage, containsString("withTokenEndpoint")));
+        assertThat(thrown, where(Throwable::getMessage, containsString("does not specify an OAuth configuration")));
     }
 
     @Test
@@ -156,7 +141,7 @@ class ClientConfigurationJwtAuthTest {
         stubTokenEndpoint("a-token");
         stubCreateJob();
 
-        new PortalClient(configBuilder.jwtAuthentication(jwtAuthConfig).build()).create(aPortalJob());
+        new PortalClient(configBuilder.useOAuth(OAUTH_CLIENT_ID, OAUTH_SCOPE).build()).create(aPortalJob());
 
         verify(postRequestedFor(urlPathMatching(JOBS_PATH))
                 .withHeader("Authorization", equalTo("Bearer a-token")));
@@ -167,7 +152,7 @@ class ClientConfigurationJwtAuthTest {
         stubTokenEndpoint("a-token");
         givenThat(get(urlPathMatching(".*/pades$")).willReturn(ok("a PDF")));
 
-        PortalClient client = new PortalClient(configBuilder.jwtAuthentication(jwtAuthConfig).build());
+        PortalClient client = new PortalClient(configBuilder.useOAuth(OAUTH_CLIENT_ID, OAUTH_SCOPE).build());
         PAdESReference padesReference = PAdESReference.of(URI.create(unitTestEnv.signatureServiceRootUrl() + "/pades"));
 
         try (InputStream pades = client.getPAdES(padesReference)) {
@@ -183,7 +168,7 @@ class ClientConfigurationJwtAuthTest {
         stubTokenEndpoint("a-token");
         stubCreateJob();
 
-        PortalClient client = new PortalClient(configBuilder.jwtAuthentication(jwtAuthConfig).build());
+        PortalClient client = new PortalClient(configBuilder.useOAuth(OAUTH_CLIENT_ID, OAUTH_SCOPE).build());
         client.create(aPortalJob());
         client.create(aPortalJob());
 
@@ -213,7 +198,7 @@ class ClientConfigurationJwtAuthTest {
                 .serviceEnvironment(unitTestEnv.withTokenEndpoint(URI.create("http://localhost:1" + TOKEN_PATH)))
                 .defaultSender(new Sender("123456789"))
                 .proxyHost(wireMockBaseUri)
-                .jwtAuthentication(jwtAuthConfig)
+                .useOAuth(OAUTH_CLIENT_ID, OAUTH_SCOPE)
                 .build();
 
         new PortalClient(proxiedConfig).create(aPortalJob());
@@ -226,7 +211,7 @@ class ClientConfigurationJwtAuthTest {
         stubTokenEndpoint("a-token");
         stubCreateJob();
 
-        new PortalClient(configBuilder.includeInUserAgent("My Corporation").jwtAuthentication(jwtAuthConfig).build())
+        new PortalClient(configBuilder.includeInUserAgent("My Corporation").useOAuth(OAUTH_CLIENT_ID, OAUTH_SCOPE).build())
                 .create(aPortalJob());
 
         verify(postRequestedFor(urlEqualTo(TOKEN_PATH))

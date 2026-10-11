@@ -40,7 +40,7 @@ public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClie
      * Connect without presenting the client certificate, as requests are authenticated with an
      * access token instead. Validation of the server's certificate is unaffected.
      *
-     * @see no.digipost.signature.client.ClientConfiguration.Builder#jwtAuthentication(no.digipost.signature.client.security.JwtAuthConfig)
+     * @see no.digipost.signature.client.ClientConfiguration.Builder#useOAuth(java.util.function.Function)
      */
     public ApacheHttpClientSslConfigurer withoutClientCertificate() {
         this.presentClientCertificate = false;

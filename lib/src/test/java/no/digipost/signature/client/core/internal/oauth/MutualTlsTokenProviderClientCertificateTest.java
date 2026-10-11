@@ -3,16 +3,22 @@ package no.digipost.signature.client.core.internal.oauth;
 import no.digipost.signature.client.TestClientCertificateRecordingServer;
 import no.digipost.signature.client.core.exceptions.HttpIOException;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
+import no.digipost.signature.client.security.oauth.ClientId;
+import no.digipost.signature.client.security.oauth.OAuthConfiguration;
+import no.digipost.signature.client.security.oauth.Resource;
+import no.digipost.signature.client.security.oauth.Scope;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javax.net.ssl.SSLContext;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.time.Clock;
@@ -20,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static no.digipost.DiggExceptions.asUnchecked;
 import static no.digipost.signature.client.TestKonfigurasjon.CLIENT_KEYSTORE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -51,7 +58,7 @@ class MutualTlsTokenProviderClientCertificateTest {
 
 
     @Test
-    void presentsTheClientCertificateToTheTokenEndpoint(@TempDir Path tempDirectory) throws Exception {
+    void presentsTheClientCertificateToTheTokenEndpoint(@TempDir Path tempDirectory) {
         KeyStore serverKeyStore = serverKeyStore();
 
         try (TestClientCertificateRecordingServer tokenEndpoint = startTokenEndpoint(serverKeyStore)) {
@@ -59,7 +66,7 @@ class MutualTlsTokenProviderClientCertificateTest {
 
             MutualTlsTokenProvider tokenProvider = withDefaultTrustStore(trustStore,
                     () -> MutualTlsTokenProvider.create(
-                            tokenRequestTo(tokenEndpoint.baseUri()), CLIENT_KEYSTORE,
+                            oAuthConfiguration(tokenEndpoint.baseUri()), CLIENT_KEYSTORE,
                             Configurer.notConfigured(), Clock.systemUTC()));
 
             assertThat(tokenProvider.getToken(), is("a-token"));
@@ -74,12 +81,12 @@ class MutualTlsTokenProviderClientCertificateTest {
      * The token endpoint is not covered by the API's trust configuration.
      */
     @Test
-    void refusesATokenEndpointWhoseCertificateTheJvmDoesNotTrust() throws Exception {
+    void refusesATokenEndpointWhoseCertificateTheJvmDoesNotTrust() {
         try (TestClientCertificateRecordingServer tokenEndpoint = startTokenEndpoint(serverKeyStore())) {
 
             // No trust store override, so the test server's certificate is unknown
             MutualTlsTokenProvider tokenProvider = MutualTlsTokenProvider.create(
-                    tokenRequestTo(tokenEndpoint.baseUri()), CLIENT_KEYSTORE,
+                    oAuthConfiguration(tokenEndpoint.baseUri()), CLIENT_KEYSTORE,
                     Configurer.notConfigured(), Clock.systemUTC());
 
             assertThrows(HttpIOException.class, tokenProvider::getToken);
@@ -88,35 +95,38 @@ class MutualTlsTokenProviderClientCertificateTest {
     }
 
 
-    private static TestClientCertificateRecordingServer startTokenEndpoint(KeyStore serverKeyStore) throws Exception {
+    private static TestClientCertificateRecordingServer startTokenEndpoint(KeyStore serverKeyStore) {
         SSLContext serverSslContext = TestClientCertificateRecordingServer.sslContextPresenting(serverKeyStore, SERVER_PASSWORD);
         return TestClientCertificateRecordingServer.start(serverSslContext, "application/json", TOKEN_RESPONSE);
     }
 
-    private static AccessTokenRequest tokenRequestTo(URI tokenEndpointBaseUri) {
-        return new AccessTokenRequest(
+    private static OAuthConfiguration oAuthConfiguration(URI tokenEndpointBaseUri) {
+        return new OAuthConfiguration(
                 URI.create(tokenEndpointBaseUri + "/token"),
-                "my-client-id",
-                "signering:555444",
-                "https://api.example.com");
+                new Resource("https://api.example.com"),
+                new ClientId("my-client-id"),
+                Scope.fromAccountId(555444));
     }
 
-    private static KeyStore serverKeyStore() throws Exception {
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+    private static KeyStore serverKeyStore() {
         try (InputStream pkcs12 = MutualTlsTokenProviderClientCertificateTest.class.getResourceAsStream(SERVER_KEYSTORE_RESOURCE)) {
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(pkcs12, SERVER_PASSWORD);
+            return keyStore;
+        } catch (IOException | GeneralSecurityException e) {
+            throw asUnchecked(e);
         }
-        return keyStore;
     }
 
-    private static Path trustStoreContaining(KeyStore serverKeyStore, Path directory) throws Exception {
-        KeyStore trustStore = KeyStore.getInstance("JKS");
-        trustStore.load(null, null);
-        trustStore.setCertificateEntry("token-endpoint", serverKeyStore.getCertificate(SERVER_ALIAS));
-
+    private static Path trustStoreContaining(KeyStore serverKeyStore, Path directory) {
         Path trustStoreFile = directory.resolve("token-endpoint-truststore.jks");
         try (OutputStream out = Files.newOutputStream(trustStoreFile)) {
+            KeyStore trustStore = KeyStore.getInstance("JKS");
+            trustStore.load(null, null);
+            trustStore.setCertificateEntry("token-endpoint", serverKeyStore.getCertificate(SERVER_ALIAS));
             trustStore.store(out, SERVER_PASSWORD);
+        } catch (IOException | GeneralSecurityException e) {
+            throw asUnchecked(e);
         }
         return trustStoreFile;
     }

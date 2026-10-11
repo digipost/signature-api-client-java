@@ -2,8 +2,12 @@ package no.digipost.signature.client.core.internal.oauth;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import no.digipost.signature.client.ServiceEnvironment;
 import no.digipost.signature.client.core.exceptions.AccessTokenException;
 import no.digipost.signature.client.core.exceptions.HttpIOException;
+import no.digipost.signature.client.security.oauth.ClientId;
+import no.digipost.signature.client.security.oauth.OAuthConfiguration;
+import no.digipost.signature.client.security.oauth.Scope;
 import no.digipost.time.ControllableClock;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -30,6 +34,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static java.time.Duration.ofSeconds;
 import static java.time.ZoneOffset.UTC;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -43,20 +48,20 @@ class MutualTlsTokenProviderTest {
     private static final String TOKEN_PATH = "/token";
     private static final Instant NOW = Instant.parse("2026-08-17T12:00:00Z");
 
-    private final AccessTokenRequest accessTokenRequest;
+    private final OAuthConfiguration oAuthConfiguration;
     private final ControllableClock clock = ControllableClock.freezedAt(NOW, UTC);
     private final HttpClient httpClient = HttpClientBuilder.create().build();
 
     MutualTlsTokenProviderTest(WireMockRuntimeInfo wireMockInfo) {
-        this.accessTokenRequest = new AccessTokenRequest(
+        this.oAuthConfiguration = new OAuthConfiguration(
                 URI.create(wireMockInfo.getHttpBaseUrl() + TOKEN_PATH),
-                "my-client-id",
-                "signering:555444",
-                "https://api.signering.posten.no/api");
+                ServiceEnvironment.OAuthDefaults.PRODUCTION.resource(),
+                new ClientId("my-client-id"),
+                Scope.fromAccountId(555444));
     }
 
     private MutualTlsTokenProvider tokenProvider() {
-        return new MutualTlsTokenProvider(accessTokenRequest, httpClient, clock);
+        return new MutualTlsTokenProvider(oAuthConfiguration, httpClient, clock);
     }
 
 
@@ -78,7 +83,7 @@ class MutualTlsTokenProviderTest {
                 .withRequestBody(containing("grant_type=client_credentials"))
                 .withRequestBody(containing("client_id=my-client-id"))
                 .withRequestBody(containing("scope=signering%3A555444"))
-                .withRequestBody(containing("resource=https%3A%2F%2Fapi.signering.posten.no%2Fapi")));
+                .withRequestBody(containing("resource=https%3A%2F%2Fapi.signering.posten.no")));
     }
 
     @Test
@@ -301,8 +306,7 @@ class MutualTlsTokenProviderTest {
 
     @Test
     void aTokenEndpointWhichCannotBeReachedIsReportedAsAnIoProblem() {
-        AccessTokenRequest unreachable = new AccessTokenRequest(
-                URI.create("http://localhost:1/token"), "my-client-id", "a-scope", "https://api.example.com");
+        OAuthConfiguration unreachable = new OAuthConfiguration(URI.create("http://localhost:1/token"), emptyList());
 
         assertThrows(HttpIOException.class,
                 () -> new MutualTlsTokenProvider(unreachable, httpClient, clock).getToken());
