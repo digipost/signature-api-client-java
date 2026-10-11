@@ -13,6 +13,7 @@ import no.digipost.signature.client.core.internal.configuration.ApacheHttpClient
 import no.digipost.signature.client.core.internal.configuration.Configurer;
 import no.digipost.signature.client.core.internal.http.StatusCode;
 import no.digipost.signature.client.security.KeyStoreConfig;
+import no.digipost.signature.client.security.oauth.OAuthConfiguration;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -35,14 +36,13 @@ import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.unmodifiableList;
 import static java.util.Locale.ENGLISH;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 import static no.digipost.signature.client.core.internal.http.StatusCode.Family.SUCCESSFUL;
 import static org.apache.hc.core5.http.ContentType.APPLICATION_JSON;
 import static org.apache.hc.core5.http.HttpHeaders.ACCEPT;
@@ -58,9 +58,6 @@ public class MutualTlsTokenProvider {
 
     private static final Logger LOG = Logger.getLogger(MutualTlsTokenProvider.class.getName());
 
-    private static final String ACCESS_TOKEN_FIELD = "access_token";
-    private static final String EXPIRES_IN_FIELD = "expires_in";
-
     /** Longer lifetimes are treated as malformed, which also prevents overflow in {@link Instant#plusSeconds(long)} */
     private static final long MAX_TOKEN_LIFETIME_SECONDS = Duration.ofDays(365).getSeconds();
 
@@ -71,7 +68,7 @@ public class MutualTlsTokenProvider {
             .build();
 
 
-    private final URI tokenEndpointUri;
+    private final URI tokenEndpointUrl;
     private final List<NameValuePair> tokenRequestParameters;
     private final HttpClient tokenClient;
     private final Clock clock;
@@ -88,7 +85,7 @@ public class MutualTlsTokenProvider {
      * @param commonHttpClientConfiguration shared with the API clients, e.g. User-Agent and proxy
      */
     public static MutualTlsTokenProvider create(
-            AccessTokenRequest accessTokenRequest,
+            OAuthConfiguration oAuthConfiguration,
             KeyStoreConfig keyStoreConfig,
             Configurer<HttpClientBuilder> commonHttpClientConfiguration,
             Clock clock
@@ -104,17 +101,21 @@ public class MutualTlsTokenProvider {
         HttpClientBuilder tokenClientBuilder = HttpClientBuilder.create();
         commonHttpClientConfiguration.andThen(tokenClientConfiguration).applyTo(tokenClientBuilder);
 
-        return new MutualTlsTokenProvider(accessTokenRequest, tokenClientBuilder.build(), clock);
+        return new MutualTlsTokenProvider(oAuthConfiguration, tokenClientBuilder.build(), clock);
     }
 
     /**
-     * @param tokenClient must present the client certificate, cf. {@link #create(AccessTokenRequest, KeyStoreConfig, Configurer, Clock)}
+     * @param tokenClient the HTTP client is required to present the client certificate
+     *
+     * @see #create(OAuthConfiguration, KeyStoreConfig, Configurer, Clock)
      */
-    public MutualTlsTokenProvider(AccessTokenRequest accessTokenRequest, HttpClient tokenClient, Clock clock) {
-        this.tokenEndpointUri = requireNonNull(accessTokenRequest, "access token request").tokenEndpoint;
+    public MutualTlsTokenProvider(OAuthConfiguration tokenRequestConfiguration, HttpClient tokenClient, Clock clock) {
+        this.tokenEndpointUrl = tokenRequestConfiguration.tokenEndpoint();
         this.tokenClient = requireNonNull(tokenClient, "token endpoint HTTP client");
         this.clock = requireNonNull(clock, "clock");
-        this.tokenRequestParameters = clientCredentialsParameters(accessTokenRequest);
+        this.tokenRequestParameters = tokenRequestConfiguration.requestParameters().stream()
+                .map(requestParam -> requestParam.to(BasicNameValuePair::new))
+                .collect(toList());
     }
 
 
@@ -144,7 +145,7 @@ public class MutualTlsTokenProvider {
 
     private CachedAccessToken acquireToken() {
         ClassicHttpRequest request = ClassicRequestBuilder
-                .post(tokenEndpointUri)
+                .post(tokenEndpointUrl)
                 .addHeader(ACCEPT, APPLICATION_JSON.getMimeType())
                 .setEntity(new UrlEncodedFormEntity(tokenRequestParameters, UTF_8))
                 .build();
@@ -152,7 +153,7 @@ public class MutualTlsTokenProvider {
         try {
             return tokenClient.execute(request, this::handleTokenResponse);
         } catch (IOException e) {
-            throw new HttpIOException(request, "Unable to acquire an access token from " + tokenEndpointUri, e);
+            throw new HttpIOException(request, "Unable to acquire an access token from " + tokenEndpointUrl, e);
         }
     }
 
@@ -162,7 +163,7 @@ public class MutualTlsTokenProvider {
         StatusCode status = StatusCode.from(response.getCode());
         if (!status.is(SUCCESSFUL)) {
             throw new AccessTokenException(
-                    "Got " + status + " from the token endpoint " + tokenEndpointUri +
+                    "Got " + status + " from the token endpoint " + tokenEndpointUrl +
                     ", expected a successful response. The response body was: " + truncate(body));
         }
 
@@ -171,12 +172,12 @@ public class MutualTlsTokenProvider {
         Instant expiry = Instant.now(clock).plusSeconds(tokenResponse.expiresInSeconds);
         Instant staleAt = expiry.minus(REFRESH_MARGIN);
         if (!staleAt.isAfter(Instant.now(clock))) {
-            LOG.warning("The access token acquired from " + tokenEndpointUri + " expires at " + expiry + ", which is " +
+            LOG.warning("The access token acquired from " + tokenEndpointUrl + " expires at " + expiry + ", which is " +
                     "already within the " + AmountFormats.wordBased(REFRESH_MARGIN, ENGLISH) + " refresh margin. A new token will be " +
                     "acquired for every request, which may put considerable load on the token endpoint.");
         }
 
-        LOG.fine(() -> "Acquired a new access token from " + tokenEndpointUri + ", expiring at " + expiry);
+        LOG.fine(() -> "Acquired a new access token from " + tokenEndpointUrl + ", expiring at " + expiry);
         return new CachedAccessToken(tokenResponse.accessToken, staleAt);
     }
 
@@ -187,12 +188,12 @@ public class MutualTlsTokenProvider {
             response = JSON.readValue(responseBody, TokenResponse.class);
         } catch (JsonProcessingException e) {
             throw new AccessTokenException(
-                    "Could not parse the response from the token endpoint " + tokenEndpointUri + " as JSON, because " +
+                    "Could not parse the response from the token endpoint " + tokenEndpointUrl + " as JSON, because " +
                     e.getClass().getSimpleName() + ": '" + e.getOriginalMessage() + "'", e);
         }
         if (response == null) {
             throw new AccessTokenException(
-                    "Expected the response from the token endpoint " + tokenEndpointUri + " to be a JSON object, " +
+                    "Expected the response from the token endpoint " + tokenEndpointUrl + " to be a JSON object, " +
                     "but it was: " + truncate(responseBody));
         }
 
@@ -204,20 +205,20 @@ public class MutualTlsTokenProvider {
     private void requireAccessToken(String accessToken) {
         if (accessToken == null || accessToken.isEmpty()) {
             throw new AccessTokenException(
-                    "The response from the token endpoint " + tokenEndpointUri + " did not contain a " +
-                    "non-null and non-empty '" + ACCESS_TOKEN_FIELD + "' string field.");
+                    "The response from the token endpoint " + tokenEndpointUrl + " did not contain a " +
+                    "non-null and non-empty '" + TokenResponse.ACCESS_TOKEN_FIELD + "' string field.");
         }
     }
 
     private void requireUsableLifetime(Long expiresInSeconds) {
         if (expiresInSeconds == null) {
             throw new AccessTokenException(
-                    "The response from the token endpoint " + tokenEndpointUri + " did not contain a non-null " +
-                    "'" + EXPIRES_IN_FIELD + "' integer field.");
+                    "The response from the token endpoint " + tokenEndpointUrl + " did not contain a non-null " +
+                    "'" + TokenResponse.EXPIRES_IN_FIELD + "' integer field.");
         }
         if (expiresInSeconds <= 0 || expiresInSeconds > MAX_TOKEN_LIFETIME_SECONDS) {
             throw new AccessTokenException(
-                    "The response from the token endpoint " + tokenEndpointUri + " stated a lifetime of " +
+                    "The response from the token endpoint " + tokenEndpointUrl + " stated a lifetime of " +
                     expiresInSeconds + " seconds for the access token, which is not a usable value. Expected a " +
                     "positive number of seconds, and at most " + MAX_TOKEN_LIFETIME_SECONDS + ".");
         }
@@ -233,15 +234,6 @@ public class MutualTlsTokenProvider {
             return "(empty)";
         }
         return body.length() <= 512 ? body : body.substring(0, 512) + "... (truncated)";
-    }
-
-    private static List<NameValuePair> clientCredentialsParameters(AccessTokenRequest request) {
-        List<NameValuePair> parameters = new ArrayList<>();
-        parameters.add(new BasicNameValuePair("grant_type", "client_credentials"));
-        parameters.add(new BasicNameValuePair("client_id", request.clientId));
-        parameters.add(new BasicNameValuePair("scope", request.scope));
-        parameters.add(new BasicNameValuePair("resource", request.resource));
-        return unmodifiableList(parameters);
     }
 
     private static SSLContext mutualTlsSslContext(KeyStoreConfig keyStoreConfig) {
@@ -260,17 +252,22 @@ public class MutualTlsTokenProvider {
 
 
     /**
-     * The fields as read from the response, i.e. {@code null} if absent or {@code null}. Validated by {@link #readTokenResponse(String)}.
+     * The fields as read from the response, i.e. {@code null} if absent or {@code null}.
+     * Validated by {@link #readTokenResponse(String)}.
      */
     private static final class TokenResponse {
+
+        private static final String ACCESS_TOKEN_FIELD = "access_token";
+        private static final String EXPIRES_IN_FIELD = "expires_in";
+
+
         final String accessToken;
         final Long expiresInSeconds;
 
         @JsonCreator
         TokenResponse(
-            @JsonProperty(ACCESS_TOKEN_FIELD) String accessToken,
-            @JsonProperty(EXPIRES_IN_FIELD) Long expiresInSeconds
-        ) {
+                @JsonProperty(ACCESS_TOKEN_FIELD) String accessToken,
+                @JsonProperty(EXPIRES_IN_FIELD) Long expiresInSeconds) {
             this.accessToken = accessToken;
             this.expiresInSeconds = expiresInSeconds;
         }

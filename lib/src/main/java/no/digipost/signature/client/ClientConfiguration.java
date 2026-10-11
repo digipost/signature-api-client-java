@@ -14,12 +14,13 @@ import no.digipost.signature.client.core.internal.configuration.ApacheHttpClient
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientSslConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientUserAgentConfigurer;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
-import no.digipost.signature.client.core.internal.oauth.AccessTokenRequest;
 import no.digipost.signature.client.core.internal.oauth.MutualTlsTokenProvider;
 import no.digipost.signature.client.security.CertificateChainValidation;
-import no.digipost.signature.client.security.JwtAuthConfig;
 import no.digipost.signature.client.security.KeyStoreConfig;
 import no.digipost.signature.client.security.OrganizationNumberValidation;
+import no.digipost.signature.client.security.oauth.ClientId;
+import no.digipost.signature.client.security.oauth.OAuthConfiguration;
+import no.digipost.signature.client.security.oauth.Scope;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -35,11 +36,11 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static java.util.Objects.requireNonNull;
 import static no.digipost.signature.client.core.internal.MaySpecifySender.NO_SPECIFIED_SENDER;
 
 public final class ClientConfiguration implements ASiCEConfiguration, WithSignatureServiceRootUrl, ArchiveClient.Configuration {
@@ -65,24 +66,26 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
     private final MaySpecifySender defaultSender;
     private final URI serviceRoot;
     private final KeyStoreConfig keyStoreConfig;
-    private final Configurer<HttpClientBuilder> defaultHttpClientConfigurer;
-    private final Configurer<HttpClientBuilder> httpClientForDocumentDownloadsConfigurer;
+    private final Configurer<HttpClientBuilder> signatureApiHttpClientConfigurer;
+    private final Configurer<HttpClientBuilder> documentDownloadsHttpClientConfigurer;
     private final Iterable<DocumentBundleProcessor> documentBundleProcessors;
     private final Clock clock;
 
 
-
     private ClientConfiguration(
-            MaySpecifySender defaultSender, URI serviceRoot, KeyStoreConfig keyStoreConfig,
-            Configurer<HttpClientBuilder> defaultHttpClientConfigurer,
+            MaySpecifySender defaultSender,
+            URI serviceRoot,
+            KeyStoreConfig keyStoreConfig,
+            Configurer<HttpClientBuilder> signatureApiHttpClientConfigurer,
             Configurer<HttpClientBuilder> httpClientForDocumentDownloadsConfigurer,
-            Iterable<DocumentBundleProcessor> documentBundleProcessors, Clock clock) {
+            Iterable<DocumentBundleProcessor> documentBundleProcessors,
+            Clock clock) {
 
         this.keyStoreConfig = keyStoreConfig;
         this.defaultSender = defaultSender;
         this.serviceRoot = serviceRoot;
-        this.defaultHttpClientConfigurer = defaultHttpClientConfigurer;
-        this.httpClientForDocumentDownloadsConfigurer = httpClientForDocumentDownloadsConfigurer;
+        this.signatureApiHttpClientConfigurer = signatureApiHttpClientConfigurer;
+        this.documentDownloadsHttpClientConfigurer = httpClientForDocumentDownloadsConfigurer;
         this.documentBundleProcessors = documentBundleProcessors;
         this.clock = clock;
     }
@@ -116,20 +119,20 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
     @Override
     public HttpClient httpClientForDocumentDownloads() {
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
-        httpClientForDocumentDownloadsConfigurer.applyTo(httpClientBuilder);
+        documentDownloadsHttpClientConfigurer.applyTo(httpClientBuilder);
         return httpClientBuilder.build();
     }
 
     public HttpClient defaultHttpClient() {
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
-        defaultHttpClientConfigurer.applyTo(httpClientBuilder);
+        signatureApiHttpClientConfigurer.applyTo(httpClientBuilder);
         return httpClientBuilder.build();
     }
 
     /**
-     * Build a new {@link ClientConfiguration}. Authenticates to the API with the organization
-     * certificate by default. Enabling {@link Builder#jwtAuthentication(JwtAuthConfig) JWT authentication}
-     * is recommended for new and existing integrations.
+     * Start setting up a new {@link ClientConfiguration}. Authenticates to the API with the organization
+     * certificate by default. It is recommended to {@link Builder#useOAuth(Function) use OAuth}
+     * when building the configuration.
      *
      * @param keystore the organization certificate
      */
@@ -144,27 +147,27 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
 
         final ApacheHttpClientUserAgentConfigurer userAgentConfigurer = new ApacheHttpClientUserAgentConfigurer(MANDATORY_USER_AGENT);
         private final ApacheHttpClientSslConfigurer sslConfigurer;
-        private final ApacheHttpClientBuilderConfigurer defaultHttpClientConfigurer;
-        private final ApacheHttpClientBuilderConfigurer httpClientForDocumentDownloadsConfigurer;
+        private final ApacheHttpClientBuilderConfigurer signatureApiHttpClientConfigurer;
+        private final ApacheHttpClientBuilderConfigurer documentDownloadsHttpClientConfigurer;
         private Configurer<HttpClientBuilder> proxyConfigurer = Configurer.notConfigured();
 
         private ServiceEnvironment serviceEnvironment = ServiceEnvironment.PRODUCTION;
+        private Function<? super ServiceEnvironment, OAuthConfiguration> oAuthConfigResolver;
         private MaySpecifySender defaultSender = NO_SPECIFIED_SENDER;
         private List<DocumentBundleProcessor> documentBundleProcessors = new ArrayList<>();
         private Clock clock = Clock.systemDefaultZone();
-        private JwtAuthConfig jwtAuthConfig;
 
 
         private Builder(KeyStoreConfig keyStoreConfig) {
             this.keyStoreConfig = keyStoreConfig;
             this.sslConfigurer = new ApacheHttpClientSslConfigurer(keyStoreConfig, serviceEnvironment);
-            this.defaultHttpClientConfigurer = new ApacheHttpClientBuilderConfigurer()
+            this.signatureApiHttpClientConfigurer = new ApacheHttpClientBuilderConfigurer()
                     .connectionManager(sslConfigurer)
                     .socketTimeout(Duration.ofSeconds(5))
                     .connectTimeout(Duration.ofSeconds(5))
                     .connectionRequestTimeout(Duration.ofSeconds(5))
                     .responseArrivalTimeout(Duration.ofSeconds(10));
-            this.httpClientForDocumentDownloadsConfigurer = new ApacheHttpClientBuilderConfigurer()
+            this.documentDownloadsHttpClientConfigurer = new ApacheHttpClientBuilderConfigurer()
                     .connectionManager(sslConfigurer)
                     .socketTimeout(Duration.ofSeconds(5))
                     .connectTimeout(Duration.ofSeconds(10))
@@ -218,20 +221,40 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         }
 
         /**
-         * Authenticate to the API with an access token instead of the organization certificate.
+         * Use OAuth for authentication to use the API, which is managed in
+         * Digipost's self-service portal for managing certificates and clients.
          * This is recommended for all integrations. See the
          * <a href="https://signering-docs.readthedocs.io/en/latest/client-integration/create-client-configuration.html">docs</a>
          * for how to set it up.
          * <p>
-         * The organization certificate is still required, to acquire access tokens and sign
+         * The client certificate is still required to acquire access tokens and sign
          * document bundles. Tokens are cached per built configuration, so build it once and reuse it.
-         * The {@link Sender sender} of each signature job is unaffected by the broker id.
          *
-         * @param jwtAuthConfig the client id and broker id to acquire access tokens with
+         * @param clientId the assigned client ID for the configured OAuth client
+         * @param scope the scope for the configured OAuth client
+         *
+         * @see #useOAuth(Function)
          */
-        public Builder jwtAuthentication(JwtAuthConfig jwtAuthConfig) {
-            requireNonNull(jwtAuthConfig, "jwtAuthConfig");
-            this.jwtAuthConfig = jwtAuthConfig;
+        public Builder useOAuth(ClientId clientId, Scope scope) {
+            return useOAuth(env -> new OAuthConfiguration(env.oAuth(), clientId, scope));
+        }
+
+
+        /**
+         * Use OAuth for authentication to use the API, which is managed in
+         * Digipost's self-service portal for managing certificates and clients.
+         * This is recommended for all integrations. See the
+         * <a href="https://signering-docs.readthedocs.io/en/latest/client-integration/create-client-configuration.html">docs</a>
+         * for how to set it up.
+         * <p>
+         * The client certificate is still required to acquire access tokens and sign
+         * document bundles. Tokens are cached per built configuration, so build it once and reuse it.
+         *
+         * @param oAuthConfigResolver use the configured {@link ServiceEnvironment} to derive th
+         *                            configuration to use to acquire access tokens
+         */
+        public Builder useOAuth(Function<? super ServiceEnvironment, OAuthConfiguration> oAuthConfigResolver) {
+            this.oAuthConfigResolver = oAuthConfigResolver;
             return this;
         }
 
@@ -254,7 +277,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * @param timeouts the timeouts to set
          */
         public Builder timeouts(Consumer<? super TimeoutsConfigurer> timeouts) {
-            timeouts.accept(defaultHttpClientConfigurer);
+            timeouts.accept(signatureApiHttpClientConfigurer);
             return this;
         }
 
@@ -266,7 +289,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * @param timeouts the timeouts to set
          */
         public Builder timeoutsForDocumentDownloads(Consumer<? super TimeoutsConfigurer> timeouts) {
-            timeouts.accept(httpClientForDocumentDownloadsConfigurer);
+            timeouts.accept(documentDownloadsHttpClientConfigurer);
             return this;
         }
 
@@ -278,7 +301,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * @param connectionPool the {@link ConnectionPoolConfigurer connection pool configuration API}
          */
         public Builder connectionPool(Consumer<? super ConnectionPoolConfigurer> connectionPool) {
-            connectionPool.accept(defaultHttpClientConfigurer);
+            connectionPool.accept(signatureApiHttpClientConfigurer);
             return this;
         }
 
@@ -290,7 +313,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * @param connectionPool the {@link ConnectionPoolConfigurer connection pool configuration API}
          */
         public Builder connectionPoolForDocumentDownloads(Consumer<? super ConnectionPoolConfigurer> connectionPool) {
-            connectionPool.accept(httpClientForDocumentDownloadsConfigurer);
+            connectionPool.accept(documentDownloadsHttpClientConfigurer);
             return this;
         }
 
@@ -302,7 +325,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * on the library's <a href="https://github.com/digipost/signature-api-client-java/issues">web site on GitHub</a>.
          */
         public Builder apacheHttpClient(Consumer<? super ApacheHttpClientConfigurer> apacheHttpClientConfigurer) {
-            apacheHttpClientConfigurer.accept(this.defaultHttpClientConfigurer);
+            apacheHttpClientConfigurer.accept(this.signatureApiHttpClientConfigurer);
             return this;
         }
 
@@ -314,7 +337,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * on the library's <a href="https://github.com/digipost/signature-api-client-java/issues">web site on GitHub</a>.
          */
         public Builder apacheHttpClientForDocumentDownloads(Consumer<? super ApacheHttpClientConfigurer> apacheHttpClientConfigurer) {
-            apacheHttpClientConfigurer.accept(this.httpClientForDocumentDownloadsConfigurer);
+            apacheHttpClientConfigurer.accept(this.documentDownloadsHttpClientConfigurer);
             return this;
         }
 
@@ -329,7 +352,8 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * {@link #clock(Clock)} before calling this method if that is desired.
          * <p>
          * The <em>reference_from_job</em> part is only included if the job is given such a reference using
-         * {@link no.digipost.signature.client.direct.DirectJob.Builder#withReference(UUID) DirectJob.Builder.withReference(..)} or {@link no.digipost.signature.client.portal.PortalJob.Builder#withReference(UUID) PortalJob.Builder.withReference(..)}.
+         * {@link no.digipost.signature.client.direct.DirectJob.Builder#withReference(UUID) DirectJob.Builder.withReference(..)}
+         * or {@link no.digipost.signature.client.portal.PortalJob.Builder#withReference(UUID) PortalJob.Builder.withReference(..)}.
          *
          * @param directory the directory to dump to. This directory must already exist, or
          *                  creating new signature jobs will fail. Miserably.
@@ -387,8 +411,8 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
 
         /**
          * Allows for overriding which {@link Clock} is used to convert between Java and XML,
-         * may be useful for e.g. automated tests. The clock value is also passed on to
-         * access token expiry validation for jwt functionality.
+         * may be useful for e.g. automated tests. The clock is also used to determine
+         * when to refresh OAuth access tokens.
          * <p>
          * Uses the {@link Clock#systemDefaultZone() system clock with default time zone}
          * if not specified.
@@ -402,21 +426,14 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
             Configurer<HttpClientBuilder> commonConfig = userAgentConfigurer.andThen(proxyConfigurer);
 
             Configurer<HttpClientBuilder> apiConfig;
-            if (jwtAuthConfig != null) {
+            if (oAuthConfigResolver != null) {
                 // The API is called with the access token only. Note that this also affects
                 // configurations previously built by this builder, as the ssl configurer is shared.
                 sslConfigurer.withoutClientCertificate();
 
-                AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
-                        serviceEnvironment.tokenEndpoint(),
-                        jwtAuthConfig.clientId,
-                        accessTokenScope(),
-                        accessTokenResource()
-                );
-
                 // The token client gets commonConfig only, as it must not send a bearer token itself
                 MutualTlsTokenProvider tokenProvider = MutualTlsTokenProvider.create(
-                        accessTokenRequest, keyStoreConfig, commonConfig, clock);
+                        oAuthConfigResolver.apply(serviceEnvironment), keyStoreConfig, commonConfig, clock);
                 apiConfig = commonConfig.andThen(new ApacheHttpClientBearerTokenConfigurer(tokenProvider::getToken, tokenProvider::invalidate));
             } else {
                 apiConfig = commonConfig;
@@ -425,23 +442,11 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
             return new ClientConfiguration(defaultSender,
                     serviceEnvironment.signatureServiceRootUrl(),
                     keyStoreConfig,
-                    apiConfig.andThen(defaultHttpClientConfigurer),
-                    apiConfig.andThen(httpClientForDocumentDownloadsConfigurer),
+                    apiConfig.andThen(signatureApiHttpClientConfigurer),
+                    apiConfig.andThen(documentDownloadsHttpClientConfigurer),
                     documentBundleProcessors,
                     clock
             );
-        }
-
-        /**
-         * The API root without path, e.g. {@code https://api.signering.posten.no}. Must match mIdP exactly.
-         */
-        private String accessTokenResource() {
-            URI serviceUri = serviceEnvironment.signatureServiceRootUrl();
-            return serviceUri.getScheme() + "://" + serviceUri.getAuthority();
-        }
-
-        private String accessTokenScope() {
-            return ACCESS_TOKEN_SCOPE_PREFIX + jwtAuthConfig.brokerId.value();
         }
 
     }
