@@ -49,11 +49,9 @@ import static org.apache.hc.core5.http.HttpHeaders.ACCEPT;
 /**
  * Acquires OAuth 2.0 access tokens with the <em>client credentials</em> grant over mTLS. Tokens are
  * cached, and replaced on the first {@link #getToken()} within the duration of
- * {@link #REFRESH_MARGIN} of expiry.
+ * {@link CachedAccessToken#REFRESH_MARGIN} of expiry.
  */
 public class MutualTlsTokenProvider {
-
-    static final Duration REFRESH_MARGIN = Duration.ofSeconds(30);
 
     private static final Logger LOG = Logger.getLogger(MutualTlsTokenProvider.class.getName());
 
@@ -123,21 +121,31 @@ public class MutualTlsTokenProvider {
      */
     public String getToken() {
         CachedAccessToken current = cachedToken;
-        if (current.isValidAt(Instant.now(clock))) {
+        if (!current.isRefreshDueAt(clock.instant())) {
             return current.token;
         }
-        refreshLock.lock();
-        try {
-            // Another thread may have refreshed the token while we waited for the lock.
-            current = cachedToken;
-            if (current.isValidAt(Instant.now(clock))) {
-                return current.token;
+
+        if (refreshLock.tryLock()) {
+            try {
+                current = cachedToken;
+                if (!current.isRefreshDueAt(clock.instant())) {
+                    return current.token;
+                }
+                CachedAccessToken refreshed = acquireToken();
+                cachedToken = refreshed;
+                return refreshed.token;
+            } finally {
+                refreshLock.unlock();
             }
-            CachedAccessToken refreshed = acquireToken();
-            cachedToken = refreshed;
-            return refreshed.token;
-        } finally {
-            refreshLock.unlock();
+        } else if (current.isValidAt(clock.instant())) {
+            return current.token;
+        } else {
+            refreshLock.lock();
+            try {
+                return cachedToken.token;
+            } finally {
+                refreshLock.unlock();
+            }
         }
     }
 
@@ -172,10 +180,9 @@ public class MutualTlsTokenProvider {
         TokenResponse tokenResponse = readTokenResponse(body);
 
         Instant expiry = Instant.now(clock).plusSeconds(tokenResponse.expiresInSeconds);
-        Instant staleAt = expiry.minus(REFRESH_MARGIN);
 
         LOG.fine(() -> "Acquired a new access token from " + tokenEndpointUrl + ", expiring at " + expiry);
-        return new CachedAccessToken(tokenResponse.accessToken, staleAt);
+        return new CachedAccessToken(tokenResponse.accessToken, expiry);
     }
 
     /** Read the required {@code access_token} and {@code expires_in} fields, other fields are skipped */
@@ -274,19 +281,32 @@ public class MutualTlsTokenProvider {
     /**
      * Token and expiry in one immutable value, so they are never read out of sync without the lock.
      */
-    private static final class CachedAccessToken {
-        private static final CachedAccessToken INITIAL_PENDING_REFRESH = new CachedAccessToken(null, Instant.MIN);
+    public static final class CachedAccessToken {
+        static final Duration SAFETY_MARGIN_FOR_EXPIRY = Duration.ofSeconds(5);
+        static final Duration REFRESH_MARGIN = SAFETY_MARGIN_FOR_EXPIRY.plus(Duration.ofSeconds(30));
+
+        private static final CachedAccessToken INITIAL_PENDING_REFRESH = new CachedAccessToken(null, Instant.MIN, Instant.MIN);
 
         final String token;
-        private final Instant staleAt;
+        private final Instant invalidFrom;
+        private final Instant refreshDueFrom;
 
-        CachedAccessToken(String token, Instant staleAt) {
-            this.token = token;
-            this.staleAt = staleAt;
+        private CachedAccessToken(String token, Instant expiresAt) {
+            this(token, expiresAt.minus(SAFETY_MARGIN_FOR_EXPIRY), expiresAt.minus(REFRESH_MARGIN));
         }
 
-        boolean isValidAt(Instant time) {
-            return time.isBefore(staleAt);
+        private CachedAccessToken(String token, Instant invalidFrom, Instant refreshDueFrom) {
+            this.token = token;
+            this.invalidFrom = invalidFrom;
+            this.refreshDueFrom = refreshDueFrom;
+        }
+
+        boolean isValidAt(Instant instant) {
+            return instant.isBefore(invalidFrom);
+        }
+
+        boolean isRefreshDueAt(Instant instant) {
+            return !instant.isBefore(refreshDueFrom);
         }
     }
 
