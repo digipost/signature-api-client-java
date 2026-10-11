@@ -27,7 +27,6 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.ssl.SSLContexts;
-import org.threeten.extra.AmountFormats;
 
 import javax.net.ssl.SSLContext;
 
@@ -41,7 +40,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Locale.ENGLISH;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static no.digipost.signature.client.core.internal.http.StatusCode.Family.SUCCESSFUL;
@@ -175,11 +173,6 @@ public class MutualTlsTokenProvider {
 
         Instant expiry = Instant.now(clock).plusSeconds(tokenResponse.expiresInSeconds);
         Instant staleAt = expiry.minus(REFRESH_MARGIN);
-        if (!staleAt.isAfter(Instant.now(clock))) {
-            LOG.warning("The access token acquired from " + tokenEndpointUrl + " expires at " + expiry + ", which is " +
-                    "already within the " + AmountFormats.wordBased(REFRESH_MARGIN, ENGLISH) + " refresh margin. A new token will be " +
-                    "acquired for every request, which may put considerable load on the token endpoint.");
-        }
 
         LOG.fine(() -> "Acquired a new access token from " + tokenEndpointUrl + ", expiring at " + expiry);
         return new CachedAccessToken(tokenResponse.accessToken, staleAt);
