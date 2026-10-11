@@ -112,17 +112,17 @@ class MutualTlsTokenProviderTest {
         stubTwoTokensInSequence();
         MutualTlsTokenProvider tokenProvider = tokenProvider();
 
-        assertThat(tokenProvider, where(MutualTlsTokenProvider::getToken, is("first-token")));
+        assertThat(tokenProvider, where(MutualTlsTokenProvider::getToken, is("token-1")));
 
         clock.timePasses(Duration.ofHours(1).minus(REFRESH_MARGIN));
         RESPONSE_BLOCKER.block();
 
         CompletableFuture<String> secondToken = CompletableFuture.supplyAsync(tokenProvider::getToken);
         RESPONSE_BLOCKER.awaitUntilBlocking();
-        assertThat(tokenProvider, where(MutualTlsTokenProvider::getToken, is("first-token")));
+        assertThat(tokenProvider, where(MutualTlsTokenProvider::getToken, is("token-1")));
 
         RESPONSE_BLOCKER.release();
-        assertThat(secondToken.join(), is("second-token"));
+        assertThat(secondToken.join(), is("token-2"));
     }
 
     @Test
@@ -143,15 +143,15 @@ class MutualTlsTokenProviderTest {
         stubTwoTokensInSequence();
 
         MutualTlsTokenProvider tokenProvider = tokenProvider();
-        assertThat(tokenProvider.getToken(), is("first-token"));
+        assertThat(tokenProvider.getToken(), is("token-1"));
 
         // Still outside the refresh margin, so the first token is reused.
         clock.timePasses(Duration.ofHours(1).minus(REFRESH_MARGIN).minus(Duration.ofSeconds(1)));
-        assertThat(tokenProvider.getToken(), is("first-token"));
+        assertThat(tokenProvider.getToken(), is("token-1"));
 
         // Within the refresh margin, so a new token is acquired before the first expires
         clock.timePasses(ofSeconds(2));
-        assertThat(tokenProvider.getToken(), is("second-token"));
+        assertThat(tokenProvider.getToken(), is("token-2"));
 
         verify(2, postRequestedFor(urlEqualTo(TOKEN_PATH)));
     }
@@ -190,11 +190,11 @@ class MutualTlsTokenProviderTest {
         stubTwoTokensInSequence();
 
         MutualTlsTokenProvider tokenProvider = tokenProvider();
-        assertThat(tokenProvider.getToken(), is("first-token"));
+        assertThat(tokenProvider.getToken(), is("token-1"));
 
         tokenProvider.invalidate();
 
-        assertThat(tokenProvider.getToken(), is("second-token"));
+        assertThat(tokenProvider.getToken(), is("token-2"));
         verify(2, postRequestedFor(urlEqualTo(TOKEN_PATH)));
     }
 
@@ -206,7 +206,7 @@ class MutualTlsTokenProviderTest {
         MutualTlsTokenProvider tokenProvider = tokenProvider();
         tokenProvider.invalidate();
 
-        assertThat(tokenProvider.getToken(), is("first-token"));
+        assertThat(tokenProvider.getToken(), is("token-1"));
         verify(1, postRequestedFor(urlEqualTo(TOKEN_PATH)));
     }
 
@@ -226,27 +226,21 @@ class MutualTlsTokenProviderTest {
     }
 
     @Test
-    void anExpiresInWhichGivesTheTokenNoLifetimeIsRejected() {
-        givenThat(post(urlEqualTo(TOKEN_PATH)).willReturn(okJson("{\"access_token\":\"a-token\",\"expires_in\":0}")));
+    void aTokenWithNoLifetimeIsRefreshedEveryTime() {
+        stubTokensInSequence(Duration.ZERO, Duration.ZERO);
 
-        AccessTokenException thrown = assertThrows(AccessTokenException.class, () -> tokenProvider().getToken());
-        assertThat(thrown, where(Throwable::getMessage, containsString("not a usable value")));
+        MutualTlsTokenProvider tokenProvider = tokenProvider();
+        assertThat(tokenProvider, where(MutualTlsTokenProvider::getToken, is("token-1")));
+        assertThat(tokenProvider, where(MutualTlsTokenProvider::getToken, is("token-2")));
     }
 
     @Test
-    void aNegativeExpiresInIsRejected() {
-        givenThat(post(urlEqualTo(TOKEN_PATH)).willReturn(okJson("{\"access_token\":\"a-token\",\"expires_in\":-1}")));
+    void negativeLifetimeIsRefreshedEverytime() {
+        stubTokensInSequence(Duration.ofSeconds(-1), Duration.ofSeconds(-1));
 
-        assertThrows(AccessTokenException.class, () -> tokenProvider().getToken());
-    }
-
-    @Test
-    void anExpiresInWhichCannotBeAddedToTheCurrentTimeIsRejected() {
-        givenThat(post(urlEqualTo(TOKEN_PATH))
-                .willReturn(okJson("{\"access_token\":\"a-token\",\"expires_in\":" + Long.MAX_VALUE + "}")));
-
-        AccessTokenException thrown = assertThrows(AccessTokenException.class, () -> tokenProvider().getToken());
-        assertThat(thrown, where(Throwable::getMessage, containsString("not a usable value")));
+        MutualTlsTokenProvider tokenProvider = tokenProvider();
+        assertThat(tokenProvider, where(MutualTlsTokenProvider::getToken, is("token-1")));
+        assertThat(tokenProvider, where(MutualTlsTokenProvider::getToken, is("token-2")));
     }
 
     @Test
@@ -352,13 +346,23 @@ class MutualTlsTokenProviderTest {
     }
 
 
+
     private static void stubTwoTokensInSequence() {
-        String scenario = "two tokens";
-        givenThat(post(urlEqualTo(TOKEN_PATH)).inScenario(scenario).whenScenarioStateIs(STARTED)
-                .willReturn(okJson("{\"access_token\":\"first-token\",\"expires_in\":3600}"))
-                .willSetStateTo("first token acquired"));
-        givenThat(post(urlEqualTo(TOKEN_PATH)).inScenario(scenario).whenScenarioStateIs("first token acquired")
-                .willReturn(okJson("{\"access_token\":\"second-token\",\"expires_in\":3600}")));
+        stubTokensInSequence(Duration.ofHours(1), Duration.ofHours(1));
+    }
+
+    private static void stubTokensInSequence(Duration ... ttls) {
+        String scenario = ttls.length + " tokens";
+        String scenarioState = STARTED;
+        for (int i = 0; i < ttls.length; i++) {
+            Duration ttl = ttls[i];
+            String tokenValue = "token-" + (i + 1);
+            String nextState = tokenValue + " acquired";
+            givenThat(post(urlEqualTo(TOKEN_PATH)).inScenario(scenario).whenScenarioStateIs(scenarioState)
+                    .willReturn(okJson("{\"access_token\":\"" + tokenValue + "\",\"expires_in\":" + ttl.getSeconds() + "}"))
+                    .willSetStateTo(nextState));
+            scenarioState = nextState;
+        }
     }
 
 }

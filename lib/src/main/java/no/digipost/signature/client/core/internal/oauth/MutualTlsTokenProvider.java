@@ -2,7 +2,6 @@ package no.digipost.signature.client.core.internal.oauth;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -31,6 +30,7 @@ import org.apache.hc.core5.ssl.SSLContexts;
 import javax.net.ssl.SSLContext;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
@@ -55,10 +55,7 @@ public class MutualTlsTokenProvider {
 
     private static final Logger LOG = Logger.getLogger(MutualTlsTokenProvider.class.getName());
 
-    /** Longer lifetimes are treated as malformed, which also prevents overflow in {@link Instant#plusSeconds(long)} */
-    private static final long MAX_TOKEN_LIFETIME_SECONDS = Duration.ofDays(365).getSeconds();
-
-    private static final JsonMapper JSON = JsonMapper.builder()
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder()
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT)
             .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS)
@@ -168,76 +165,29 @@ public class MutualTlsTokenProvider {
     }
 
     private CachedAccessToken handleTokenResponse(ClassicHttpResponse response) throws IOException, ParseException {
-        String body = readBody(response);
-
+        HttpEntity responseEntity = response.getEntity();
         StatusCode status = StatusCode.from(response.getCode());
-        if (!status.is(SUCCESSFUL)) {
+        if (responseEntity == null || !status.is(SUCCESSFUL)) {
             throw new AccessTokenException(
-                    "Got " + status + " from the token endpoint " + tokenEndpointUrl +
-                    ", expected a successful response. The response body was: " + truncate(body));
+                    "Got " + status + " from the token endpoint " + tokenEndpointUrl + ", expected a " +
+                    "token in the response. The response body was: " +
+                    ((responseEntity != null) ? EntityUtils.toString(responseEntity, UTF_8, 512) : "(null)"));
         }
 
-        TokenResponse tokenResponse = readTokenResponse(body);
-
-        Instant expiry = Instant.now(clock).plusSeconds(tokenResponse.expiresInSeconds);
-
-        LOG.fine(() -> "Acquired a new access token from " + tokenEndpointUrl + ", expiring at " + expiry);
-        return new CachedAccessToken(tokenResponse.accessToken, expiry);
+        TokenResponse tokenResponse = readTokenResponse(responseEntity.getContent());
+        Instant expiresAt = Instant.now(clock).plus(tokenResponse.expiresIn);
+        LOG.fine(() -> "Acquired a new access token from " + tokenEndpointUrl + ", expiring at " + expiresAt);
+        return new CachedAccessToken(tokenResponse.accessToken, expiresAt);
     }
 
-    /** Read the required {@code access_token} and {@code expires_in} fields, other fields are skipped */
-    private TokenResponse readTokenResponse(String responseBody) {
-        TokenResponse response;
+    private TokenResponse readTokenResponse(InputStream responseBody) {
         try {
-            response = JSON.readValue(responseBody, TokenResponse.class);
-        } catch (JsonProcessingException e) {
+            return JSON_MAPPER.readValue(responseBody, TokenResponse.class);
+        } catch (IOException e) {
             throw new AccessTokenException(
                     "Could not parse the response from the token endpoint " + tokenEndpointUrl + " as JSON, because " +
-                    e.getClass().getSimpleName() + ": '" + e.getOriginalMessage() + "'", e);
+                    e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
         }
-        if (response == null) {
-            throw new AccessTokenException(
-                    "Expected the response from the token endpoint " + tokenEndpointUrl + " to be a JSON object, " +
-                    "but it was: " + truncate(responseBody));
-        }
-
-        requireAccessToken(response.accessToken);
-        requireUsableLifetime(response.expiresInSeconds);
-        return response;
-    }
-
-    private void requireAccessToken(String accessToken) {
-        if (accessToken == null || accessToken.isEmpty()) {
-            throw new AccessTokenException(
-                    "The response from the token endpoint " + tokenEndpointUrl + " did not contain a " +
-                    "non-null and non-empty '" + TokenResponse.ACCESS_TOKEN_FIELD + "' string field.");
-        }
-    }
-
-    private void requireUsableLifetime(Long expiresInSeconds) {
-        if (expiresInSeconds == null) {
-            throw new AccessTokenException(
-                    "The response from the token endpoint " + tokenEndpointUrl + " did not contain a non-null " +
-                    "'" + TokenResponse.EXPIRES_IN_FIELD + "' integer field.");
-        }
-        if (expiresInSeconds <= 0 || expiresInSeconds > MAX_TOKEN_LIFETIME_SECONDS) {
-            throw new AccessTokenException(
-                    "The response from the token endpoint " + tokenEndpointUrl + " stated a lifetime of " +
-                    expiresInSeconds + " seconds for the access token, which is not a usable value. Expected a " +
-                    "positive number of seconds, and at most " + MAX_TOKEN_LIFETIME_SECONDS + ".");
-        }
-    }
-
-    private static String readBody(ClassicHttpResponse response) throws IOException, ParseException {
-        HttpEntity entity = response.getEntity();
-        return entity == null ? "" : EntityUtils.toString(entity, UTF_8);
-    }
-
-    private static String truncate(String body) {
-        if (body.isEmpty()) {
-            return "(empty)";
-        }
-        return body.length() <= 512 ? body : body.substring(0, 512) + "... (truncated)";
     }
 
     private static SSLContext mutualTlsSslContext(KeyStoreConfig keyStoreConfig) {
@@ -266,15 +216,22 @@ public class MutualTlsTokenProvider {
 
 
         final String accessToken;
-        final Long expiresInSeconds;
+        final Duration expiresIn;
 
         @JsonCreator
         TokenResponse(
                 @JsonProperty(ACCESS_TOKEN_FIELD) String accessToken,
                 @JsonProperty(EXPIRES_IN_FIELD) Long expiresInSeconds) {
+            if (accessToken == null || accessToken.trim().isEmpty()) {
+                throw new IllegalArgumentException(ACCESS_TOKEN_FIELD + " can not be '" + accessToken + "'");
+            }
+            if (expiresInSeconds == null) {
+                throw new IllegalArgumentException(EXPIRES_IN_FIELD + " can not be null");
+            }
             this.accessToken = accessToken;
-            this.expiresInSeconds = expiresInSeconds;
+            this.expiresIn = Duration.ofSeconds(expiresInSeconds);
         }
+
     }
 
 
