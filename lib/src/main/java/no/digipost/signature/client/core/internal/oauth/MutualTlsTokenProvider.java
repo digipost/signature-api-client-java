@@ -37,6 +37,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -73,8 +74,8 @@ public class MutualTlsTokenProvider {
     private final HttpClient tokenClient;
     private final Clock clock;
 
-    private final Object refreshLock = new Object();
-    private volatile CachedAccessToken cachedToken;
+    private final ReentrantLock refreshLock = new ReentrantLock();
+    private volatile CachedAccessToken cachedToken = CachedAccessToken.INITIAL_PENDING_REFRESH;
 
 
     /**
@@ -124,23 +125,26 @@ public class MutualTlsTokenProvider {
      */
     public String getToken() {
         CachedAccessToken current = cachedToken;
-        if (current != null && current.isValidAt(Instant.now(clock))) {
+        if (current.isValidAt(Instant.now(clock))) {
             return current.token;
         }
-        synchronized (refreshLock) {
+        refreshLock.lock();
+        try {
             // Another thread may have refreshed the token while we waited for the lock.
             current = cachedToken;
-            if (current != null && current.isValidAt(Instant.now(clock))) {
+            if (current.isValidAt(Instant.now(clock))) {
                 return current.token;
             }
             CachedAccessToken refreshed = acquireToken();
             cachedToken = refreshed;
             return refreshed.token;
+        } finally {
+            refreshLock.unlock();
         }
     }
 
     public void invalidate() {
-        cachedToken = null;
+        cachedToken = CachedAccessToken.INITIAL_PENDING_REFRESH;
     }
 
     private CachedAccessToken acquireToken() {
@@ -278,6 +282,7 @@ public class MutualTlsTokenProvider {
      * Token and expiry in one immutable value, so they are never read out of sync without the lock.
      */
     private static final class CachedAccessToken {
+        private static final CachedAccessToken INITIAL_PENDING_REFRESH = new CachedAccessToken(null, Instant.MIN);
 
         final String token;
         private final Instant staleAt;
