@@ -1,7 +1,8 @@
 package no.digipost.signature.client.core.internal.oauth;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import no.digipost.signature.client.ServiceEnvironment;
 import no.digipost.signature.client.core.exceptions.AccessTokenException;
 import no.digipost.signature.client.core.exceptions.HttpIOException;
@@ -9,15 +10,20 @@ import no.digipost.signature.client.security.oauth.ClientId;
 import no.digipost.signature.client.security.oauth.OAuthConfiguration;
 import no.digipost.signature.client.security.oauth.Scope;
 import no.digipost.time.ControllableClock;
+import no.digipost.wiremock.ResponseBlocker;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,19 +37,34 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static java.time.Duration.ofSeconds;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static no.digipost.signature.client.core.internal.oauth.MutualTlsTokenProvider.CachedAccessToken.REFRESH_MARGIN;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.co.probablyfine.matchers.Java8Matchers.where;
 
-@WireMockTest
+@Timeout(5)
 class MutualTlsTokenProviderTest {
+
+    @RegisterExtension
+    private final static ResponseBlocker RESPONSE_BLOCKER = new ResponseBlocker();
+
+    @RegisterExtension
+    private final static WireMockExtension WIREMOCK = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort().extensions(RESPONSE_BLOCKER))
+            .build();
+
+    @BeforeAll
+    static void setDefaultWireMock() {
+        WireMock.configureFor(WIREMOCK.getPort());
+    }
 
     private static final String TOKEN_PATH = "/token";
     private static final Instant NOW = Instant.parse("2026-08-17T12:00:00Z");
@@ -87,13 +108,31 @@ class MutualTlsTokenProviderTest {
     }
 
     @Test
+    void returnsTheExistingTokenWhileRefreshing() {
+        stubTwoTokensInSequence();
+        MutualTlsTokenProvider tokenProvider = tokenProvider();
+
+        assertThat(tokenProvider, where(MutualTlsTokenProvider::getToken, is("first-token")));
+
+        clock.timePasses(Duration.ofHours(1).minus(REFRESH_MARGIN));
+        RESPONSE_BLOCKER.block();
+
+        CompletableFuture<String> secondToken = CompletableFuture.supplyAsync(tokenProvider::getToken);
+        RESPONSE_BLOCKER.awaitUntilBlocking();
+        assertThat(tokenProvider, where(MutualTlsTokenProvider::getToken, is("first-token")));
+
+        RESPONSE_BLOCKER.release();
+        assertThat(secondToken.join(), is("second-token"));
+    }
+
+    @Test
     void cachesTheTokenInsteadOfAcquiringOnePerCall() {
         givenThat(post(urlEqualTo(TOKEN_PATH)).willReturn(okJson("{\"access_token\":\"a-token\",\"expires_in\":3600}")));
 
         MutualTlsTokenProvider tokenProvider = tokenProvider();
         assertThat(tokenProvider.getToken(), is("a-token"));
         assertThat(tokenProvider.getToken(), is("a-token"));
-        clock.timePasses(Duration.ofHours(1).minus(MutualTlsTokenProvider.REFRESH_MARGIN).minus(Duration.ofSeconds(1)));
+        clock.timePasses(Duration.ofHours(1).minus(REFRESH_MARGIN).minus(Duration.ofSeconds(1)));
         assertThat(tokenProvider.getToken(), is("a-token"));
 
         verify(1, postRequestedFor(urlEqualTo(TOKEN_PATH)));
@@ -107,7 +146,7 @@ class MutualTlsTokenProviderTest {
         assertThat(tokenProvider.getToken(), is("first-token"));
 
         // Still outside the refresh margin, so the first token is reused.
-        clock.timePasses(Duration.ofHours(1).minus(MutualTlsTokenProvider.REFRESH_MARGIN).minus(Duration.ofSeconds(1)));
+        clock.timePasses(Duration.ofHours(1).minus(REFRESH_MARGIN).minus(Duration.ofSeconds(1)));
         assertThat(tokenProvider.getToken(), is("first-token"));
 
         // Within the refresh margin, so a new token is acquired before the first expires
