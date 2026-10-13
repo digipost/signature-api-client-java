@@ -7,4 +7,5 @@ target
 .classpath
 
 dependency-reduced-pom.xml
+.flattened-pom.xml
 .vscode/settings.json
