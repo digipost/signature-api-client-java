@@ -18,8 +18,10 @@ jobs:
           java-version: ${{ matrix.java }}
           distribution: temurin
           cache: "maven"
+          mvn-repositories: |
+            central-portal-snapshots:https://central.sonatype.com/repository/maven-snapshots/:true
       - name: Build with Maven
-        run: mvn --settings .mvn/settings.xml -B verify -U --no-transfer-progress
+        run: mvn -B verify -U --no-transfer-progress
 
   publish:
     needs: build
