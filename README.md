@@ -1,8 +1,9 @@
+[![Maven Central Version](https://img.shields.io/maven-central/v/no.digipost.signature/signature-api-client-java)](https://central.sonatype.com/artifact/no.digipost.signature/signature-api-client-java)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/digipost/signature-api-client-java/build.yml)](https://github.com/digipost/signature-api-client-java/actions/workflows/build.yml)
+[![Apache 2.0 License](https://img.shields.io/github/license/digipost/signature-api-client-java?color=red)](LICENSE)
+[![javadoc](https://javadoc.io/badge2/no.digipost.signature/signature-api-client-java/javadoc.svg?color=yellow)](https://javadoc.io/doc/no.digipost.signature/signature-api-client-java)
+
 # Posten Signering – Java client Library
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/no.digipost.signature/signature-api-client-java/badge.svg)](https://maven-badges.herokuapp.com/maven-central/no.digipost.signature/signature-api-client-java)
-[![javadoc](https://javadoc.io/badge2/no.digipost.signature/signature-api-client-java/javadoc.svg?logo=java&color=yellow)](https://javadoc.io/doc/no.digipost.signature/signature-api-client-java)
-![](https://github.com/digipost/signature-api-client-java/workflows/Build%20and%20deploy/badge.svg)
-[![License](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/digipost/signature-api-client-java/blob/main/LICENCE)
 
 This repo is the Java client library for integrating with **Posten signering**.
 
@@ -23,7 +24,7 @@ The recommended way to declare dependency on the library is to utilize the [BOM]
         <dependency>
             <groupId>no.digipost.signature</groupId>
             <artifactId>signature-api-client-bom</artifactId>
-            <version>7.0.4</version> <!-- replace with any later version -->
+            <version>7.0.9</version> <!-- replace with any later version -->
             <type>pom</type>
             <scope>import</scope>
         </dependency>
