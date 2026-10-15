@@ -97,7 +97,7 @@ public class DirectJobStatusResponse implements Confirmable {
      * @throws IllegalArgumentException if the job response doesn't contain a signature from this signer
      * @see #getSignatures()
      */
-    public Signature getSignatureFrom(final String signer) {
+    public Signature getSignatureFrom(String signer) {
         return signatures.stream()
                 .filter(signatureFrom(signer))
                 .findFirst()

@@ -35,7 +35,7 @@ public class StatusReference {
      *         must be completed with a status query token using
      *         {@link StatusUrlContruction#withStatusQueryToken(String) .withStatusQueryToken(token)}
      */
-    public static StatusUrlContruction ofUrl(final URI statusUrl) {
+    public static StatusUrlContruction ofUrl(URI statusUrl) {
         return new StatusUrlContruction() {
             @Override
             public StatusReference withStatusQueryToken(String token) {
