@@ -62,7 +62,7 @@ class ClientConfigurationRejectedTokenTest {
     ClientConfigurationRejectedTokenTest(WireMockRuntimeInfo wireMockInfo) {
         this.unitTestEnv = STAGING
                 .withServiceUrl(URI.create(wireMockInfo.getHttpBaseUrl()))
-                .withTokenEndpoint(URI.create(wireMockInfo.getHttpBaseUrl() + TOKEN_PATH));
+                .withOAuth(URI.create(wireMockInfo.getHttpBaseUrl()), URI.create(wireMockInfo.getHttpBaseUrl() + TOKEN_PATH), STAGING.oAuth().resource());
         this.configBuilder = ClientConfiguration.builder(CLIENT_KEYSTORE)
                 .serviceEnvironment(unitTestEnv)
                 .defaultSender(new Sender("123456789"))

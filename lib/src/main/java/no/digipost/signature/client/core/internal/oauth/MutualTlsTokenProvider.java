@@ -74,7 +74,7 @@ public class MutualTlsTokenProvider {
     /**
      * Create a token provider which presents the client certificate of the given {@link KeyStoreConfig}.
      * The token endpoint (mIdP) is validated against the JVM's default trust store, not the trust
-     * configuration of the API.
+     * configuration for authenticating to the API with the organization certificate.
      *
      * @param commonHttpClientConfiguration shared with the API clients, e.g. User-Agent and proxy
      */
@@ -206,8 +206,8 @@ public class MutualTlsTokenProvider {
 
 
     /**
-     * The fields as read from the response, i.e. {@code null} if absent or {@code null}.
-     * Validated by {@link #readTokenResponse(String)}.
+     * The required fields of the response, validated when read, so that reading a response
+     * without a non-empty {@code access_token} or an {@code expires_in} fails.
      */
     private static final class TokenResponse {
 

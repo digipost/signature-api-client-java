@@ -74,7 +74,7 @@ class ClientConfigurationOAuthTest {
         this.wireMockBaseUri = URI.create(wireMockInfo.getHttpBaseUrl());
         this.unitTestEnv = STAGING
                 .withServiceUrl(URI.create(wireMockInfo.getHttpBaseUrl()))
-                .withTokenEndpoint(URI.create(wireMockInfo.getHttpBaseUrl() + TOKEN_PATH));
+                .withOAuth(URI.create(wireMockInfo.getHttpBaseUrl()), URI.create(wireMockInfo.getHttpBaseUrl() + TOKEN_PATH), STAGING.oAuth().resource());
         this.configBuilder = ClientConfiguration.builder(CLIENT_KEYSTORE)
                 .serviceEnvironment(unitTestEnv)
                 .defaultSender(new Sender("123456789"));
@@ -82,7 +82,7 @@ class ClientConfigurationOAuthTest {
 
 
     @Test
-    void requestsAnAccessTokenForTheScopeOfTheConfiguredBroker() {
+    void requestsAnAccessTokenForTheConfiguredScope() {
         stubTokenEndpoint("a-token");
         stubCreateJob();
 
@@ -93,7 +93,7 @@ class ClientConfigurationOAuthTest {
     }
 
     @Test
-    void theScopeIsTheBrokersRegardlessOfWhichSenderAJobIsFor() {
+    void theScopeIsTheSameRegardlessOfWhichSenderAJobIsFor() {
         stubTokenEndpoint("a-token");
         stubCreateJob();
 
@@ -177,7 +177,7 @@ class ClientConfigurationOAuthTest {
     }
 
     @Test
-    void sendsNoAuthorizationHeaderAndAcquiresNoTokenWhenJwtAuthenticationIsNotConfigured() {
+    void sendsNoAuthorizationHeaderAndAcquiresNoTokenWhenOAuthIsNotConfigured() {
         stubTokenEndpoint("a-token");
         stubCreateJob();
 

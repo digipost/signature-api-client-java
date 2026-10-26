@@ -104,7 +104,7 @@ class MutualTlsTokenProviderTest {
                 .withRequestBody(containing("grant_type=client_credentials"))
                 .withRequestBody(containing("client_id=my-client-id"))
                 .withRequestBody(containing("scope=signering%3A555444"))
-                .withRequestBody(containing("resource=https%3A%2F%2Fapi.signering.posten.no")));
+                .withRequestBody(containing("resource=https%3A%2F%2Fapi.sign.digipost.no")));
     }
 
     @Test
