@@ -94,10 +94,23 @@ public final class ApacheHttpClientBuilderConfigurer implements TimeoutsConfigur
     }
 
 
+    /**
+     * This configuration, followed by the given connection manager configuration. Unlike
+     * {@link #connectionManager(Configurer)}, this configurer is not altered.
+     */
+    public Configurer<HttpClientBuilder> including(Configurer<PoolingHttpClientConnectionManagerBuilder> connectionManagerConfigurer) {
+        return httpClientBuilder -> applyTo(httpClientBuilder, connectionManagerConfigurer);
+    }
+
     @Override
     public void applyTo(HttpClientBuilder httpClientBuilder) {
+        applyTo(httpClientBuilder, Configurer.notConfigured());
+    }
+
+    private void applyTo(HttpClientBuilder httpClientBuilder, Configurer<PoolingHttpClientConnectionManagerBuilder> includedConnectionManagerConfigurer) {
         defaultConnectionManagerConfigurer
             .andThen(additionalConnectionManagerConfigurer)
+            .andThen(includedConnectionManagerConfigurer)
             .applyTo(connectionManagerConfig);
 
         defaultRequestConfigurer

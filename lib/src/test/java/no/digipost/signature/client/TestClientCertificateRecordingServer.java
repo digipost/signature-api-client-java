@@ -36,6 +36,8 @@ import static no.digipost.DiggExceptions.getUnchecked;
 @SuppressWarnings("restriction")
 public final class TestClientCertificateRecordingServer implements AutoCloseable {
 
+    private static final String LOOPBACK = "127.0.0.1";
+
     private final HttpsServer server;
     private final List<Optional<X509Certificate>> presentedClientCertificates = new CopyOnWriteArrayList<>();
 
@@ -44,11 +46,13 @@ public final class TestClientCertificateRecordingServer implements AutoCloseable
     }
 
     /**
-     * Start a server on a free port on localhost, answering every request with the given response.
+     * Start a server on a free port on {@code 127.0.0.1}, answering every request with the given response.
+     * Not {@code localhost}, as it may resolve to several addresses, which the client attempts in turn,
+     * and a failed TLS handshake would then be reported as being refused by the next address.
      */
     public static TestClientCertificateRecordingServer start(SSLContext serverSslContext, String contentType, String body) {
 
-        HttpsServer server = getUnchecked(() -> HttpsServer.create(new InetSocketAddress("localhost", 0), 0));
+        HttpsServer server = getUnchecked(() -> HttpsServer.create(new InetSocketAddress(LOOPBACK, 0), 0));
         server.setHttpsConfigurator(new HttpsConfigurator(serverSslContext) {
             @Override
             public void configure(HttpsParameters params) {
@@ -95,7 +99,7 @@ public final class TestClientCertificateRecordingServer implements AutoCloseable
     }
 
     public URI baseUri() {
-        return URI.create("https://localhost:" + server.getAddress().getPort());
+        return URI.create("https://" + LOOPBACK + ":" + server.getAddress().getPort());
     }
 
     /**

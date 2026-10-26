@@ -10,8 +10,9 @@ import no.digipost.signature.client.core.WithSignatureServiceRootUrl;
 import no.digipost.signature.client.core.internal.MaySpecifySender;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBearerTokenConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBuilderConfigurer;
+import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientOrganizationCertificateTlsConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientProxyConfigurer;
-import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientSslConfigurer;
+import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientStandardTlsConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientUserAgentConfigurer;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
 import no.digipost.signature.client.core.internal.oauth.MutualTlsTokenProvider;
@@ -23,6 +24,7 @@ import no.digipost.signature.client.security.oauth.OAuthConfiguration;
 import no.digipost.signature.client.security.oauth.Scope;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 
@@ -57,11 +59,6 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
      */
     public static final String MANDATORY_USER_AGENT = "posten-signature-api-client-java/" + ClientMetadata.VERSION + " (" + JAVA_DESCRIPTION + ")";
 
-
-    /**
-     * Prefix of the access token {@code scope}, followed by the broker id. Must match mIdP exactly.
-     */
-    static final String ACCESS_TOKEN_SCOPE_PREFIX = "signering:";
 
     private final MaySpecifySender defaultSender;
     private final URI serviceRoot;
@@ -146,7 +143,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         private final KeyStoreConfig keyStoreConfig;
 
         final ApacheHttpClientUserAgentConfigurer userAgentConfigurer = new ApacheHttpClientUserAgentConfigurer(MANDATORY_USER_AGENT);
-        private final ApacheHttpClientSslConfigurer sslConfigurer;
+        private final ApacheHttpClientOrganizationCertificateTlsConfigurer organizationCertificateTls;
         private final ApacheHttpClientBuilderConfigurer signatureApiHttpClientConfigurer;
         private final ApacheHttpClientBuilderConfigurer documentDownloadsHttpClientConfigurer;
         private Configurer<HttpClientBuilder> proxyConfigurer = Configurer.notConfigured();
@@ -160,15 +157,14 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
 
         private Builder(KeyStoreConfig keyStoreConfig) {
             this.keyStoreConfig = keyStoreConfig;
-            this.sslConfigurer = new ApacheHttpClientSslConfigurer(keyStoreConfig, serviceEnvironment);
+            this.organizationCertificateTls = new ApacheHttpClientOrganizationCertificateTlsConfigurer(keyStoreConfig, serviceEnvironment);
+            // TLS is configured when building, as it depends on how to authenticate with the API
             this.signatureApiHttpClientConfigurer = new ApacheHttpClientBuilderConfigurer()
-                    .connectionManager(sslConfigurer)
                     .socketTimeout(Duration.ofSeconds(5))
                     .connectTimeout(Duration.ofSeconds(5))
                     .connectionRequestTimeout(Duration.ofSeconds(5))
                     .responseArrivalTimeout(Duration.ofSeconds(10));
             this.documentDownloadsHttpClientConfigurer = new ApacheHttpClientBuilderConfigurer()
-                    .connectionManager(sslConfigurer)
                     .socketTimeout(Duration.ofSeconds(5))
                     .connectTimeout(Duration.ofSeconds(10))
                     .connectionRequestTimeout(Duration.ofSeconds(10))
@@ -181,7 +177,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
 
         public Builder serviceEnvironment(UnaryOperator<ServiceEnvironment> updateServiceEnvironment) {
             this.serviceEnvironment = updateServiceEnvironment.apply(this.serviceEnvironment);
-            this.sslConfigurer.trust(serviceEnvironment);
+            this.organizationCertificateTls.trust(serviceEnvironment);
             return this;
         }
 
@@ -229,6 +225,9 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * <p>
          * The client certificate is still required to acquire access tokens and sign
          * document bundles. Tokens are cached per built configuration, so build it once and reuse it.
+         * <p>
+         * The API is reached on {@link ServiceEnvironment.OAuthDefaults#signatureServiceRootUrl() its own domain}
+         * with standard TLS, and the API's certificate is validated against the JVM's default trust store.
          *
          * @param clientId the assigned client ID for the configured OAuth client
          * @param scope the scope for the configured OAuth client
@@ -249,8 +248,11 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * <p>
          * The client certificate is still required to acquire access tokens and sign
          * document bundles. Tokens are cached per built configuration, so build it once and reuse it.
+         * <p>
+         * The API is reached on {@link ServiceEnvironment.OAuthDefaults#signatureServiceRootUrl() its own domain}
+         * with standard TLS, and the API's certificate is validated against the JVM's default trust store.
          *
-         * @param oAuthConfigResolver use the configured {@link ServiceEnvironment} to derive th
+         * @param oAuthConfigResolver use the configured {@link ServiceEnvironment} to derive the
          *                            configuration to use to acquire access tokens
          */
         public Builder useOAuth(Function<? super ServiceEnvironment, OAuthConfiguration> oAuthConfigResolver) {
@@ -397,7 +399,9 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         /**
          * Override the validation of the server's certificate. This method is mainly
          * intended for tests if you need to override (or even disable) the default
-         * validation that the server identifies itself as "Posten Bring AS".
+         * validation that the server identifies itself as "Posten Bring AS". Applies only when
+         * authenticating with the organization certificate, as the API's certificate is validated
+         * against the JVM's default trust store when {@link #useOAuth(Function) using OAuth}.
          *
          * Calling this method for a production deployment is probably <em>not</em> what you intend to do!
          *
@@ -405,7 +409,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          */
         public Builder serverCertificateTrustStrategy(CertificateChainValidation certificateChainValidation) {
             LOG.warning("Overriding server certificate TrustStrategy! This should NOT be done for any integration with Posten signering.");
-            this.sslConfigurer.certificatChainValidation(certificateChainValidation);
+            this.organizationCertificateTls.certificatChainValidation(certificateChainValidation);
             return this;
         }
 
@@ -425,25 +429,28 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         public ClientConfiguration build() {
             Configurer<HttpClientBuilder> commonConfig = userAgentConfigurer.andThen(proxyConfigurer);
 
+            URI serviceRoot;
             Configurer<HttpClientBuilder> apiConfig;
+            Configurer<PoolingHttpClientConnectionManagerBuilder> apiTls;
             if (oAuthConfigResolver != null) {
-                // The API is called with the access token only. Note that this also affects
-                // configurations previously built by this builder, as the ssl configurer is shared.
-                sslConfigurer.withoutClientCertificate();
+                serviceRoot = serviceEnvironment.oAuth().signatureServiceRootUrl();
 
                 // The token client gets commonConfig only, as it must not send a bearer token itself
                 MutualTlsTokenProvider tokenProvider = MutualTlsTokenProvider.create(
                         oAuthConfigResolver.apply(serviceEnvironment), keyStoreConfig, commonConfig, clock);
                 apiConfig = commonConfig.andThen(new ApacheHttpClientBearerTokenConfigurer(tokenProvider::getToken, tokenProvider::invalidate));
+                apiTls = new ApacheHttpClientStandardTlsConfigurer();
             } else {
+                serviceRoot = serviceEnvironment.signatureServiceRootUrl();
                 apiConfig = commonConfig;
+                apiTls = organizationCertificateTls;
             }
 
             return new ClientConfiguration(defaultSender,
-                    serviceEnvironment.signatureServiceRootUrl(),
+                    serviceRoot,
                     keyStoreConfig,
-                    apiConfig.andThen(signatureApiHttpClientConfigurer),
-                    apiConfig.andThen(documentDownloadsHttpClientConfigurer),
+                    apiConfig.andThen(signatureApiHttpClientConfigurer.including(apiTls)),
+                    apiConfig.andThen(documentDownloadsHttpClientConfigurer.including(apiTls)),
                     documentBundleProcessors,
                     clock
             );

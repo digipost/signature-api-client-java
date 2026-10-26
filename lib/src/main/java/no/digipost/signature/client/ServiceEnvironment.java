@@ -22,26 +22,39 @@ import static java.util.stream.Collectors.toList;
  */
 public final class ServiceEnvironment implements ProvidesCertificateResourcePaths, WithSignatureServiceRootUrl {
 
-    public static final class OAuthDefaults implements OAuthConfiguration.ServiceSpecific {
+    /**
+     * Configuration for using OAuth, kept separate from organization certificate config.
+     * The API uses a separate domain when using OAuth, with a standard TLS certificate issued for the domain name.
+     */
+    public static final class OAuthDefaults implements OAuthConfiguration.ServiceSpecific, WithSignatureServiceRootUrl {
         public static final OAuthDefaults PRODUCTION = new OAuthDefaults(
+                URI.create("https://api.sign.digipost.no/api"),
                 URI.create("https://midp.digipost.no/oauth2/token"),
-                new Resource("https://api.signering.posten.no"));
+                new Resource("https://api.sign.digipost.no"));
 
         public static final OAuthDefaults STAGING = new OAuthDefaults(
+                URI.create("https://api.sign.difitest.digipost.no/api"),
                 URI.create("https://midp.difitest.digipost.no/oauth2/token"),
-                new Resource("https://api.difitest.signering.posten.no"));
+                new Resource("https://api.sign.difitest.digipost.no"));
 
+        private final URI serviceRootUrl;
         private final URI tokenEndpoint;
         private final Resource resource;
 
-        private OAuthDefaults(URI tokenEndpoint, Resource resource) {
+        private OAuthDefaults(URI serviceRootUrl, URI tokenEndpoint, Resource resource) {
+            this.serviceRootUrl = serviceRootUrl;
             this.tokenEndpoint = tokenEndpoint;
             this.resource = resource;
         }
 
         @Override
         public String toString() {
-            return "OAuth token endpoint " + tokenEndpoint + ", " + resource;
+            return "OAuth on API at " + serviceRootUrl + " with token endpoint " + tokenEndpoint + ", " + resource;
+        }
+
+        @Override
+        public URI signatureServiceRootUrl() {
+            return serviceRootUrl;
         }
 
         @Override
@@ -58,7 +71,8 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
         public boolean equals(Object other) {
             if (other instanceof OAuthDefaults) {
                 OAuthDefaults that = (OAuthDefaults) other;
-                return Objects.equals(this.tokenEndpoint, that.tokenEndpoint) &&
+                return Objects.equals(this.serviceRootUrl, that.serviceRootUrl) &&
+                        Objects.equals(this.tokenEndpoint, that.tokenEndpoint) &&
                         Objects.equals(this.resource, that.resource);
             }
             return false;
@@ -66,7 +80,7 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
 
         @Override
         public int hashCode() {
-            return 31 * Objects.hashCode(tokenEndpoint) + Objects.hashCode(resource);
+            return Objects.hash(serviceRootUrl, tokenEndpoint, resource);
         }
     }
 
@@ -90,7 +104,6 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
             null); // no token endpoint for this env
 
 
-
     private final String description;
     private final URI serviceRootUrl;
     private final List<String> certificatePaths;
@@ -100,7 +113,8 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
     /**
      * @deprecated This constructor produces an invalid ServiceEnvironment missing {@link #oAuth() OAuth defaults},
      *             and will be removed in the future. Refer to one of the predefined constants (e.g.
-     *             {@link #STAGING}, {@link #PRODUCTION}), and {@link #withServiceUrl(URI) customize} them if needed.
+     *             {@link #STAGING}, {@link #PRODUCTION}), and customize them if needed, e.g. with
+     *             {@link #withServiceUrl(URI)} and {@link #withOAuth(URI, URI, Resource)}.
      */
     @Deprecated
     public ServiceEnvironment(String description, URI serviceRootUrl, Collection<String> certificatePaths) {
@@ -115,16 +129,34 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
     }
 
     /**
-     * Set the endpoint to acquire access OAuth tokens from. Only needed for custom environments.
+     * Use OAuth with a custom configuration. Only needed for custom environments.
+     *
+     * @param serviceRootUrl the API when using OAuth
+     * @param tokenEndpointUrl the endpoint to acquire OAuth access tokens from
+     * @param resource the resource to acquire access tokens for, which must match the token endpoint's configuration
+     */
+    public ServiceEnvironment withOAuth(URI serviceRootUrl, URI tokenEndpointUrl, Resource resource) {
+        return new ServiceEnvironment(this.description, this.serviceRootUrl, this.certificatePaths, new OAuthDefaults(serviceRootUrl, tokenEndpointUrl, resource));
+    }
+
+    /**
+     * Set the endpoint to acquire OAuth access tokens from, keeping the rest of the {@link #oAuth() OAuth configuration}.
+     *
+     * @see #withOAuth(URI, URI, Resource)
      */
     public ServiceEnvironment withTokenEndpoint(URI tokenEndpointUrl) {
-        return new ServiceEnvironment(this.description, this.serviceRootUrl, this.certificatePaths, new OAuthDefaults(tokenEndpointUrl, this.oAuth.resource()));
+        return withOAuth(oAuth().serviceRootUrl, tokenEndpointUrl, oAuth().resource);
     }
 
     public ServiceEnvironment withDescription(String description) {
         return new ServiceEnvironment(description, this.serviceRootUrl, this.certificatePaths, this.oAuth);
     }
 
+    /**
+     * Use a custom URL for the API when authenticating with the organization certificate.
+     *
+     * @see #withOAuth(URI, URI, Resource)
+     */
     public ServiceEnvironment withServiceUrl(URI url) {
         return new ServiceEnvironment(this.description, url, this.certificatePaths, this.oAuth);
     }
@@ -147,30 +179,39 @@ public final class ServiceEnvironment implements ProvidesCertificateResourcePath
         return new ServiceEnvironment(this.description, this.serviceRootUrl, certificatePaths, this.oAuth);
     }
 
+    /**
+     * The API when authenticating with the organization certificate.
+     *
+     * @see OAuthDefaults#signatureServiceRootUrl()
+     */
     @Override
     public URI signatureServiceRootUrl() {
         return serviceRootUrl;
     }
 
-    public OAuthDefaults oAuth() {
-        if (oAuth == null) {
-            throw new ConfigurationException(this + " does not specify an OAuth configuration");
-        }
-        return oAuth;
-    }
-
+    /**
+     * The trusted certificates apply only when authenticating with the organization certificate.
+     * With OAuth, the API's certificate is validated against the JVM's default trust store.
+     */
     @Override
     public List<String> certificatePaths() {
         return certificatePaths;
     }
 
-
+    public OAuthDefaults oAuth() {
+        if (oAuth == null) {
+            throw new ConfigurationException(
+                    this + " does not specify an OAuth configuration, which is expected for custom environments. " +
+                    "Specify it with serviceEnvironment(env -> env.withOAuth(..)).");
+        }
+        return oAuth;
+    }
 
     @Override
     public String toString() {
-        return ServiceEnvironment.class.getSimpleName() + " '" + description + "' at " + serviceRootUrl + ", " +
+        return ServiceEnvironment.class.getSimpleName() + " '" + description + "', " +
                 "using " + (oAuth != null ? oAuth + ", or " : "") +
-                "mTLS directly on API trusting " + certificatePaths;
+                "mTLS directly on API at " + serviceRootUrl + " trusting " + certificatePaths;
     }
 
 }

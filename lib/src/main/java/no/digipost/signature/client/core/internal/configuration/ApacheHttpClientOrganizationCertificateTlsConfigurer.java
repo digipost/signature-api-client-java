@@ -11,43 +11,37 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.ssl.SSLContexts;
 
 import javax.net.ssl.SSLContext;
 
 import java.security.UnrecoverableKeyException;
 
-public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClientConnectionManagerBuilder> {
+/**
+ * TLS for authenticating to the API with the organization certificate. The API presents an organization
+ * certificate, which is not issued for a hostname, so it is validated against the trusted certificates and
+ * the organization number instead of with hostname verification.
+ *
+ * @see ApacheHttpClientStandardTlsConfigurer
+ */
+public class ApacheHttpClientOrganizationCertificateTlsConfigurer implements Configurer<PoolingHttpClientConnectionManagerBuilder> {
 
     private final KeyStoreConfig keyStoreConfig;
     private ProvidesCertificateResourcePaths trustedCertificates;
     private CertificateChainValidation certificateChainValidation;
-    private boolean presentClientCertificate = true;
 
-    public ApacheHttpClientSslConfigurer(KeyStoreConfig keyStoreConfig, ProvidesCertificateResourcePaths trustedCertificates) {
+    public ApacheHttpClientOrganizationCertificateTlsConfigurer(KeyStoreConfig keyStoreConfig, ProvidesCertificateResourcePaths trustedCertificates) {
         this.keyStoreConfig = keyStoreConfig;
         this.trustedCertificates = trustedCertificates;
         this.certificateChainValidation = new OrganizationNumberValidation("984661185"); // Posten Bring AS organization number
     }
 
-    public ApacheHttpClientSslConfigurer trust(ProvidesCertificateResourcePaths certificates) {
+    public ApacheHttpClientOrganizationCertificateTlsConfigurer trust(ProvidesCertificateResourcePaths certificates) {
         this.trustedCertificates = certificates;
         return this;
     }
 
-    /**
-     * Connect without presenting the client certificate, as requests are authenticated with an
-     * access token instead. Validation of the server's certificate is unaffected.
-     *
-     * @see no.digipost.signature.client.ClientConfiguration.Builder#useOAuth(java.util.function.Function)
-     */
-    public ApacheHttpClientSslConfigurer withoutClientCertificate() {
-        this.presentClientCertificate = false;
-        return this;
-    }
-
-    public ApacheHttpClientSslConfigurer certificatChainValidation(CertificateChainValidation certificateChainValidation) {
+    public ApacheHttpClientOrganizationCertificateTlsConfigurer certificatChainValidation(CertificateChainValidation certificateChainValidation) {
         this.certificateChainValidation = certificateChainValidation;
         return this;
     }
@@ -61,12 +55,10 @@ public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClie
 
     private SSLContext sslContext() {
         try {
-            SSLContextBuilder sslContext = SSLContexts.custom()
-                    .loadTrustMaterial(TrustStoreLoader.build(trustedCertificates), new SignatureApiTrustStrategy(certificateChainValidation));
-            if (presentClientCertificate) {
-                sslContext.loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), (aliases, socket) -> keyStoreConfig.alias);
-            }
-            return sslContext.build();
+            return SSLContexts.custom()
+                    .loadKeyMaterial(keyStoreConfig.keyStore, keyStoreConfig.privatekeyPassword.toCharArray(), (aliases, socket) -> keyStoreConfig.alias)
+                    .loadTrustMaterial(TrustStoreLoader.build(trustedCertificates), new SignatureApiTrustStrategy(certificateChainValidation))
+                    .build();
         } catch (Exception e) {
             if (e instanceof UnrecoverableKeyException && "Given final block not properly padded".equals(e.getMessage())) {
                 throw new KeyException(

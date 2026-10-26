@@ -48,7 +48,7 @@ public final class ApacheHttpClientBearerTokenConfigurer implements Configurer<H
     public void applyTo(HttpClientBuilder httpClientBuilder) {
         httpClientBuilder
                 .addRequestInterceptorLast(new RequestBearerTokenInterceptor(tokenProvider))
-                // Before PROTOCOL, so a retry runs the interceptor above again and gets a new token
+                // Request interceptors run in MAIN_TRANSPORT, further down the chain, so a retry sets a new token
                 .addExecInterceptorBefore(
                         ChainElement.PROTOCOL.name(), RECOVERY_EXEC_NAME, new RejectedTokenRecoveryExec(tokenRefreshTrigger));
     }

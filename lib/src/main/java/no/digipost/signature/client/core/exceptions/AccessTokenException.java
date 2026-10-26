@@ -2,7 +2,7 @@ package no.digipost.signature.client.core.exceptions;
 
 /**
  * Thrown from API calls when an access token could not be acquired, e.g. if the token endpoint
- * rejects the client id or broker id. Tokens are acquired on first use, not when the client is built.
+ * rejects the client id or scope. Tokens are acquired on first use, not when the client is built.
  */
 public class AccessTokenException extends SignatureException {
 
