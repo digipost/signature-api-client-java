@@ -12,7 +12,6 @@ import no.digipost.signature.client.core.internal.configuration.ApacheHttpClient
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientBuilderConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientOrganizationCertificateTlsConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientProxyConfigurer;
-import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientStandardTlsConfigurer;
 import no.digipost.signature.client.core.internal.configuration.ApacheHttpClientUserAgentConfigurer;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
 import no.digipost.signature.client.core.internal.oauth.MutualTlsTokenProvider;
@@ -439,7 +438,7 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
                 MutualTlsTokenProvider tokenProvider = MutualTlsTokenProvider.create(
                         oAuthConfigResolver.apply(serviceEnvironment), keyStoreConfig, commonConfig, clock);
                 apiConfig = commonConfig.andThen(new ApacheHttpClientBearerTokenConfigurer(tokenProvider::getToken, tokenProvider::invalidate));
-                apiTls = new ApacheHttpClientStandardTlsConfigurer();
+                apiTls = Configurer.notConfigured();
             } else {
                 serviceRoot = serviceEnvironment.signatureServiceRootUrl();
                 apiConfig = commonConfig;
