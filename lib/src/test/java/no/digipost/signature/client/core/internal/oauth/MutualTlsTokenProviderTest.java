@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,6 +36,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.givenThat;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -43,10 +45,13 @@ import static java.time.Duration.ofSeconds;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static no.digipost.signature.client.core.internal.oauth.MutualTlsTokenProvider.CachedAccessToken.REFRESH_MARGIN;
+import static no.digipost.signature.client.core.internal.oauth.MutualTlsTokenProvider.ExpiringAccessToken.REFRESH_MARGIN;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isA;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.co.probablyfine.matchers.Java8Matchers.where;
 
@@ -123,6 +128,38 @@ class MutualTlsTokenProviderTest {
 
         RESPONSE_BLOCKER.release();
         assertThat(secondToken.join(), is("token-2"));
+    }
+
+    @Test
+    void throwExceptionForThreadWaitingForFailingTokenRefreshByAnotherThread() throws InterruptedException {
+        givenThat(post(urlEqualTo(TOKEN_PATH)).willReturn(okJson("{\"access_token\":\"a-token\",\"expires_in\":60}")));
+        MutualTlsTokenProvider tokenProvider = tokenProvider();
+        assertThat(tokenProvider.getToken(), is("a-token"));
+
+        clock.timePasses(Duration.ofSeconds(60));
+        givenThat(post(urlEqualTo(TOKEN_PATH)).willReturn(serverError()));
+        RESPONSE_BLOCKER.block();
+
+        CompletableFuture<String> failingRefresh = CompletableFuture.supplyAsync(tokenProvider::getToken);
+        RESPONSE_BLOCKER.awaitUntilBlocking();
+
+        CompletableFuture<String> awaitingRefresh = CompletableFuture.supplyAsync(tokenProvider::getToken);
+
+        // We need to small cheating sleep here, in order to ensure that the second request has reached
+        // the waiting state for the token refreshing to finish.
+        Thread.sleep(500);
+
+        RESPONSE_BLOCKER.release();
+        Throwable failedRefreshException = assertThrows(CompletionException.class, failingRefresh::join).getCause();
+        Throwable futileWaitingException = assertThrows(CompletionException.class, awaitingRefresh::join).getCause();
+
+        assertAll(
+                () -> assertThat(futileWaitingException,
+                        both(where(Throwable::getMessage, containsString("another request was assigned to refresh")))
+                        .and(isA(AccessTokenException.class))),
+                () -> assertThat(failedRefreshException,
+                        both(where(Throwable::getMessage, containsString(oAuthConfiguration.tokenEndpoint().toASCIIString())))
+                        .and(isA(AccessTokenException.class))));
     }
 
     @Test
