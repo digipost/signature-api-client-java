@@ -21,8 +21,6 @@ import java.security.UnrecoverableKeyException;
  * TLS for authenticating to the API with the organization certificate. The API presents an organization
  * certificate, which is not issued for a hostname, so it is validated against the trusted certificates and
  * the organization number instead of with hostname verification.
- *
- * @see ApacheHttpClientStandardTlsConfigurer
  */
 public class ApacheHttpClientOrganizationCertificateTlsConfigurer implements Configurer<PoolingHttpClientConnectionManagerBuilder> {
 
