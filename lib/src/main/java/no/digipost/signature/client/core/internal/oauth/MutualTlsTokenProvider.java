@@ -36,6 +36,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
@@ -49,7 +50,7 @@ import static org.apache.hc.core5.http.HttpHeaders.ACCEPT;
 /**
  * Acquires OAuth 2.0 access tokens with the <em>client credentials</em> grant over mTLS. Tokens are
  * cached, and replaced on the first {@link #getToken()} within the duration of
- * {@link CachedAccessToken#REFRESH_MARGIN} of expiry.
+ * {@link ExpiringAccessToken#REFRESH_MARGIN} of expiry.
  */
 public class MutualTlsTokenProvider {
 
@@ -68,7 +69,7 @@ public class MutualTlsTokenProvider {
     private final Clock clock;
 
     private final ReentrantLock refreshLock = new ReentrantLock();
-    private volatile CachedAccessToken cachedToken = CachedAccessToken.INITIAL_PENDING_REFRESH;
+    private volatile ExpiringAccessToken cachedToken = ExpiringAccessToken.INITIAL_PENDING_REFRESH;
 
 
     /**
@@ -117,40 +118,49 @@ public class MutualTlsTokenProvider {
      * The cached access token, or a new one if it is absent or about to expire.
      */
     public String getToken() {
-        CachedAccessToken current = cachedToken;
-        if (!current.isRefreshDueAt(clock.instant())) {
-            return current.token;
+        ExpiringAccessToken currentToken = cachedToken;
+        if (!currentToken.isRefreshDueAt(clock.instant())) {
+            return currentToken.value();
         }
 
         if (refreshLock.tryLock()) {
             try {
-                current = cachedToken;
-                if (!current.isRefreshDueAt(clock.instant())) {
-                    return current.token;
+                currentToken = cachedToken;
+                if (!currentToken.isRefreshDueAt(clock.instant())) {
+                    return currentToken.value();
                 }
-                CachedAccessToken refreshed = acquireToken();
-                cachedToken = refreshed;
-                return refreshed.token;
-            } finally {
-                refreshLock.unlock();
-            }
-        } else if (current.isValidAt(clock.instant())) {
-            return current.token;
-        } else {
-            refreshLock.lock();
-            try {
-                return cachedToken.token;
+                ExpiringAccessToken refreshedToken = acquireToken();
+                cachedToken = refreshedToken;
+                return refreshedToken.value();
             } finally {
                 refreshLock.unlock();
             }
         }
+        return currentToken
+            .ifValidAt(clock.instant())
+            .orElseGet(() -> {
+                refreshLock.lock();
+                try {
+                    return cachedToken
+                            .ifValidAt(clock.instant())
+                            .orElseThrow(() -> new AccessTokenException(
+                                    "Unable to retrieve a valid access token. " +
+                                    "Currently, " + cachedToken + " is cached. " +
+                                    "This is likely to have happened because another request was " +
+                                    "assigned to refresh the token, but ultimately failed. When this " +
+                                    "request was then released to use the intended refreshed access token, " +
+                                    "there was in fact still only an expired token available."));
+                } finally {
+                    refreshLock.unlock();
+                }
+            });
     }
 
     public void invalidate() {
-        cachedToken = CachedAccessToken.INITIAL_PENDING_REFRESH;
+        cachedToken = ExpiringAccessToken.INITIAL_PENDING_REFRESH;
     }
 
-    private CachedAccessToken acquireToken() {
+    private ExpiringAccessToken acquireToken() {
         ClassicHttpRequest request = ClassicRequestBuilder
                 .post(tokenEndpointUrl)
                 .addHeader(ACCEPT, APPLICATION_JSON.getMimeType())
@@ -164,7 +174,7 @@ public class MutualTlsTokenProvider {
         }
     }
 
-    private CachedAccessToken handleTokenResponse(ClassicHttpResponse response) throws IOException, ParseException {
+    private ExpiringAccessToken handleTokenResponse(ClassicHttpResponse response) throws IOException, ParseException {
         HttpEntity responseEntity = response.getEntity();
         StatusCode status = StatusCode.from(response.getCode());
         if (responseEntity == null || !status.is(SUCCESSFUL)) {
@@ -177,7 +187,7 @@ public class MutualTlsTokenProvider {
         TokenResponse tokenResponse = readTokenResponse(responseEntity.getContent());
         Instant expiresAt = Instant.now(clock).plus(tokenResponse.expiresIn);
         LOG.fine(() -> "Acquired a new access token from " + tokenEndpointUrl + ", expiring at " + expiresAt);
-        return new CachedAccessToken(tokenResponse.accessToken, expiresAt);
+        return new ExpiringAccessToken(tokenResponse.accessToken, expiresAt);
     }
 
     private TokenResponse readTokenResponse(InputStream responseBody) {
@@ -238,32 +248,42 @@ public class MutualTlsTokenProvider {
     /**
      * Token and expiry in one immutable value, so they are never read out of sync without the lock.
      */
-    public static final class CachedAccessToken {
+    static final class ExpiringAccessToken {
         static final Duration SAFETY_MARGIN_FOR_EXPIRY = Duration.ofSeconds(5);
         static final Duration REFRESH_MARGIN = SAFETY_MARGIN_FOR_EXPIRY.plus(Duration.ofSeconds(30));
 
-        private static final CachedAccessToken INITIAL_PENDING_REFRESH = new CachedAccessToken(null, Instant.MIN, Instant.MIN);
+        private static final ExpiringAccessToken INITIAL_PENDING_REFRESH = new ExpiringAccessToken(null, Instant.MIN, Instant.MIN);
 
-        final String token;
+        private final String value;
         private final Instant invalidFrom;
         private final Instant refreshDueFrom;
 
-        private CachedAccessToken(String token, Instant expiresAt) {
-            this(token, expiresAt.minus(SAFETY_MARGIN_FOR_EXPIRY), expiresAt.minus(REFRESH_MARGIN));
+        ExpiringAccessToken(String tokenValue, Instant expiresAt) {
+            this(tokenValue, expiresAt.minus(SAFETY_MARGIN_FOR_EXPIRY), expiresAt.minus(REFRESH_MARGIN));
         }
 
-        private CachedAccessToken(String token, Instant invalidFrom, Instant refreshDueFrom) {
-            this.token = token;
+        private ExpiringAccessToken(String tokenValue, Instant invalidFrom, Instant refreshDueFrom) {
+            this.value = tokenValue;
             this.invalidFrom = invalidFrom;
             this.refreshDueFrom = refreshDueFrom;
         }
 
-        boolean isValidAt(Instant instant) {
-            return instant.isBefore(invalidFrom);
+        String value() {
+            return requireNonNull(value, "no token value present");
+        }
+
+        Optional<String> ifValidAt(Instant instant) {
+            return instant.isBefore(invalidFrom) ? Optional.of(value) : Optional.empty();
         }
 
         boolean isRefreshDueAt(Instant instant) {
             return !instant.isBefore(refreshDueFrom);
+        }
+
+        @Override
+        public String toString() {
+            return "access token " +
+                    (value == null ? "(initial, yet to be set)" : "****, invalid from: " + invalidFrom + ", refresh due from: " + refreshDueFrom);
         }
     }
 
