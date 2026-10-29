@@ -17,24 +17,31 @@ import javax.net.ssl.SSLContext;
 
 import java.security.UnrecoverableKeyException;
 
-public class ApacheHttpClientSslConfigurer implements Configurer<PoolingHttpClientConnectionManagerBuilder> {
+/**
+ * TLS for authenticating to the API with the organization certificate. The API presents an organization
+ * certificate, which is not issued for a hostname, so it is validated against the trusted certificates and
+ * the organization number instead of with hostname verification.
+ *
+ * @see ApacheHttpClientStandardTlsConfigurer
+ */
+public class ApacheHttpClientOrganizationCertificateTlsConfigurer implements Configurer<PoolingHttpClientConnectionManagerBuilder> {
 
     private final KeyStoreConfig keyStoreConfig;
     private ProvidesCertificateResourcePaths trustedCertificates;
     private CertificateChainValidation certificateChainValidation;
 
-    public ApacheHttpClientSslConfigurer(KeyStoreConfig keyStoreConfig, ProvidesCertificateResourcePaths trustedCertificates) {
+    public ApacheHttpClientOrganizationCertificateTlsConfigurer(KeyStoreConfig keyStoreConfig, ProvidesCertificateResourcePaths trustedCertificates) {
         this.keyStoreConfig = keyStoreConfig;
         this.trustedCertificates = trustedCertificates;
         this.certificateChainValidation = new OrganizationNumberValidation("984661185"); // Posten Bring AS organization number
     }
 
-    public ApacheHttpClientSslConfigurer trust(ProvidesCertificateResourcePaths certificates) {
+    public ApacheHttpClientOrganizationCertificateTlsConfigurer trust(ProvidesCertificateResourcePaths certificates) {
         this.trustedCertificates = certificates;
         return this;
     }
 
-    public ApacheHttpClientSslConfigurer certificatChainValidation(CertificateChainValidation certificateChainValidation) {
+    public ApacheHttpClientOrganizationCertificateTlsConfigurer certificatChainValidation(CertificateChainValidation certificateChainValidation) {
         this.certificateChainValidation = certificateChainValidation;
         return this;
     }

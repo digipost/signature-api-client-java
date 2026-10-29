@@ -7,7 +7,7 @@ public class DocumentBundle {
 
     private final byte[] bytes;
 
-    public DocumentBundle(final byte[] bytes) {
+    public DocumentBundle(byte[] bytes) {
         this.bytes = bytes;
     }
 
