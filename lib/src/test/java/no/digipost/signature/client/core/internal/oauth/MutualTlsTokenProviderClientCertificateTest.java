@@ -1,5 +1,6 @@
 package no.digipost.signature.client.core.internal.oauth;
 
+import no.digipost.signature.client.ScopedSystemProperties;
 import no.digipost.signature.client.TestClientCertificateRecordingServer;
 import no.digipost.signature.client.core.exceptions.HttpIOException;
 import no.digipost.signature.client.core.internal.configuration.Configurer;
@@ -34,12 +35,12 @@ class MutualTlsTokenProviderClientCertificateTest {
 
     @Test
     void presentsTheClientCertificateToTheTokenEndpoint() {
-        try (TestClientCertificateRecordingServer tokenEndpoint = startTokenEndpoint()) {
+        try (TestClientCertificateRecordingServer tokenEndpoint = startTokenEndpoint();
+                ScopedSystemProperties trustingLocalhost = LOCALHOST.setupTrustBySystemProperties()) {
 
-            MutualTlsTokenProvider tokenProvider = LOCALHOST.trustedByDefaultWhile(
-                    () -> MutualTlsTokenProvider.create(
+            MutualTlsTokenProvider tokenProvider = MutualTlsTokenProvider.create(
                             oAuthConfiguration(tokenEndpoint.baseUri()), CLIENT_KEYSTORE,
-                            Configurer.notConfigured(), Clock.systemUTC()));
+                            Configurer.notConfigured(), Clock.systemUTC());
 
             assertThat(tokenProvider.getToken(), is("a-token"));
 
