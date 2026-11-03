@@ -23,7 +23,6 @@ import no.digipost.signature.client.security.oauth.OAuthConfiguration;
 import no.digipost.signature.client.security.oauth.Scope;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 
@@ -426,11 +425,10 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
         }
 
         public ClientConfiguration build() {
-            Configurer<HttpClientBuilder> commonConfig = userAgentConfigurer.andThen(proxyConfigurer);
+            final Configurer<HttpClientBuilder> commonConfig = userAgentConfigurer.andThen(proxyConfigurer);
 
-            URI serviceRoot;
-            Configurer<HttpClientBuilder> apiConfig;
-            Configurer<PoolingHttpClientConnectionManagerBuilder> apiTls;
+            final URI serviceRoot;
+            final Configurer<HttpClientBuilder> apiConfig;
             if (oAuthConfigResolver != null) {
                 serviceRoot = serviceEnvironment.oAuth().signatureServiceRootUrl();
 
@@ -438,18 +436,18 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
                 MutualTlsTokenProvider tokenProvider = MutualTlsTokenProvider.create(
                         oAuthConfigResolver.apply(serviceEnvironment), keyStoreConfig, commonConfig, clock);
                 apiConfig = commonConfig.andThen(new ApacheHttpClientBearerTokenConfigurer(tokenProvider::getToken, tokenProvider::invalidate));
-                apiTls = Configurer.notConfigured();
             } else {
                 serviceRoot = serviceEnvironment.signatureServiceRootUrl();
                 apiConfig = commonConfig;
-                apiTls = organizationCertificateTls;
+                signatureApiHttpClientConfigurer.connectionManager(organizationCertificateTls);
+                documentDownloadsHttpClientConfigurer.connectionManager(organizationCertificateTls);
             }
 
             return new ClientConfiguration(defaultSender,
                     serviceRoot,
                     keyStoreConfig,
-                    apiConfig.andThen(signatureApiHttpClientConfigurer.including(apiTls)),
-                    apiConfig.andThen(documentDownloadsHttpClientConfigurer.including(apiTls)),
+                    apiConfig.andThen(signatureApiHttpClientConfigurer),
+                    apiConfig.andThen(documentDownloadsHttpClientConfigurer),
                     documentBundleProcessors,
                     clock
             );
