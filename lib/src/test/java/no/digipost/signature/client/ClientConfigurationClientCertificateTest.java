@@ -71,9 +71,11 @@ class ClientConfigurationClientCertificateTest {
     void doesNotPresentTheClientCertificateWhenUsingOAuth() {
         stubTokenEndpoint();
 
-        try (TestClientCertificateRecordingServer apiServer = startApiServer(LOCALHOST.serverSslContext())) {
+        try (
+                TestClientCertificateRecordingServer apiServer = startApiServer(LOCALHOST.serverSslContext());
+                ScopedSystemProperties localhost = LOCALHOST.setupTrustBySystemProperties()) {
 
-            callApi(LOCALHOST.trustedByDefaultWhile(configFor(apiServer.baseUri()).useOAuth(CLIENT_ID, SCOPE)::build));
+            callApi(configFor(apiServer.baseUri()).useOAuth(CLIENT_ID, SCOPE).build());
 
             List<Optional<X509Certificate>> presented = apiServer.presentedClientCertificates();
             assertThat(presented, hasSize(1));
@@ -85,8 +87,11 @@ class ClientConfigurationClientCertificateTest {
     void doesNotPresentTheClientCertificateForDocumentDownloadsEither() {
         stubTokenEndpoint();
 
-        try (TestClientCertificateRecordingServer apiServer = startApiServer(LOCALHOST.serverSslContext())) {
-            ClientConfiguration config = LOCALHOST.trustedByDefaultWhile(configFor(apiServer.baseUri()).useOAuth(CLIENT_ID, SCOPE)::build);
+        try (
+                TestClientCertificateRecordingServer apiServer = startApiServer(LOCALHOST.serverSslContext());
+                ScopedSystemProperties localhost = LOCALHOST.setupTrustBySystemProperties()) {
+
+            ClientConfiguration config = configFor(apiServer.baseUri()).useOAuth(CLIENT_ID, SCOPE).build();
 
             call(config.httpClientForDocumentDownloads(), apiServer.baseUri());
 
@@ -116,8 +121,11 @@ class ClientConfigurationClientCertificateTest {
     void refusesAnApiCertificateIssuedForAnotherHostnameWhenUsingOAuth() {
         stubTokenEndpoint();
 
-        try (TestClientCertificateRecordingServer apiServer = startApiServer(OTHER_HOSTNAME.serverSslContext())) {
-            ClientConfiguration config = OTHER_HOSTNAME.trustedByDefaultWhile(configFor(apiServer.baseUri()).useOAuth(CLIENT_ID, SCOPE)::build);
+        try (
+                TestClientCertificateRecordingServer apiServer = startApiServer(OTHER_HOSTNAME.serverSslContext());
+                ScopedSystemProperties otherHost = OTHER_HOSTNAME.setupTrustBySystemProperties()) {
+
+            ClientConfiguration config = configFor(apiServer.baseUri()).useOAuth(CLIENT_ID, SCOPE).build();
 
             RuntimeException thrown = assertThrows(RuntimeException.class, () -> callApi(config));
             assertThat(thrown, where(Throwable::getCause, instanceOf(SSLException.class)));
