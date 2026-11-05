@@ -40,6 +40,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -139,11 +140,11 @@ public class CreateSignature {
         return createSchema(new HashSet<>(Arrays.asList(SignatureApiSchemas.XMLDSIG_SCHEMA, SignatureApiSchemas.ASICE_SCHEMA)));
     }
 
-    public Signature createSignature(final List<? extends SignableFileReference> attachedFiles, final KeyStoreConfig keyStoreConfig) {
+    public Signature createSignature(List<? extends SignableFileReference> attachedFiles, KeyStoreConfig keyStoreConfig) {
         return new Signature(domUtils.serializeToXml(createXmlSignature(attachedFiles, keyStoreConfig)));
     }
 
-    protected Document createXmlSignature(final List<? extends SignableFileReference> attachedFiles, final KeyStoreConfig keyStoreConfig) {
+    protected Document createXmlSignature(List<? extends SignableFileReference> attachedFiles, KeyStoreConfig keyStoreConfig) {
         XMLSignatureFactory xmlSignatureFactory = XmlSignatureProviders.getSignatureFactory();
         SignatureMethod signatureMethod = getSignatureMethod(xmlSignatureFactory);
 
@@ -205,7 +206,7 @@ public class CreateSignature {
         return (Element) doc.appendChild(doc.createElementNS(ASIC_NAMESPACE, "XAdESSignatures"));
     }
 
-    private static SignatureMethod getSignatureMethod(final XMLSignatureFactory xmlSignatureFactory) {
+    private static SignatureMethod getSignatureMethod(XMLSignatureFactory xmlSignatureFactory) {
         try {
             return xmlSignatureFactory.newSignatureMethod("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256", null);
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
@@ -213,7 +214,7 @@ public class CreateSignature {
         }
     }
 
-    private List<Reference> references(final XMLSignatureFactory xmlSignatureFactory, final List<? extends SignableFileReference> files) {
+    private List<Reference> references(XMLSignatureFactory xmlSignatureFactory, List<? extends SignableFileReference> files) {
         List<Reference> result = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             try {
@@ -229,7 +230,7 @@ public class CreateSignature {
         return result;
     }
 
-    private static KeyInfo keyInfo(final XMLSignatureFactory xmlSignatureFactory, final Certificate[] sertifikater) {
+    private static KeyInfo keyInfo(XMLSignatureFactory xmlSignatureFactory, Certificate[] sertifikater) {
         KeyInfoFactory keyInfoFactory = xmlSignatureFactory.getKeyInfoFactory();
         X509Data x509Data = keyInfoFactory.newX509Data(asList(sertifikater));
         return keyInfoFactory.newKeyInfo(singletonList(x509Data));

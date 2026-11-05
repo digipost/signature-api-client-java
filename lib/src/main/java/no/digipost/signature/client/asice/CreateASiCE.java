@@ -6,11 +6,11 @@ import no.digipost.signature.client.asice.manifest.ManifestCreator;
 import no.digipost.signature.client.asice.signature.CreateSignature;
 import no.digipost.signature.client.asice.signature.Signature;
 import no.digipost.signature.client.core.SignatureJob;
-import no.digipost.signature.client.core.exceptions.RuntimeIOException;
 import no.digipost.signature.client.security.KeyStoreConfig;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +44,7 @@ public class CreateASiCE<JOB extends SignatureJob> {
             try (ByteArrayInputStream zipStream = new ByteArrayInputStream(zipped)) {
                 processor.process(job, zipStream);
             } catch (IOException e) {
-                throw new RuntimeIOException(e);
+                throw new UncheckedIOException(e);
             }
         }
 

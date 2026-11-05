@@ -58,7 +58,7 @@ public class Signature {
                 (xAdESReference != null ? ". XAdES available at " + xAdESReference.getxAdESUrl() : "");
     }
 
-    static Predicate<Signature> signatureFrom(final String signer) {
+    static Predicate<Signature> signatureFrom(String signer) {
         return signature -> signature.isFrom(signer);
     }
 
