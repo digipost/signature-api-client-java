@@ -297,6 +297,8 @@ public final class ClientConfiguration implements ASiCEConfiguration, WithSignat
          * <p>
          * The <em>reference_from_job</em> part is only included if the job is given such a reference using
          * {@link no.digipost.signature.client.direct.DirectJob.Builder#withReference(UUID) DirectJob.Builder.withReference(..)} or {@link no.digipost.signature.client.portal.PortalJob.Builder#withReference(UUID) PortalJob.Builder.withReference(..)}.
+         * Any character in the reference other than {@code A-Z}, {@code a-z}, {@code 0-9}, {@code .}, {@code _} and {@code -},
+         * as well as sequences of two or more dots, are replaced with {@code _} in the file name.
          *
          * @param directory the directory to dump to. This directory must already exist, or
          *                  creating new signature jobs will fail. Miserably.
