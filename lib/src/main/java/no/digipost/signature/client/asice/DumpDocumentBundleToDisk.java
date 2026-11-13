@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import static java.nio.file.Files.isDirectory;
 
@@ -36,7 +37,11 @@ public class DumpDocumentBundleToDisk implements DocumentBundleProcessor {
             DateTimeFormatter timestampFormat = DateTimeFormatter.ofPattern(TIMESTAMP_PATTERN);
             Optional<String> reference = Optional.ofNullable(job.getReference());
             String filename = timestampFormat.format(ZonedDateTime.now(clock)) + "-" + reference.map(referenceFilenamePart).orElse("") + "asice.zip";
-            Path target = directory.resolve(filename);
+            Path dumpDirectory = directory.toAbsolutePath().normalize();
+            Path target = dumpDirectory.resolve(filename).normalize();
+            if (!dumpDirectory.equals(target.getParent())) {
+                throw new IOException("Refusing to dump document bundle to " + target + ", which is not directly inside " + dumpDirectory);
+            }
             LOG.info(() -> "Dumping document bundle" + reference.map(ref -> " for job with reference '" + ref + "'").orElse("") + " to " + target);
             Files.copy(documentBundle, target);
         } else {
@@ -50,6 +55,20 @@ public class DumpDocumentBundleToDisk implements DocumentBundleProcessor {
         }
     }
 
-    static final Function<String, String> referenceFilenamePart = reference -> reference.replace(' ', '_') + "-";
+    /**
+     * Characters not in this set are replaced, so a job reference can never introduce
+     * path separators or other characters with special meaning in a file name.
+     */
+    private static final Pattern UNSAFE_FILENAME_CHARS = Pattern.compile("[^A-Za-z0-9._-]");
+
+    /**
+     * Sequences of two or more dots are replaced to avoid "{@code ..}" in file names.
+     */
+    private static final Pattern DOT_SEQUENCES = Pattern.compile("\\.{2,}");
+
+    static final Function<String, String> referenceFilenamePart = reference -> {
+        String safeChars = UNSAFE_FILENAME_CHARS.matcher(reference).replaceAll("_");
+        return DOT_SEQUENCES.matcher(safeChars).replaceAll("_") + "-";
+    };
 
 }
