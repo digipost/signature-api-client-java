@@ -6,7 +6,7 @@ public class Manifest implements ASiCEAttachable {
 
     private byte[] xmlBytes;
 
-    public Manifest(final byte[] xmlBytes) {
+    public Manifest(byte[] xmlBytes) {
         this.xmlBytes = xmlBytes;
     }
 

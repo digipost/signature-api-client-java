@@ -2,11 +2,11 @@ package no.digipost.signature.client.core.exceptions;
 
 public class ConfigurationException extends SignatureException {
 
-    public ConfigurationException(final String message) {
+    public ConfigurationException(String message) {
         this(message, null);
     }
 
-    public ConfigurationException(final String message, final Exception e) {
+    public ConfigurationException(String message, Exception e) {
         super(message, e);
     }
 }
